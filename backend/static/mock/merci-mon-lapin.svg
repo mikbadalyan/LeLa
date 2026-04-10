@@ -1,0 +1,22 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#6D9D3A"/>
+  <rect width="1080" height="1320" fill="url(#paint0_linear_0_1)"/>
+  <ellipse cx="408" cy="574" rx="214" ry="312" transform="rotate(12 408 574)" fill="#F4C9D9"/>
+  <ellipse cx="764" cy="650" rx="170" ry="280" transform="rotate(-10 764 650)" fill="#A6D6F8"/>
+  <circle cx="344" cy="434" r="18" fill="#FFFFFF"/>
+  <circle cx="488" cy="514" r="18" fill="#FFFFFF"/>
+  <circle cx="532" cy="704" r="18" fill="#FFFFFF"/>
+  <circle cx="380" cy="820" r="18" fill="#FFFFFF"/>
+  <circle cx="312" cy="656" r="18" fill="#FFFFFF"/>
+  <circle cx="744" cy="528" r="16" fill="#FFFFFF"/>
+  <circle cx="692" cy="738" r="16" fill="#FFFFFF"/>
+  <text x="96" y="1044" fill="#FFFFFF" font-size="108" font-family="Trebuchet MS" font-weight="700">Merci mon</text>
+  <text x="96" y="1154" fill="#FFFFFF" font-size="108" font-family="Trebuchet MS" font-weight="700">lapin !</text>
+  <defs>
+    <linearGradient id="paint0_linear_0_1" x1="90" y1="60" x2="1080" y2="1320" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DB94F"/>
+      <stop offset="1" stop-color="#3B5D20"/>
+    </linearGradient>
+  </defs>
+</svg>
+

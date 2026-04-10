@@ -1,0 +1,20 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#231B43"/>
+  <rect width="1080" height="1320" fill="url(#paint0_radial_0_1)"/>
+  <circle cx="520" cy="476" r="180" fill="#F3D9BD"/>
+  <path d="M452 396C500 358 554 358 600 396L640 620H414L452 396Z" fill="#2E78D5"/>
+  <path d="M520 296L562 358H478L520 296Z" fill="#D7B45A"/>
+  <path d="M420 418C340 454 290 544 296 628C376 612 446 548 470 466L420 418Z" fill="#2357A6"/>
+  <path d="M622 418C702 454 752 544 746 628C666 612 596 548 572 466L622 418Z" fill="#2357A6"/>
+  <circle cx="850" cy="250" r="22" fill="#FFD46C"/>
+  <circle cx="796" cy="340" r="12" fill="#FFD46C"/>
+  <circle cx="900" cy="362" r="14" fill="#FFD46C"/>
+  <text x="96" y="1050" fill="#FFFFFF" font-size="104" font-family="Trebuchet MS" font-weight="700">Parfum d'Etoiles</text>
+  <defs>
+    <radialGradient id="paint0_radial_0_1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(540 420) rotate(90) scale(780)">
+      <stop stop-color="#5F40B2"/>
+      <stop offset="1" stop-color="#1C1535"/>
+    </radialGradient>
+  </defs>
+</svg>
+

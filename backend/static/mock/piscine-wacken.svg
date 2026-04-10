@@ -1,0 +1,13 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#B7D8F0"/>
+  <rect x="0" y="660" width="1080" height="660" fill="#7FB6E6"/>
+  <rect x="104" y="532" width="872" height="590" fill="#59A9E6"/>
+  <path d="M104 642H976" stroke="#E8F7FF" stroke-width="10" stroke-dasharray="32 18"/>
+  <path d="M234 232V618" stroke="#DDE2E7" stroke-width="22"/>
+  <path d="M234 232H306" stroke="#DDE2E7" stroke-width="22"/>
+  <path d="M234 332H306" stroke="#DDE2E7" stroke-width="22"/>
+  <path d="M234 430H306" stroke="#DDE2E7" stroke-width="22"/>
+  <text x="96" y="1054" fill="#FFFFFF" font-size="108" font-family="Trebuchet MS" font-weight="700">Quelques longueurs</text>
+  <text x="96" y="1164" fill="#FFFFFF" font-size="108" font-family="Trebuchet MS" font-weight="700">pour le plaisir</text>
+</svg>
+

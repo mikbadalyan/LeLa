@@ -1,0 +1,14 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#E7E5E1"/>
+  <rect x="88" y="92" width="260" height="360" fill="#F8F7F4"/>
+  <rect x="372" y="92" width="620" height="360" fill="#CED3D8"/>
+  <ellipse cx="685" cy="270" rx="152" ry="168" fill="#E9D4B2"/>
+  <rect x="564" y="332" width="252" height="266" rx="126" fill="#4E5963"/>
+  <rect x="520" y="160" width="320" height="80" rx="40" fill="#CED3D8"/>
+  <circle cx="628" cy="253" r="34" stroke="#263238" stroke-width="12"/>
+  <circle cx="740" cy="253" r="34" stroke="#263238" stroke-width="12"/>
+  <path d="M662 253H706" stroke="#263238" stroke-width="12"/>
+  <text x="90" y="1024" fill="#23323E" font-size="96" font-family="Trebuchet MS" font-weight="700">Tomi</text>
+  <text x="90" y="1128" fill="#23323E" font-size="96" font-family="Trebuchet MS" font-weight="700">Ungerer</text>
+</svg>
+

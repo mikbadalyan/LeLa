@@ -1,0 +1,10 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#D8E1EA"/>
+  <rect x="116" y="244" width="848" height="614" rx="18" fill="#F2F4F7"/>
+  <rect x="196" y="304" width="688" height="110" fill="#C4D2DE"/>
+  <rect x="248" y="414" width="584" height="334" fill="#91A8BD"/>
+  <rect x="432" y="414" width="216" height="334" fill="#DFE7EE"/>
+  <text x="116" y="1046" fill="#23323E" font-size="104" font-family="Trebuchet MS" font-weight="700">Musee Wurth</text>
+  <text x="116" y="1140" fill="#5B6673" font-size="56" font-family="Trebuchet MS">Erstein</text>
+</svg>
+

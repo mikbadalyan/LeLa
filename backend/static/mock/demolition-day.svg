@@ -1,0 +1,18 @@
+<svg width="1080" height="1320" viewBox="0 0 1080 1320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1080" height="1320" fill="#2C2026"/>
+  <rect width="1080" height="1320" fill="url(#paint0_linear_0_1)"/>
+  <circle cx="726" cy="454" r="182" fill="#E0A82D"/>
+  <circle cx="726" cy="454" r="122" fill="#231F25"/>
+  <rect x="96" y="230" width="222" height="620" transform="rotate(-18 96 230)" fill="#5E4733"/>
+  <rect x="280" y="162" width="222" height="720" transform="rotate(-18 280 162)" fill="#C99D4A"/>
+  <text x="96" y="1050" fill="#FFFFFF" font-size="110" font-family="Trebuchet MS" font-weight="700">Demolition</text>
+  <text x="96" y="1160" fill="#FFFFFF" font-size="110" font-family="Trebuchet MS" font-weight="700">Day</text>
+  <defs>
+    <linearGradient id="paint0_linear_0_1" x1="204" y1="146" x2="1000" y2="1166" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86652E"/>
+      <stop offset="0.5" stop-color="#36262B"/>
+      <stop offset="1" stop-color="#16121A"/>
+    </linearGradient>
+  </defs>
+</svg>
+
