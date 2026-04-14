@@ -6,6 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from app.models.editorial import EditorialRelationType, EditorialType
+from app.models.user import UserRole
 
 
 class ContributorRead(BaseModel):
@@ -14,6 +15,7 @@ class ContributorRead(BaseModel):
     display_name: str
     avatar_url: str
     city: Optional[str] = None
+    role: UserRole = UserRole.CONTRIBUTOR
 
 
 class RelatedEntitySummary(BaseModel):

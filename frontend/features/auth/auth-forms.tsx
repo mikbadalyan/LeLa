@@ -8,19 +8,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
 import { login, register } from "@/lib/api/endpoints";
+import type { RegisterPayload } from "@/lib/api/types";
 
 type Mode = "login" | "register";
 
-const initialRegister = {
+const initialRegister: RegisterPayload = {
   username: "",
   email: "",
   password: "",
-  city: "Strasbourg"
+  city: "Strasbourg",
+  role: "contributor",
 };
 
 const initialLogin = {
   email: "",
-  password: ""
+  password: "",
 };
 
 export function AuthForms() {
@@ -37,7 +39,7 @@ export function AuthForms() {
       setSession(response.access_token, response.user);
       router.push("/feed");
     },
-    onError: (mutationError: Error) => setError(mutationError.message)
+    onError: (mutationError: Error) => setError(mutationError.message),
   });
 
   const registerMutation = useMutation({
@@ -46,7 +48,7 @@ export function AuthForms() {
       setSession(response.access_token, response.user);
       router.push("/feed");
     },
-    onError: (mutationError: Error) => setError(mutationError.message)
+    onError: (mutationError: Error) => setError(mutationError.message),
   });
 
   const isBusy = loginMutation.isPending || registerMutation.isPending;
@@ -62,9 +64,7 @@ export function AuthForms() {
               setMode(tab);
               setError(null);
             }}
-            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
-              mode === tab ? "bg-plum text-white" : "text-graphite"
-            }`}
+            className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${mode === tab ? "bg-plum text-white" : "text-graphite"}`}
           >
             {tab === "login" ? "Connexion" : "Inscription"}
           </button>
@@ -139,6 +139,26 @@ export function AuthForms() {
               setRegisterForm((current) => ({ ...current, password: event.target.value }))
             }
           />
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-graphite">Role du compte</p>
+            <div className="grid grid-cols-2 gap-3">
+              {([
+                { key: "contributor", label: "Contributeur" },
+                { key: "moderator", label: "Moderateur" },
+              ] as const).map((role) => (
+                <button
+                  key={role.key}
+                  type="button"
+                  onClick={() =>
+                    setRegisterForm((current) => ({ ...current, role: role.key }))
+                  }
+                  className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${registerForm.role === role.key ? "bg-plum text-white shadow-float" : "bg-white text-graphite ring-1 ring-borderSoft"}`}
+                >
+                  {role.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <Button type="submit" fullWidth disabled={isBusy}>
             Creer mon compte
           </Button>
@@ -151,4 +171,3 @@ export function AuthForms() {
     </div>
   );
 }
-

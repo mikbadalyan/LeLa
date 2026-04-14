@@ -17,8 +17,9 @@ from app.models.editorial import (
     Person,
     Place,
 )
+from app.models.friendship import Friendship
 from app.models.like import Like
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 def _media(path: str) -> str:
@@ -51,9 +52,35 @@ def _sync_existing_seed_assets(db: Session) -> None:
         db.commit()
 
 
+def _ensure_seed_friendships(db: Session) -> None:
+    seed_pairs = [("user-charles", "user-steve"), ("user-steve", "user-charles")]
+    existing_pairs = {
+        (entry.user_id, entry.friend_id) for entry in db.scalars(select(Friendship)).all()
+    }
+
+    missing_entries = [
+        Friendship(user_id=user_id, friend_id=friend_id)
+        for user_id, friend_id in seed_pairs
+        if (user_id, friend_id) not in existing_pairs
+    ]
+    if missing_entries:
+        db.add_all(missing_entries)
+        db.commit()
+
+
 def seed_database(db: Session) -> None:
     if db.scalar(select(User.id).limit(1)):
+        existing_users = db.scalars(select(User)).all()
+        updated_roles = False
+        for user in existing_users:
+            target_role = UserRole.MODERATOR if user.id == "user-charles" else UserRole.CONTRIBUTOR
+            if user.role != target_role:
+                user.role = target_role
+                updated_roles = True
+        if updated_roles:
+            db.commit()
         _sync_existing_seed_assets(db)
+        _ensure_seed_friendships(db)
         return
 
     users = [
@@ -64,6 +91,7 @@ def seed_database(db: Session) -> None:
             hashed_password=get_password_hash("lela1234"),
             city="Strasbourg",
             avatar_url=_media("avatar-charles.svg"),
+            role=UserRole.MODERATOR,
         ),
         User(
             id="user-steve",
@@ -72,6 +100,7 @@ def seed_database(db: Session) -> None:
             hashed_password=get_password_hash("lela1234"),
             city="Erstein",
             avatar_url=_media("avatar-steve.svg"),
+            role=UserRole.CONTRIBUTOR,
         ),
     ]
     db.add_all(users)
@@ -279,6 +308,12 @@ def seed_database(db: Session) -> None:
         Like(user_id="user-charles", editorial_object_id="event-chasse"),
     ]
     db.add_all(likes)
+
+    friendships = [
+        Friendship(user_id="user-charles", friend_id="user-steve"),
+        Friendship(user_id="user-steve", friend_id="user-charles"),
+    ]
+    db.add_all(friendships)
 
     db.add(
         Contribution(

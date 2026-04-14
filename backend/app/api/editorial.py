@@ -9,10 +9,35 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_current_user, get_optional_user
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.editorial import EditorialDetailRead
-from app.services.editorial_service import get_editorial_detail, toggle_like
+from app.schemas.editorial import EditorialCardRead, EditorialDetailRead
+from app.schemas.social import MapMarkerRead
+from app.services.editorial_service import (
+    get_editorial_detail,
+    get_liked_editorials,
+    list_map_markers,
+    toggle_like,
+)
 
 router = APIRouter(prefix="/editorial", tags=["editorial"])
+
+
+@router.get("/liked", response_model=list[EditorialCardRead])
+def read_liked_editorials(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    city: Optional[str] = None,
+    date: Optional[str] = None,
+) -> list[EditorialCardRead]:
+    return get_liked_editorials(db, current_user, city=city, selected_date=date)
+
+
+@router.get("/map-markers", response_model=list[MapMarkerRead])
+def read_map_markers(
+    db: Annotated[Session, Depends(get_db)],
+    city: Optional[str] = None,
+    date: Optional[str] = None,
+) -> list[MapMarkerRead]:
+    return list_map_markers(db, city=city, selected_date=date)
 
 
 @router.get("/{editorial_id}", response_model=EditorialDetailRead)

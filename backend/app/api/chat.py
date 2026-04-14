@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_optional_user
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.chat import ChatRequest, ChatResponse
-from app.services.chat_service import respond_to_chat
+from app.schemas.chat import ChatFeedbackCreate, ChatFeedbackRead, ChatRequest, ChatResponse
+from app.services.chat_service import respond_to_chat, save_chat_feedback
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -25,3 +25,12 @@ def chat_respond(
         return respond_to_chat(db, payload, current_user)
     except RuntimeError as error:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(error)) from error
+
+
+@router.post("/feedback", response_model=ChatFeedbackRead)
+def chat_feedback(
+    payload: ChatFeedbackCreate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Optional[User], Depends(get_optional_user)],
+) -> ChatFeedbackRead:
+    return save_chat_feedback(db, payload, current_user)

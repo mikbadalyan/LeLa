@@ -1,14 +1,24 @@
 import { apiRequest } from "@/lib/api/client";
 import type {
   AuthResponse,
+  ChatFeedbackPayload,
+  ChatFeedbackResponse,
   ChatRequestPayload,
   ChatResponse,
   ContributionPayload,
   ContributionRecord,
+  EditorialCard,
   EditorialDetail,
+  FeedQueryFilters,
   FeedResponse,
+  FriendRecord,
   LoginPayload,
-  RegisterPayload
+  MapMarker,
+  ModerationContribution,
+  RegisterPayload,
+  SharePayload,
+  ShareRecord,
+  UserSearchResult
 } from "@/lib/api/types";
 
 export function getFeed(params: {
@@ -16,6 +26,8 @@ export function getFeed(params: {
   cursor?: string | null;
   limit?: number;
   token?: string | null;
+  city?: string | null;
+  date?: string | null;
 }) {
   const search = new URLSearchParams();
 
@@ -29,6 +41,14 @@ export function getFeed(params: {
 
   if (params.limit) {
     search.set("limit", String(params.limit));
+  }
+
+  if (params.city) {
+    search.set("city", params.city);
+  }
+
+  if (params.date) {
+    search.set("date", params.date);
   }
 
   return apiRequest<FeedResponse>(`/api/feed?${search.toString()}`, {
@@ -80,8 +100,98 @@ export function toggleLike(id: string, token: string) {
   );
 }
 
+export function getLikedEditorials(filters: FeedQueryFilters, token: string) {
+  const search = new URLSearchParams();
+
+  if (filters.city) {
+    search.set("city", filters.city);
+  }
+
+  if (filters.date) {
+    search.set("date", filters.date);
+  }
+
+  return apiRequest<EditorialCard[]>(`/api/editorial/liked?${search.toString()}`, {
+    token
+  });
+}
+
 export function sendChatMessage(payload: ChatRequestPayload, token?: string | null) {
   return apiRequest<ChatResponse>("/api/chat/respond", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function getPendingContributions(token: string) {
+  return apiRequest<ModerationContribution[]>("/api/contributions?status=pending", {
+    token
+  });
+}
+
+export function approveContribution(id: string, token: string) {
+  return apiRequest<ContributionRecord>(`/api/contributions/${id}/approve`, {
+    method: "POST",
+    token
+  });
+}
+
+export function getFriends(token: string) {
+  return apiRequest<FriendRecord[]>("/api/social/friends", {
+    token
+  });
+}
+
+export function searchUsers(query: string, token: string) {
+  const search = new URLSearchParams();
+  search.set("q", query);
+
+  return apiRequest<UserSearchResult[]>(`/api/social/users/search?${search.toString()}`, {
+    token
+  });
+}
+
+export function addFriend(friendId: string, token: string) {
+  return apiRequest<FriendRecord>(`/api/social/friends/${friendId}`, {
+    method: "POST",
+    token
+  });
+}
+
+export function removeFriend(friendId: string, token: string) {
+  return apiRequest<void>(`/api/social/friends/${friendId}`, {
+    method: "DELETE",
+    token
+  });
+}
+
+export function shareEditorial(payload: SharePayload, token: string) {
+  return apiRequest<ShareRecord>("/api/social/shares", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function getMapMarkers(filters: FeedQueryFilters, token?: string | null) {
+  const search = new URLSearchParams();
+
+  if (filters.city) {
+    search.set("city", filters.city);
+  }
+
+  if (filters.date) {
+    search.set("date", filters.date);
+  }
+
+  return apiRequest<MapMarker[]>(`/api/editorial/map-markers?${search.toString()}`, {
+    token
+  });
+}
+
+export function submitChatFeedback(payload: ChatFeedbackPayload, token?: string | null) {
+  return apiRequest<ChatFeedbackResponse>("/api/chat/feedback", {
     method: "POST",
     body: payload,
     token

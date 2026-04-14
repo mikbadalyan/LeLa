@@ -12,6 +12,7 @@ from app.db.session import Base
 
 
 class EditorialType(str, enum.Enum):
+    MAGAZINE = "magazine"
     PLACE = "place"
     PERSON = "person"
     EVENT = "event"

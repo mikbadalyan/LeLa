@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -45,6 +45,18 @@ def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentification requise.",
+        )
+
+    return user
+
+
+def get_moderator_user(
+    user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    if user.role != UserRole.MODERATOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acces reserve au role moderateur.",
         )
 
     return user

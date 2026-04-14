@@ -8,9 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.models.chat_feedback import ChatFeedback
 from app.models.editorial import EditorialObject, EditorialType
 from app.models.user import User
 from app.schemas.chat import (
+    ChatFeedbackCreate,
+    ChatFeedbackRead,
     ChatEditorialSuggestion,
     ChatRequest,
     ChatResponse,
@@ -31,6 +34,7 @@ STATIC_FOLLOW_UPS = [
     "Quels evenements sont lies a cette carte ?",
     "Ou puis-je contribuer un nouveau contenu ?",
 ]
+MIN_EDITORIAL_MATCH_SCORE = 2
 
 
 def _normalize(value: str) -> str:
@@ -133,10 +137,7 @@ def _search_editorials(db: Session, question: str, limit: int = 3) -> list[ChatE
     scored = [(item, _score_editorial(item, question, question_tokens)) for item in items]
     scored.sort(key=lambda entry: (entry[1], entry[0].created_at), reverse=True)
 
-    matches = [item for item, score in scored if score > 0][:limit]
-    if not matches:
-        matches = items[:limit]
-
+    matches = [item for item, score in scored if score >= MIN_EDITORIAL_MATCH_SCORE][:limit]
     return [_serialize_editorial_suggestion(item) for item in matches]
 
 
@@ -261,7 +262,8 @@ def _build_system_prompt(
         "et reponds toujours en francais, avec un ton chaleureux, concret et concis. "
         "Si une information n'existe pas dans le contexte LE_LA, dis-le franchement et propose le meilleur ecran "
         "a ouvrir ensuite. N'invente jamais de cartes, d'adresses ou d'evenements absents du contexte. "
-        "Quand tu cites une carte, utilise son titre exact.\n\n"
+        "Quand tu cites une carte, utilise son titre exact. Si aucune carte ne correspond clairement, reponds "
+        "uniquement avec du texte et ne forces pas de suggestion editoriale.\n\n"
         f"Page courante: {payload.current_path or '/feed?focus=chat'}\n"
         f"Focus courant: {payload.current_focus or 'chat'}\n"
         f"{user_context}\n\n"
@@ -284,7 +286,7 @@ def _conversation_messages(
         }
     ]
 
-    for entry in payload.history[-8:]:
+    for entry in payload.history:
         messages.append({"role": entry.role, "content": entry.content})
 
     messages.append({"role": "user", "content": payload.message})
@@ -384,7 +386,13 @@ def respond_to_chat(
     current_user: Optional[User] = None,
 ) -> ChatResponse:
     settings = get_settings()
-    related_editorials = _search_editorials(db, payload.message)
+    query_text = " ".join(
+        [
+            *(entry.content for entry in payload.history if entry.role == "user"),
+            payload.message,
+        ]
+    )
+    related_editorials = _search_editorials(db, query_text)
     suggested_routes = _route_suggestions(payload.message, related_editorials, current_user)
     catalog_context = _latest_catalog_context(db)
     conversation = _conversation_messages(
@@ -403,4 +411,39 @@ def respond_to_chat(
         suggested_routes=suggested_routes,
         suggested_editorials=related_editorials,
         follow_up_questions=_follow_up_questions(related_editorials),
+    )
+
+
+def save_chat_feedback(
+    db: Session,
+    payload: ChatFeedbackCreate,
+    current_user: Optional[User] = None,
+) -> ChatFeedbackRead:
+    existing = db.scalar(select(ChatFeedback).where(ChatFeedback.message_id == payload.message_id))
+
+    if existing:
+        existing.rating = payload.rating
+        existing.response_text = payload.response_text
+        existing.conversation_id = payload.conversation_id
+        if current_user:
+            existing.user_id = current_user.id
+        feedback = existing
+    else:
+        feedback = ChatFeedback(
+            conversation_id=payload.conversation_id,
+            message_id=payload.message_id,
+            rating=payload.rating,
+            response_text=payload.response_text,
+            user_id=current_user.id if current_user else None,
+        )
+        db.add(feedback)
+
+    db.commit()
+    db.refresh(feedback)
+
+    return ChatFeedbackRead(
+        id=feedback.id,
+        conversation_id=feedback.conversation_id,
+        message_id=feedback.message_id,
+        rating=feedback.rating,
     )

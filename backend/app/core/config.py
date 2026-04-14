@@ -36,6 +36,17 @@ class Settings(BaseSettings):
         }
         return sorted(origins)
 
+    @property
+    def frontend_origin_regex(self) -> str:
+        return (
+            r"^https?://("
+            r"localhost|127\.0\.0\.1|"
+            r"192\.168\.\d{1,3}\.\d{1,3}|"
+            r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}|"
+            r"172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}"
+            r"):\d+$"
+        )
+
 
 @lru_cache
 def get_settings() -> Settings:

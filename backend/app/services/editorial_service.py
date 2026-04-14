@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from datetime import date, datetime
 from typing import Optional
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models.editorial import EditorialObject, EditorialRelation, Event
+from app.models.editorial import EditorialObject, EditorialRelation, EditorialType, Event
 from app.models.like import Like
 from app.models.user import User
 from app.schemas.editorial import (
@@ -18,6 +19,7 @@ from app.schemas.editorial import (
     FeedResponse,
     RelatedEntitySummary,
 )
+from app.schemas.social import MapMarkerRead
 
 LOAD_OPTIONS = (
     selectinload(EditorialObject.contributor),
@@ -36,6 +38,7 @@ def _serialize_contributor(user: User) -> ContributorRead:
         display_name=user.username,
         avatar_url=user.avatar_url,
         city=user.city,
+        role=user.role,
     )
 
 
@@ -126,25 +129,83 @@ def _serialize_card(
     )
 
 
+def _normalize_city(value: Optional[str]) -> Optional[str]:
+    if not value:
+        return None
+
+    normalized = value.strip().lower()
+    return normalized or None
+
+
+def _parse_selected_date(value: Optional[str]) -> Optional[date]:
+    if not value:
+        return None
+
+    try:
+        return datetime.fromisoformat(value).date()
+    except ValueError:
+        try:
+            return date.fromisoformat(value)
+        except ValueError:
+            return None
+
+
+def _matches_city(item: EditorialObject, city: Optional[str]) -> bool:
+    normalized_city = _normalize_city(city)
+    if not normalized_city:
+        return True
+
+    candidates = [
+        item.contributor.city,
+        item.place.city if item.place else None,
+        item.event.location.place.city
+        if item.event and item.event.location and item.event.location.place
+        else None,
+    ]
+
+    return any(candidate and candidate.strip().lower() == normalized_city for candidate in candidates)
+
+
+def _matches_selected_date(item: EditorialObject, selected_date: Optional[str]) -> bool:
+    target_date = _parse_selected_date(selected_date)
+    if not target_date or not item.event:
+        return True
+
+    return item.event.event_date.date() == target_date
+
+
+def _apply_filters(
+    items: list[EditorialObject],
+    city: Optional[str] = None,
+    selected_date: Optional[str] = None,
+) -> list[EditorialObject]:
+    return [
+        item
+        for item in items
+        if _matches_city(item, city) and _matches_selected_date(item, selected_date)
+    ]
+
+
 def get_feed(
     db: Session,
     editorial_type: Optional[str],
     cursor: Optional[str],
     limit: int,
     current_user: Optional[User] = None,
+    city: Optional[str] = None,
+    selected_date: Optional[str] = None,
 ) -> FeedResponse:
     offset = int(cursor or 0)
     query = select(EditorialObject).options(*LOAD_OPTIONS).order_by(
         EditorialObject.created_at.desc()
     )
-    count_query = select(func.count(EditorialObject.id))
 
     if editorial_type:
         query = query.where(EditorialObject.type == editorial_type)
-        count_query = count_query.where(EditorialObject.type == editorial_type)
 
-    total = db.scalar(count_query) or 0
-    items = db.scalars(query.offset(offset).limit(limit)).all()
+    filtered_items = _apply_filters(db.scalars(query).all(), city, selected_date)
+    total = len(filtered_items)
+    items = filtered_items[offset : offset + limit]
 
     next_cursor = str(offset + limit) if offset + limit < total else None
 
@@ -228,3 +289,74 @@ def toggle_like(db: Session, editorial_id: str, current_user: User) -> tuple[boo
         select(func.count(Like.id)).where(Like.editorial_object_id == editorial_id)
     ) or 0
     return liked, like_count
+
+
+def get_liked_editorials(
+    db: Session,
+    current_user: User,
+    city: Optional[str] = None,
+    selected_date: Optional[str] = None,
+) -> list[EditorialCardRead]:
+    liked_items = db.scalars(
+        select(EditorialObject)
+        .join(Like, Like.editorial_object_id == EditorialObject.id)
+        .options(*LOAD_OPTIONS)
+        .where(Like.user_id == current_user.id)
+        .order_by(EditorialObject.created_at.desc())
+    ).all()
+
+    filtered_items = _apply_filters(liked_items, city, selected_date)
+    return [_serialize_card(db, item, current_user) for item in filtered_items]
+
+
+def list_map_markers(
+    db: Session,
+    city: Optional[str] = None,
+    selected_date: Optional[str] = None,
+) -> list[MapMarkerRead]:
+    items = _apply_filters(
+        db.scalars(
+            select(EditorialObject)
+            .options(*LOAD_OPTIONS)
+            .where(EditorialObject.type.in_([EditorialType.PLACE, EditorialType.EVENT]))
+            .order_by(EditorialObject.created_at.desc())
+        ).all(),
+        city,
+        selected_date,
+    )
+    markers: list[MapMarkerRead] = []
+
+    for item in items:
+        if item.place:
+            markers.append(
+                MapMarkerRead(
+                    editorial_id=item.id,
+                    type=item.type.value,
+                    title=item.title,
+                    subtitle=item.subtitle,
+                    latitude=item.place.latitude,
+                    longitude=item.place.longitude,
+                    href=f"/editorial/{item.id}",
+                    city=item.place.city,
+                    date=item.event.event_date if item.event else None,
+                )
+            )
+            continue
+
+        if item.event and item.event.location and item.event.location.place:
+            location = item.event.location.place
+            markers.append(
+                MapMarkerRead(
+                    editorial_id=item.id,
+                    type=item.type.value,
+                    title=item.title,
+                    subtitle=item.subtitle,
+                    latitude=location.latitude,
+                    longitude=location.longitude,
+                    href=f"/editorial/{item.id}",
+                    city=location.city,
+                    date=item.event.event_date,
+                )
+            )
+
+    return markers

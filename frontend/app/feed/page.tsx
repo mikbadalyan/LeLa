@@ -20,4 +20,3 @@ export default async function FeedPage({
 
   return <FeedScreen focus={focus} />;
 }
-

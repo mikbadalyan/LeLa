@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { CalendarClock, MapPin } from "lucide-react";
+import { CalendarClock, Heart, MapPin, Newspaper } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { ShareSheet } from "@/components/ui/share-sheet";
 import type { EditorialCard } from "@/lib/api/types";
 import { formatFrenchDateTime } from "@/lib/utils/format";
 
@@ -15,6 +16,8 @@ interface EditorialFeedCardProps {
 
 function typeIcon(type: EditorialCard["type"]) {
   switch (type) {
+    case "magazine":
+      return <Newspaper className="h-[25px] w-[25px]" />;
     case "place":
       return <Image src="/assets/icon-location.svg" alt="Lieu" width={18} height={25} />;
     case "person":
@@ -25,6 +28,10 @@ function typeIcon(type: EditorialCard["type"]) {
 }
 
 function primaryActionIcon(type: EditorialCard["type"]) {
+  if (type === "magazine") {
+    return { src: "/assets/button-arrow.svg", alt: "Open", size: 45 };
+  }
+
   if (type === "place") {
     return { src: "/assets/icon-play.svg", alt: "Play", size: 45 };
   }
@@ -38,10 +45,11 @@ function primaryActionIcon(type: EditorialCard["type"]) {
 
 export function EditorialFeedCard({ item, onLike }: EditorialFeedCardProps) {
   const actionIcon = primaryActionIcon(item.type);
+  const canOpenMap = Boolean(item.metadata.address || item.metadata.city || item.type === "place" || item.type === "event");
 
   return (
     <article className="overflow-hidden rounded-[28px] bg-editorial text-white shadow-card">
-      <Link href={`/editorial/${item.id}`} className="relative block aspect-[0.83] overflow-hidden">
+      <div className="relative aspect-[0.83] overflow-hidden">
         <Image
           src={item.media_url}
           alt={item.title}
@@ -50,9 +58,10 @@ export function EditorialFeedCard({ item, onLike }: EditorialFeedCardProps) {
           className="object-cover transition duration-500 hover:scale-[1.02]"
           priority={false}
         />
+        <Link href={`/editorial/${item.id}`} className="absolute inset-0 z-0" aria-label={item.title} />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-black/10" />
-        <div className="absolute left-4 top-4 flex items-center gap-2 text-xs text-white/90">
-          <Link href="/profile" className="flex items-center gap-2">
+        <div className="absolute left-4 top-4 z-10 flex items-center gap-2 text-xs text-white/90">
+          <Link href="/profile" className="flex items-center gap-2 rounded-full bg-black/20 px-2 py-1 backdrop-blur">
             <Image
               src={item.contributor.avatar_url}
               alt={item.contributor.display_name}
@@ -63,48 +72,48 @@ export function EditorialFeedCard({ item, onLike }: EditorialFeedCardProps) {
             <span>{item.contributor.display_name}</span>
           </Link>
         </div>
-        <div className="absolute right-4 top-4 flex flex-col gap-3">
+        <div className="absolute right-4 top-4 z-10 flex flex-col gap-3">
           <button
             type="button"
-            onClick={(event) => {
-              event.preventDefault();
-              onLike?.(item.id);
-            }}
-            className="rounded-full bg-white/18 p-2 backdrop-blur"
-            aria-label="Aimer cette carte"
+            onClick={() => onLike?.(item.id)}
+            className="rounded-full bg-white/18 p-2 backdrop-blur transition hover:bg-white/28"
+            aria-label={item.is_liked ? "Retirer des aimes" : "Aimer cette carte"}
           >
-            <Image
-              src="/assets/icon-heart-white.svg"
-              alt="Like"
-              width={25}
-              height={25}
-              className="h-5 w-auto"
+            <Heart
+              className={`h-5 w-5 ${item.is_liked ? "fill-white text-white" : "text-white"}`}
             />
           </button>
-          <button
-            type="button"
-            className="rounded-full bg-white/18 p-2 backdrop-blur"
-            aria-label="Partager cette carte"
-          >
-            <Image
-              src="/assets/icon-send-white.svg"
-              alt="Share"
-              width={25}
-              height={25}
-              className="h-5 w-auto"
-            />
-          </button>
+          <ShareSheet editorialId={item.id} editorialTitle={item.title}>
+            {({ open }) => (
+              <button
+                type="button"
+                onClick={open}
+                className="rounded-full bg-white/18 p-2 backdrop-blur transition hover:bg-white/28"
+                aria-label="Partager cette carte"
+              >
+                <Image
+                  src="/assets/icon-send-white.svg"
+                  alt="Share"
+                  width={25}
+                  height={25}
+                  className="h-5 w-auto"
+                />
+              </button>
+            )}
+          </ShareSheet>
         </div>
-        <div className="absolute inset-x-4 bottom-4">
-          <h2 className="max-w-[14ch] text-[2rem] font-semibold leading-none">{item.title}</h2>
-          {item.subtitle ? (
-            <p className="mt-2 max-w-[24ch] text-base leading-snug text-white/90">
-              {item.subtitle}
-            </p>
-          ) : null}
+        <div className="absolute inset-x-4 bottom-4 z-10">
+          <Link href={`/editorial/${item.id}`} className="block">
+            <h2 className="max-w-[14ch] text-[2rem] font-semibold leading-none">{item.title}</h2>
+            {item.subtitle ? (
+              <p className="mt-2 max-w-[24ch] text-base leading-snug text-white/90">
+                {item.subtitle}
+              </p>
+            ) : null}
+          </Link>
         </div>
-        <div className="absolute bottom-6 right-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-plum shadow-float">
+        <div className="absolute bottom-6 right-4 z-10">
+          <Link href={`/editorial/${item.id}`} className="flex h-14 w-14 items-center justify-center rounded-full bg-plum shadow-float">
             <Image
               src={actionIcon.src}
               alt={actionIcon.alt}
@@ -112,9 +121,9 @@ export function EditorialFeedCard({ item, onLike }: EditorialFeedCardProps) {
               height={actionIcon.size}
               className="h-11 w-11"
             />
-          </div>
+          </Link>
         </div>
-      </Link>
+      </div>
       <div className="space-y-4 p-5">
         <div className="flex items-start gap-3">
           <div className="mt-1 rounded-xl bg-plum p-2 text-white">{typeIcon(item.type)}</div>
@@ -146,7 +155,27 @@ export function EditorialFeedCard({ item, onLike }: EditorialFeedCardProps) {
           </div>
         </div>
         <p className="text-base leading-7 text-white/82">{item.description}</p>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => onLike?.(item.id)}
+            className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/18"
+          >
+            <Heart className={`h-4 w-4 ${item.is_liked ? "fill-current" : ""}`} />
+            {item.like_count} aime{item.like_count > 1 ? "s" : ""}
+          </button>
+
+          {canOpenMap ? (
+            <Link
+              href={`/map?editorial=${item.id}`}
+              className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/18"
+            >
+              <MapPin className="h-4 w-4" />
+              Voir sur la carte
+            </Link>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-white/65">Reference: {item.contributor.display_name}</p>
           <div className="flex items-center gap-4 text-sm text-white/90">
             <Button variant="ghost" className="flex items-center gap-2 p-0 text-white" type="button">

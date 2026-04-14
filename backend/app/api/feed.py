@@ -22,5 +22,15 @@ def read_feed(
     type: Optional[str] = Query(default=None),
     cursor: Optional[str] = Query(default=None),
     limit: int = Query(default=5, le=20),
+    city: Optional[str] = Query(default=None),
+    date: Optional[str] = Query(default=None),
 ) -> FeedResponse:
-    return get_feed(db, type, cursor, limit, current_user)
+    return get_feed(
+        db,
+        type,
+        cursor,
+        limit,
+        current_user,
+        city=city,
+        selected_date=date,
+    )

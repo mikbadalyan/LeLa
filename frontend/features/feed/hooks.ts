@@ -6,17 +6,19 @@ import { useAuthStore } from "@/features/auth/store";
 import { getFeed, toggleLike } from "@/lib/api/endpoints";
 import type { FeedResponse } from "@/lib/api/types";
 
-export function useFeed(filter: string) {
+export function useFeed(filter: string, city?: string | null, date?: string | null) {
   const token = useAuthStore((state) => state.token);
 
   return useInfiniteQuery({
-    queryKey: ["feed", filter, Boolean(token)],
+    queryKey: ["feed", filter, city ?? "", date ?? "", Boolean(token)],
     queryFn: ({ pageParam }) =>
       getFeed({
         type: filter === "all" ? undefined : filter,
         cursor: pageParam,
         limit: 5,
-        token
+        token,
+        city,
+        date
       }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage: FeedResponse) => lastPage.next_cursor
@@ -37,6 +39,7 @@ export function useToggleLike(token: string | null) {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["editorial", id] });
+      queryClient.invalidateQueries({ queryKey: ["liked-editorials"] });
     }
   });
 }

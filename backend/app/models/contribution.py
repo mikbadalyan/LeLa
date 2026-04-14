@@ -20,6 +20,7 @@ class ContributionType(str, enum.Enum):
 
 class ContributionStatus(str, enum.Enum):
     PENDING = "pending"
+    APPROVED = "approved"
 
 
 class Contribution(Base):

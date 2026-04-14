@@ -15,6 +15,7 @@ class ChatHistoryMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     history: list[ChatHistoryMessage] = Field(default_factory=list)
+    conversation_id: Optional[str] = None
     current_path: Optional[str] = None
     current_focus: Optional[str] = None
 
@@ -41,3 +42,17 @@ class ChatResponse(BaseModel):
     suggested_routes: list[ChatRouteSuggestion]
     suggested_editorials: list[ChatEditorialSuggestion]
     follow_up_questions: list[str]
+
+
+class ChatFeedbackCreate(BaseModel):
+    conversation_id: str = Field(min_length=1, max_length=80)
+    message_id: str = Field(min_length=1, max_length=80)
+    rating: int = Field(ge=1, le=5)
+    response_text: str = Field(min_length=1, max_length=8000)
+
+
+class ChatFeedbackRead(BaseModel):
+    id: str
+    conversation_id: str
+    message_id: str
+    rating: int

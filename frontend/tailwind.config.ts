@@ -30,7 +30,8 @@ const config: Config = {
         shell: "32px"
       },
       fontFamily: {
-        sans: ["Avenir Next", "Trebuchet MS", "ui-rounded", "sans-serif"]
+        sans: ["Avenir Next", "Trebuchet MS", "ui-rounded", "sans-serif"],
+        display: ["Avenir Next", "Trebuchet MS", "ui-rounded", "sans-serif"]
       },
       backgroundImage: {
         halo:
@@ -42,4 +43,3 @@ const config: Config = {
 };
 
 export default config;
-

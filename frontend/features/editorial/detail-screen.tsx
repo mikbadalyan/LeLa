@@ -3,10 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPinned } from "lucide-react";
+import { Heart, MapPinned, Newspaper } from "lucide-react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
+import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
@@ -15,8 +16,10 @@ interface DetailScreenProps {
   editorialId: string;
 }
 
-function typeIcon(type: "place" | "person" | "event") {
+function typeIcon(type: "magazine" | "place" | "person" | "event") {
   switch (type) {
+    case "magazine":
+      return <Newspaper className="h-5 w-5" />;
     case "place":
       return <Image src="/assets/icon-location.svg" alt="Lieu" width={18} height={25} className="h-5 w-auto" />;
     case "person":
@@ -36,16 +39,18 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   });
 
   const likeMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (id: string) => {
       if (!token) {
         throw new Error("Veuillez vous connecter pour aimer une carte.");
       }
 
-      return toggleLike(editorialId, token);
+      return toggleLike(id, token);
     },
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["editorial", editorialId] });
+      queryClient.invalidateQueries({ queryKey: ["editorial", id] });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["liked-editorials"] });
     }
   });
 
@@ -62,7 +67,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   }
 
   const activeMode =
-    item.type === "place" ? "place" : item.type === "person" ? "person" : "event";
+    item.type === "place" ? "place" : item.type === "person" ? "person" : item.type === "event" ? "event" : "feed";
 
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="bg-white">
@@ -96,11 +101,13 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </div>
             <button
               type="button"
-              onClick={() => likeMutation.mutate()}
+              onClick={() => likeMutation.mutate(editorialId)}
               className="rounded-full p-2 text-graphite"
               aria-label="Aimer cette fiche"
             >
-              <Image src="/assets/icon-heart.svg" alt="Like" width={25} height={25} className="h-7 w-auto" />
+              <Heart
+                className={`h-7 w-7 ${item.is_liked ? "fill-plum text-plum" : "text-graphite"}`}
+              />
             </button>
           </div>
 
@@ -119,18 +126,29 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <Button variant="secondary" className="rounded-3xl">
-              <Image src="/assets/icon-heart.svg" alt="Like" width={25} height={25} className="mr-2 h-4 w-auto" />
-              Like
+            <Button
+              variant="secondary"
+              className="rounded-3xl"
+              onClick={() => likeMutation.mutate(editorialId)}
+            >
+              <Heart className={`mr-2 h-4 w-4 ${item.is_liked ? "fill-plum text-plum" : ""}`} />
+              {item.like_count}
             </Button>
-            <Button variant="secondary" className="rounded-3xl">
-              <Image src="/assets/icon-send.svg" alt="Share" width={25} height={25} className="mr-2 h-4 w-auto" />
-              Share
-            </Button>
-            <Button variant="secondary" className="rounded-3xl">
+            <ShareSheet editorialId={item.id} editorialTitle={item.title}>
+              {({ open }) => (
+                <Button variant="secondary" className="rounded-3xl" onClick={open}>
+                  <Image src="/assets/icon-send.svg" alt="Share" width={25} height={25} className="mr-2 h-4 w-auto" />
+                  Share
+                </Button>
+              )}
+            </ShareSheet>
+            <Link
+              href={`/map?editorial=${item.id}`}
+              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+            >
               <MapPinned className="mr-2 h-4 w-4" />
               Map
-            </Button>
+            </Link>
           </div>
 
           <div className="flex items-center justify-between border-b border-t border-borderSoft py-4 text-sm text-graphite">
@@ -161,8 +179,34 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
                   <div className="absolute right-4 top-4 flex flex-col gap-2">
-                    <Image src="/assets/icon-heart-white.svg" alt="Like" width={25} height={25} className="h-6 w-auto" />
-                    <Image src="/assets/icon-send-white.svg" alt="Share" width={25} height={25} className="h-6 w-auto" />
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        likeMutation.mutate(relatedItem.id);
+                      }}
+                      className="rounded-full bg-white/18 p-2 backdrop-blur"
+                      aria-label="Aimer cette carte"
+                    >
+                      <Heart
+                        className={`h-5 w-5 ${relatedItem.is_liked ? "fill-white text-white" : "text-white"}`}
+                      />
+                    </button>
+                    <ShareSheet editorialId={relatedItem.id} editorialTitle={relatedItem.title}>
+                      {({ open }) => (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            open();
+                          }}
+                          className="rounded-full bg-white/18 p-2 backdrop-blur"
+                          aria-label="Partager cette carte"
+                        >
+                          <Image src="/assets/icon-send-white.svg" alt="Share" width={25} height={25} className="h-5 w-auto" />
+                        </button>
+                      )}
+                    </ShareSheet>
                   </div>
                   <div className="absolute inset-x-4 bottom-4">
                     <h2 className="max-w-[14ch] text-[2rem] font-semibold leading-none">

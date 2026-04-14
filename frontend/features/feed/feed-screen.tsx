@@ -9,7 +9,9 @@ import { useAuthStore } from "@/features/auth/store";
 import { ChatScreen } from "@/features/chat/chat-screen";
 import { useFeed, useToggleLike } from "@/features/feed/hooks";
 import { useFeedUiStore } from "@/features/feed/store";
+import { useShellStore } from "@/features/shell/store";
 import { useFeedScrollRestoration } from "@/lib/hooks/use-feed-scroll";
+import { formatFrenchDate } from "@/lib/utils/format";
 
 type Focus = "feed" | "place" | "person" | "event" | "chat";
 
@@ -21,6 +23,8 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const filter = useFeedUiStore((state) => state.filter);
   const setFilter = useFeedUiStore((state) => state.setFilter);
   const token = useAuthStore((state) => state.token);
+  const city = useShellStore((state) => state.city);
+  const selectedDate = useShellStore((state) => state.selectedDate);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const likeMutation = useToggleLike(token);
 
@@ -38,7 +42,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   }, [focus, setFilter]);
 
   const activeMode = focus === "feed" ? "feed" : focus;
-  const feedQuery = useFeed(filter);
+  const feedQuery = useFeed(filter, city, selectedDate);
 
   useEffect(() => {
     const element = sentinelRef.current;
@@ -68,7 +72,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
 
   if (focus === "chat") {
     return (
-      <MobileShell activeMode="chat" activeTab="relations" className="overflow-hidden p-0">
+      <MobileShell activeMode="chat" activeTab="conversations" className="overflow-hidden p-0">
         <ChatScreen />
       </MobileShell>
     );
@@ -76,35 +80,37 @@ export function FeedScreen({ focus }: FeedScreenProps) {
 
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="space-y-4 px-3 py-4">
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {[
-          { key: "all", label: "Tout" },
-          { key: "place", label: "Lieux" },
-          { key: "person", label: "Acteurs" },
-          { key: "event", label: "Evenements" }
-        ].map((chip) => (
-          <button
-            key={chip.key}
-            type="button"
-            onClick={() => setFilter(chip.key as "all" | "place" | "person" | "event")}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              filter === chip.key
-                ? "bg-plum text-white shadow-float"
-                : "bg-white text-graphite ring-1 ring-borderSoft"
-            }`}
-          >
-            {chip.label}
-          </button>
-        ))}
+      <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-borderSoft">
+        <p className="text-xs uppercase tracking-[0.18em] text-plum">Contexte</p>
+        <p className="mt-2 text-lg font-semibold text-ink">
+          {filter === "all"
+            ? "Tout le feed"
+            : filter === "place"
+              ? "Lieux"
+              : filter === "person"
+                ? "Acteurs"
+                : filter === "event"
+                  ? "Evenements"
+                  : "Magazine"}
+        </p>
+        <p className="mt-1 text-sm leading-6 text-graphite">
+          {city} · {formatFrenchDate(selectedDate)}
+        </p>
       </div>
 
-      {items.map((item) => (
-        <EditorialFeedCard
-          key={item.id}
-          item={item}
-          onLike={(id) => likeMutation.mutate(id)}
-        />
-      ))}
+      {items.length ? (
+        items.map((item) => (
+          <EditorialFeedCard
+            key={item.id}
+            item={item}
+            onLike={(id) => likeMutation.mutate(id)}
+          />
+        ))
+      ) : feedQuery.isLoading ? null : (
+        <div className="rounded-[28px] bg-white px-4 py-6 text-sm leading-6 text-graphite shadow-sm ring-1 ring-borderSoft">
+          Aucune carte ne correspond a cette combinaison ville/date pour le moment.
+        </div>
+      )}
 
       {feedQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">

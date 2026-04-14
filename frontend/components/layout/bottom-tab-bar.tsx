@@ -18,15 +18,15 @@ const items: Array<{
   label: string;
   icon?: string;
 }> = [
-  { key: "likes", href: "/feed?tab=likes", label: "Aimes", icon: "/assets/icon-tab-heart.svg" },
+  { key: "likes", href: "/likes", label: "Aimes", icon: "/assets/icon-tab-heart.svg" },
   { key: "contribute", href: "/contribute", label: "Contributions", icon: "/assets/icon-plus-navbar.svg" },
   {
     key: "conversations",
-    href: "/feed?tab=conversations",
+    href: "/feed?focus=chat",
     label: "Conversations",
     icon: "/assets/icon-chat.svg"
   },
-  { key: "relations", href: "/feed", label: "Relations", icon: "/assets/icon-relations.svg" },
+  { key: "relations", href: "/relations", label: "Relations", icon: "/assets/icon-relations.svg" },
   { key: "profile", href: "/profile", label: "Compte" }
 ];
 

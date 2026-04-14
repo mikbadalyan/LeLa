@@ -28,7 +28,15 @@ export function ModeNav({ activeMode }: ModeNavProps) {
   return (
     <div className="border-b border-borderSoft bg-[#E8E4DF] px-4 pt-4">
       <div className="flex items-center gap-4">
-        <LogoMark />
+        <Link href="/feed" className="flex flex-col items-center gap-2 pb-2" aria-label="Tout le feed">
+          <LogoMark />
+          <span
+            className={cn(
+              "h-1.5 w-12 rounded-full transition",
+              activeMode === "feed" ? "bg-[#4F79FF]" : "bg-transparent"
+            )}
+          />
+        </Link>
         <nav className="flex flex-1 items-end justify-between">
           {items.map(({ key, href, icon, label }) => {
             const isActive = key === activeMode;

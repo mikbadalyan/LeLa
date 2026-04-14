@@ -16,74 +16,247 @@ export interface ChatMessage {
   suggestedRoutes: ChatRouteSuggestion[];
   suggestedEditorials: ChatEditorialSuggestion[];
   followUpQuestions: string[];
+  rating: number | null;
+  feedbackId: string | null;
+}
+
+export interface ChatConversation {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: ChatMessage[];
 }
 
 interface ChatState {
   draft: string;
-  messages: ChatMessage[];
+  conversations: ChatConversation[];
+  activeConversationId: string | null;
   setDraft: (draft: string) => void;
-  pushUserMessage: (content: string) => void;
+  setActiveConversation: (conversationId: string) => void;
+  startNewConversation: () => void;
+  pushUserMessage: (content: string) => { conversationId: string; messageId: string };
   pushAssistantMessage: (payload: {
     message: string;
     suggestedRoutes?: ChatRouteSuggestion[];
     suggestedEditorials?: ChatEditorialSuggestion[];
     followUpQuestions?: string[];
-  }) => void;
-  clearConversation: () => void;
+  }) => { conversationId: string | null; messageId: string | null };
+  rateAssistantMessage: (messageId: string, rating: number, feedbackId?: string | null) => void;
+  clearAllConversations: () => void;
 }
 
-function createMessageId() {
+function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
 
-  return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createMessageId() {
+  return createId("chat-message");
+}
+
+function createConversationId() {
+  return createId("chat-conversation");
+}
+
+function deriveConversationTitle(message: string) {
+  const trimmed = message.trim();
+  return trimmed.length > 48 ? `${trimmed.slice(0, 48)}...` : trimmed;
+}
+
+function createConversation(seedTitle?: string): ChatConversation {
+  const timestamp = new Date().toISOString();
+  return {
+    id: createConversationId(),
+    title: seedTitle?.trim() || "Nouvelle discussion",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    messages: [],
+  };
+}
+
+function updateConversationList(
+  conversations: ChatConversation[],
+  conversationId: string,
+  updater: (conversation: ChatConversation) => ChatConversation
+) {
+  return conversations.map((conversation) =>
+    conversation.id === conversationId ? updater(conversation) : conversation
+  );
 }
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       draft: "",
-      messages: [],
+      conversations: [],
+      activeConversationId: null,
       setDraft: (draft) => set({ draft }),
-      pushUserMessage: (content) =>
+      setActiveConversation: (conversationId) => set({ activeConversationId: conversationId }),
+      startNewConversation: () => set({ activeConversationId: null, draft: "" }),
+      pushUserMessage: (content) => {
+        const messageId = createMessageId();
+        let conversationId = get().activeConversationId;
+
+        set((state) => {
+          let conversations = state.conversations;
+
+          if (!conversationId) {
+            const newConversation = createConversation(deriveConversationTitle(content));
+            conversationId = newConversation.id;
+            conversations = [newConversation, ...conversations];
+          }
+
+          const timestamp = new Date().toISOString();
+          const message: ChatMessage = {
+            id: messageId,
+            role: "user",
+            content,
+            createdAt: timestamp,
+            suggestedRoutes: [],
+            suggestedEditorials: [],
+            followUpQuestions: [],
+            rating: null,
+            feedbackId: null,
+          };
+
+          return {
+            activeConversationId: conversationId,
+            conversations: updateConversationList(conversations, conversationId, (conversation) => ({
+              ...conversation,
+              title:
+                conversation.messages.length === 0
+                  ? deriveConversationTitle(content)
+                  : conversation.title,
+              updatedAt: timestamp,
+              messages: [...conversation.messages, message],
+            })),
+          };
+        });
+
+        return { conversationId: conversationId!, messageId };
+      },
+      pushAssistantMessage: (payload) => {
+        let activeConversationId: string | null = null;
+        const messageId = createMessageId();
+
+        set((state) => {
+          activeConversationId = state.activeConversationId;
+          if (!activeConversationId) {
+            return state;
+          }
+
+          const timestamp = new Date().toISOString();
+          const message: ChatMessage = {
+            id: messageId,
+            role: "assistant",
+            content: payload.message,
+            createdAt: timestamp,
+            suggestedRoutes: payload.suggestedRoutes ?? [],
+            suggestedEditorials: payload.suggestedEditorials ?? [],
+            followUpQuestions: payload.followUpQuestions ?? [],
+            rating: null,
+            feedbackId: null,
+          };
+
+          return {
+            conversations: updateConversationList(
+              state.conversations,
+              activeConversationId,
+              (conversation) => ({
+                ...conversation,
+                updatedAt: timestamp,
+                messages: [...conversation.messages, message],
+              })
+            ),
+          };
+        });
+
+        return { conversationId: activeConversationId, messageId: activeConversationId ? messageId : null };
+      },
+      rateAssistantMessage: (messageId, rating, feedbackId) =>
         set((state) => ({
-          messages: [
-            ...state.messages,
-            {
-              id: createMessageId(),
-              role: "user",
-              content,
-              createdAt: new Date().toISOString(),
-              suggestedRoutes: [],
-              suggestedEditorials: [],
-              followUpQuestions: [],
-            },
-          ],
+          conversations: state.conversations.map((conversation) => ({
+            ...conversation,
+            messages: conversation.messages.map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    rating,
+                    feedbackId: feedbackId ?? message.feedbackId,
+                  }
+                : message
+            ),
+          })),
         })),
-      pushAssistantMessage: (payload) =>
-        set((state) => ({
-          messages: [
-            ...state.messages,
-            {
-              id: createMessageId(),
-              role: "assistant",
-              content: payload.message,
-              createdAt: new Date().toISOString(),
-              suggestedRoutes: payload.suggestedRoutes ?? [],
-              suggestedEditorials: payload.suggestedEditorials ?? [],
-              followUpQuestions: payload.followUpQuestions ?? [],
-            },
-          ],
-        })),
-      clearConversation: () =>
+      clearAllConversations: () =>
         set({
           draft: "",
-          messages: [],
+          conversations: [],
+          activeConversationId: null,
         }),
     }),
     {
       name: "lela-chat",
+      version: 2,
+      migrate: (persistedState, version) => {
+        const state = persistedState as {
+          draft?: string;
+          messages?: ChatMessage[];
+          conversations?: ChatConversation[];
+          activeConversationId?: string | null;
+        };
+
+        if (version < 2 && Array.isArray(state.messages)) {
+          if (!state.messages.length) {
+            return {
+              draft: state.draft ?? "",
+              conversations: [],
+              activeConversationId: null,
+            };
+          }
+
+          const conversation = createConversation(
+            deriveConversationTitle(
+              state.messages.find((message) => message.role === "user")?.content ?? "Discussion"
+            )
+          );
+          const updatedConversation: ChatConversation = {
+            ...conversation,
+            createdAt: state.messages[0]?.createdAt ?? conversation.createdAt,
+            updatedAt:
+              state.messages[state.messages.length - 1]?.createdAt ?? conversation.updatedAt,
+            messages: state.messages.map((message) => ({
+              ...message,
+              rating: message.rating ?? null,
+              feedbackId: message.feedbackId ?? null,
+            })),
+          };
+
+          return {
+            draft: state.draft ?? "",
+            conversations: [updatedConversation],
+            activeConversationId: updatedConversation.id,
+          };
+        }
+
+        return {
+          draft: state.draft ?? "",
+          conversations:
+            state.conversations?.map((conversation) => ({
+              ...conversation,
+              messages: conversation.messages.map((message) => ({
+                ...message,
+                rating: message.rating ?? null,
+                feedbackId: message.feedbackId ?? null,
+              })),
+            })) ?? [],
+          activeConversationId: state.activeConversationId ?? null,
+        };
+      },
     }
   )
 );

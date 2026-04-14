@@ -4,6 +4,8 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
+from app.models.user import UserRole
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -15,6 +17,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     city: Optional[str] = None
+    role: UserRole = UserRole.CONTRIBUTOR
 
 
 class UserRead(BaseModel):
@@ -25,6 +28,7 @@ class UserRead(BaseModel):
     display_name: str
     avatar_url: str
     city: Optional[str] = None
+    role: UserRole
 
 
 class AuthResponse(BaseModel):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from app.models.chat_feedback import ChatFeedback
 from app.models.contribution import Contribution, ContributionStatus, ContributionType
 from app.models.editorial import (
     EditorialObject,
@@ -10,10 +11,13 @@ from app.models.editorial import (
     Person,
     Place,
 )
+from app.models.friendship import Friendship
 from app.models.like import Like
-from app.models.user import User
+from app.models.share import Share
+from app.models.user import User, UserRole
 
 __all__ = [
+    "ChatFeedback",
     "Contribution",
     "ContributionStatus",
     "ContributionType",
@@ -24,6 +28,9 @@ __all__ = [
     "Event",
     "Person",
     "Place",
+    "Friendship",
     "Like",
+    "Share",
     "User",
+    "UserRole",
 ]

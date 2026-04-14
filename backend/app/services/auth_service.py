@@ -16,6 +16,7 @@ def serialize_user(user: User) -> UserRead:
         display_name=user.username,
         avatar_url=user.avatar_url,
         city=user.city,
+        role=user.role,
     )
 
 
@@ -33,6 +34,7 @@ def register_user(db: Session, payload: RegisterRequest) -> AuthResponse:
         hashed_password=get_password_hash(payload.password),
         city=payload.city,
         avatar_url=f"{settings.backend_public_url}/static/mock/avatar-generic.svg",
+        role=payload.role,
     )
     db.add(user)
     db.commit()

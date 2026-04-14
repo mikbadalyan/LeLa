@@ -8,10 +8,25 @@ const nextConfig: NextConfig = {
         hostname: "localhost",
         port: "8000",
         pathname: "/static/**"
+      },
+      {
+        protocol: "http",
+        hostname: "127.0.0.1",
+        port: "8000",
+        pathname: "/static/**"
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+        pathname: "/static/**"
+      },
+      {
+        protocol: "https",
+        hostname: "**",
+        pathname: "/static/**"
       }
     ]
   }
 };
 
 export default nextConfig;
-
