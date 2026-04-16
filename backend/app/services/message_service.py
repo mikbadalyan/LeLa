@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.media import resolve_media_kind, resolve_poster_url
 from app.models.direct_message import DirectMessage
 from app.models.editorial import EditorialObject
 from app.models.user import User
@@ -19,18 +19,6 @@ from app.schemas.message import (
 )
 from app.services.auth_service import serialize_user
 
-VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm"}
-
-
-def _media_kind(media_url: str) -> str:
-    return "video" if Path(media_url).suffix.lower() in VIDEO_EXTENSIONS else "image"
-
-
-def _poster_url(editorial: EditorialObject) -> Optional[str]:
-    if editorial.id == "place-collection":
-        return editorial.media_url.replace("l%C3%A9t%C3%A9-au-mus%C3%A9e-w%C3%BCrth.mp4", "cards/five.png")
-    return None
-
 
 def _serialize_editorial(editorial: Optional[EditorialObject]) -> Optional[MessageEditorialAttachment]:
     if not editorial:
@@ -41,8 +29,8 @@ def _serialize_editorial(editorial: Optional[EditorialObject]) -> Optional[Messa
         title=editorial.title,
         subtitle=editorial.subtitle,
         media_url=editorial.media_url,
-        media_kind=_media_kind(editorial.media_url),
-        poster_url=_poster_url(editorial),
+        media_kind=resolve_media_kind(editorial.media_url) or "image",
+        poster_url=resolve_poster_url(editorial.id, editorial.media_url),
         href=f"/editorial/{editorial.id}",
     )
 

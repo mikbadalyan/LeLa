@@ -7,6 +7,7 @@ from typing import Optional
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.core.media import resolve_media_kind, resolve_poster_url
 from app.models.editorial import EditorialObject, EditorialRelation, EditorialType, Event
 from app.models.like import Like
 from app.models.user import User
@@ -196,6 +197,8 @@ def _serialize_card(
         description=item.description,
         narrative_text=item.narrative_text,
         media_url=item.media_url,
+        media_kind=resolve_media_kind(item.media_url) or "image",
+        poster_url=resolve_poster_url(item.id, item.media_url),
         created_at=item.created_at,
         contributor=_serialize_contributor(item.contributor),
         linked_entity=linked_entity,
@@ -285,15 +288,28 @@ def _matches_selected_date(item: EditorialObject, selected_date: Optional[str]) 
     return item.event.event_date.date() == target_date
 
 
+def _matches_media_filter(item: EditorialObject, media_filter: Optional[str]) -> bool:
+    if not media_filter or media_filter == "all":
+        return True
+
+    if media_filter == "video":
+        return (resolve_media_kind(item.media_url) or "image") == "video"
+
+    return True
+
+
 def _apply_filters(
     items: list[EditorialObject],
     city: Optional[str] = None,
     selected_date: Optional[str] = None,
+    media_filter: Optional[str] = None,
 ) -> list[EditorialObject]:
     return [
         item
         for item in items
-        if _matches_city(item, city) and _matches_selected_date(item, selected_date)
+        if _matches_city(item, city)
+        and _matches_selected_date(item, selected_date)
+        and _matches_media_filter(item, media_filter)
     ]
 
 
@@ -309,6 +325,7 @@ def get_feed(
     current_user: Optional[User] = None,
     city: Optional[str] = None,
     selected_date: Optional[str] = None,
+    media_filter: Optional[str] = None,
 ) -> FeedResponse:
     offset = int(cursor or 0)
     query = (
@@ -320,7 +337,12 @@ def get_feed(
     if editorial_type:
         query = query.where(EditorialObject.type == editorial_type)
 
-    filtered_items = _apply_filters(db.scalars(query).all(), city, selected_date)
+    filtered_items = _apply_filters(
+        db.scalars(query).all(),
+        city,
+        selected_date,
+        media_filter,
+    )
     total = len(filtered_items)
     page_items = filtered_items[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < total else None
@@ -583,15 +605,10 @@ def list_user_editorials(
 
 
 def _resolve_media_kind(media_url: str | None) -> str | None:
-    if not media_url:
-        return None
-    if media_url.endswith((".mp4", ".mov", ".webm")):
-        return "video"
-    if media_url.endswith((".jpg", ".jpeg", ".png", ".webp")):
-        return "image"
-    return "unknown"
+    return resolve_media_kind(media_url)
 
 
-def _resolve_poster_url(media_url: str | None) -> str | None:
-    # simple version: return same URL for now
-    return media_url
+def _resolve_poster_url(item: EditorialObject | str, media_url: str | None = None) -> str | None:
+    if isinstance(item, EditorialObject):
+        return resolve_poster_url(item.id, item.media_url)
+    return resolve_poster_url(item, media_url)

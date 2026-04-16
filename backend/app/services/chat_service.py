@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.media import resolve_media_kind, resolve_poster_url
 from app.models.chat_feedback import ChatFeedback
 from app.models.editorial import EditorialObject, EditorialType
 from app.models.user import User
@@ -19,7 +20,7 @@ from app.schemas.chat import (
     ChatResponse,
     ChatRouteSuggestion,
 )
-from app.services.editorial_service import LOAD_OPTIONS, _resolve_media_kind, _resolve_poster_url
+from app.services.editorial_service import LOAD_OPTIONS
 
 TYPE_ROUTE_MAP = {
     EditorialType.PLACE: "/feed?focus=place",
@@ -124,9 +125,33 @@ def _serialize_editorial_suggestion(item: EditorialObject) -> ChatEditorialSugge
         subtitle=item.subtitle,
         description=item.description,
         media_url=item.media_url,
-        media_kind=_resolve_media_kind(item.media_url),
-        poster_url=_resolve_poster_url(item),
+        media_kind=resolve_media_kind(item.media_url) or "image",
+        poster_url=resolve_poster_url(item.id, item.media_url),
         href=f"/editorial/{item.id}",
+    )
+
+
+def _fallback_message(
+    related_editorials: list[ChatEditorialSuggestion],
+    suggested_routes: list[ChatRouteSuggestion],
+) -> str:
+    if related_editorials:
+        highlighted = ", ".join(entry.title for entry in related_editorials[:2])
+        route_hint = suggested_routes[0].label if suggested_routes else "le fil editorial"
+        return (
+            "Le modele IA n'est pas disponible pour le moment, mais j'ai retrouve des cartes proches de votre demande: "
+            f"{highlighted}. Vous pouvez commencer par ces fiches ou ouvrir {route_hint.lower()}."
+        )
+
+    if suggested_routes:
+        return (
+            "Le modele IA n'est pas disponible pour le moment, mais je peux quand meme vous guider "
+            f"vers {suggested_routes[0].label.lower()} pour continuer dans LE_LA."
+        )
+
+    return (
+        "Le modele IA n'est pas disponible pour le moment. Ouvrez le fil principal, les lieux, "
+        "les acteurs ou les evenements pour continuer votre exploration."
     )
 
 
@@ -400,7 +425,11 @@ def respond_to_chat(
     conversation = _conversation_messages(
         payload, current_user, related_editorials, catalog_context
     )
-    message, response_id = _request_provider_completion(settings, conversation)
+    try:
+        message, response_id = _request_provider_completion(settings, conversation)
+    except RuntimeError:
+        message = _fallback_message(related_editorials, suggested_routes)
+        response_id = None
 
     if not message:
         message = (

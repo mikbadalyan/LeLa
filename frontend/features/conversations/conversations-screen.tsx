@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +28,7 @@ export function ConversationsScreen() {
   const [searchValue, setSearchValue] = useState("");
   const [draftMessage, setDraftMessage] = useState("");
   const deferredSearch = useDeferredValue(searchValue);
+  const threadEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!token) {
@@ -87,6 +88,12 @@ export function ConversationsScreen() {
       });
     },
   });
+
+  useEffect(() => {
+    if (messagesQuery.data) {
+      threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [activeParticipantId, messagesQuery.data]);
 
   return (
     <MobileShell activeMode="feed" activeTab="conversations" className="space-y-4 px-4 py-5">
@@ -232,7 +239,7 @@ export function ConversationsScreen() {
 
         {activeParticipantId ? (
           <>
-            <div className="mt-4 space-y-3 rounded-[28px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+            <div className="mt-4 max-h-[24rem] space-y-3 overflow-y-auto rounded-[28px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
               {messagesQuery.isLoading ? (
                 <div className="flex items-center justify-center py-8">
                   <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
@@ -304,9 +311,10 @@ export function ConversationsScreen() {
                   Aucun message pour l&apos;instant. Lancez la conversation.
                 </div>
               )}
+              <div ref={threadEndRef} />
             </div>
 
-            <div className="mt-4 flex items-end gap-3">
+            <div className="sticky bottom-0 mt-4 flex items-end gap-3 rounded-[24px] bg-white/95 pt-2 backdrop-blur">
               <Input
                 value={draftMessage}
                 onChange={(event) => setDraftMessage(event.target.value)}

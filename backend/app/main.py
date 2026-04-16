@@ -15,6 +15,7 @@ from app.db.session import SessionLocal
 settings = get_settings()
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+PICTURE_DIR = Path(__file__).resolve().parent.parent.parent / "picture"
 
 
 @asynccontextmanager
@@ -37,6 +38,8 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+if PICTURE_DIR.exists():
+    app.mount("/picture", StaticFiles(directory=PICTURE_DIR), name="picture")
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)
 
