@@ -6,11 +6,16 @@ import { useAuthStore } from "@/features/auth/store";
 import { getFeed, toggleLike } from "@/lib/api/endpoints";
 import type { FeedResponse } from "@/lib/api/types";
 
-export function useFeed(filter: string, city?: string | null, date?: string | null) {
+export function useFeed(
+  filter: string,
+  city?: string | null,
+  date?: string | null,
+  media?: "all" | "video" | null
+) {
   const token = useAuthStore((state) => state.token);
 
   return useInfiniteQuery({
-    queryKey: ["feed", filter, city ?? "", date ?? "", Boolean(token)],
+    queryKey: ["feed", filter, city ?? "", date ?? "", media ?? "all", Boolean(token)],
     queryFn: ({ pageParam }) =>
       getFeed({
         type: filter === "all" ? undefined : filter,
@@ -18,7 +23,8 @@ export function useFeed(filter: string, city?: string | null, date?: string | nu
         limit: 5,
         token,
         city,
-        date
+        date,
+        media
       }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage: FeedResponse) => lastPage.next_cursor

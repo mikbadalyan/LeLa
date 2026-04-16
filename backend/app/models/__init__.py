@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.models.chat_feedback import ChatFeedback
 from app.models.contribution import Contribution, ContributionStatus, ContributionType
+from app.models.direct_message import DirectMessage
 from app.models.editorial import (
     EditorialObject,
     EditorialRelation,
@@ -21,6 +22,7 @@ __all__ = [
     "Contribution",
     "ContributionStatus",
     "ContributionType",
+    "DirectMessage",
     "EditorialObject",
     "EditorialRelation",
     "EditorialRelationType",

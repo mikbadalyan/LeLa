@@ -24,6 +24,7 @@ def read_feed(
     limit: int = Query(default=5, le=20),
     city: Optional[str] = Query(default=None),
     date: Optional[str] = Query(default=None),
+    media: Optional[str] = Query(default=None),
 ) -> FeedResponse:
     return get_feed(
         db,
@@ -33,4 +34,5 @@ def read_feed(
         current_user,
         city=city,
         selected_date=date,
+        media_filter=media,
     )

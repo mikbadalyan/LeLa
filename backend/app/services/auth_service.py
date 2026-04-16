@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User
-from app.schemas.auth import AuthResponse, RegisterRequest, UserRead
+from app.schemas.auth import AuthResponse, RegisterRequest, UserRead, UserUpdateRequest
 
 
 def serialize_user(user: User) -> UserRead:
@@ -14,8 +14,10 @@ def serialize_user(user: User) -> UserRead:
         id=user.id,
         username=user.username,
         display_name=user.username,
+        email=user.email,
         avatar_url=user.avatar_url,
         city=user.city,
+        bio=user.bio,
         role=user.role,
     )
 
@@ -49,3 +51,27 @@ def authenticate_user(db: Session, email: str, password: str) -> AuthResponse:
         raise ValueError("Email ou mot de passe invalide.")
 
     return AuthResponse(access_token=create_access_token(user.id), user=serialize_user(user))
+
+
+def update_user_profile(db: Session, user: User, payload: UserUpdateRequest) -> UserRead:
+    if payload.username and payload.username != user.username:
+        existing_username = db.scalar(select(User).where(User.username == payload.username))
+        if existing_username and existing_username.id != user.id:
+            raise ValueError("Ce nom d'utilisateur est deja utilise.")
+        user.username = payload.username
+
+    if payload.email and payload.email != user.email:
+        existing_email = db.scalar(select(User).where(User.email == payload.email))
+        if existing_email and existing_email.id != user.id:
+            raise ValueError("Cet email est deja utilise.")
+        user.email = payload.email
+
+    if payload.city is not None:
+        user.city = payload.city.strip() or None
+
+    if payload.bio is not None:
+        user.bio = payload.bio.strip() or None
+
+    db.commit()
+    db.refresh(user)
+    return serialize_user(user)

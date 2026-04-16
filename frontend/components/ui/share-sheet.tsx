@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { LoaderCircle, SendHorizonal, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -17,6 +17,7 @@ interface ShareSheetProps {
 
 export function ShareSheet({ editorialId, editorialTitle, children }: ShareSheetProps) {
   const token = useAuthStore((state) => state.token);
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -30,6 +31,10 @@ export function ShareSheet({ editorialId, editorialTitle, children }: ShareSheet
     mutationFn: (recipientId: string) =>
       shareEditorial({ editorial_id: editorialId, recipient_id: recipientId }, token!),
     onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({
+        queryKey: ["conversation-messages", response.recipient.id],
+      });
       setStatusMessage(`Carte envoyee a ${response.recipient.display_name}.`);
     },
     onError: (error: Error) => {

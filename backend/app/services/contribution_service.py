@@ -104,6 +104,16 @@ def list_pending_contributions(db: Session) -> list[ContributionModerationRead]:
     ]
 
 
+def list_user_contributions(db: Session, current_user: User) -> list[ContributionModerationRead]:
+    contributions = db.scalars(
+        select(Contribution)
+        .where(Contribution.user_id == current_user.id)
+        .order_by(Contribution.created_at.desc())
+    ).all()
+
+    return [_serialize_contribution(contribution, current_user) for contribution in contributions]
+
+
 def _find_related_editorial_id(db: Session, text_value: Optional[str]) -> Optional[str]:
     if not text_value or not text_value.strip():
         return None

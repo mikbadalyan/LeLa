@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -15,9 +16,17 @@ settings = get_settings()
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
-app = FastAPI(title=settings.app_name)
 
-# CORS
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events."""
+    with SessionLocal() as session:
+        init_db(session)
+    yield
+
+
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.frontend_origins,
@@ -27,22 +36,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# IMPORTANT FIX: ensure frontend /api/* works
-API_PREFIX = "/api"
-app.include_router(api_router, prefix=API_PREFIX)
+app.include_router(api_router, prefix=settings.api_v1_prefix)
 
 
-# Startup DB init
-@app.on_event("startup")
-def on_startup() -> None:
-    with SessionLocal() as session:
-        init_db(session)
-
-
-# Health check
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "LE_LA API is running."}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,6 +8,7 @@ import { Heart, MapPinned, Newspaper } from "lucide-react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
+import { CardFilterSheet } from "@/components/ui/card-filter-sheet";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
@@ -32,6 +34,8 @@ function typeIcon(type: "magazine" | "place" | "person" | "event") {
 export function DetailScreen({ editorialId }: DetailScreenProps) {
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const detailQuery = useQuery({
     queryKey: ["editorial", editorialId, Boolean(token)],
@@ -68,19 +72,51 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
 
   const activeMode =
     item.type === "place" ? "place" : item.type === "person" ? "person" : item.type === "event" ? "event" : "feed";
+  const isVideo = item.media_kind === "video";
 
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="bg-white">
       <article className="bg-white">
         <div className="relative aspect-[1.18] overflow-hidden">
-          <Image
-            src={item.media_url}
-            alt={item.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 430px"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          {isVideo ? (
+            <video
+              ref={videoRef}
+              src={item.media_url}
+              poster={item.poster_url ?? undefined}
+              controls
+              playsInline
+              preload="metadata"
+              className="h-full w-full object-cover"
+              onPause={() => setIsPlaying(false)}
+              onPlay={() => setIsPlaying(true)}
+            />
+          ) : (
+            <Image
+              src={item.media_url}
+              alt={item.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 430px"
+              className="object-cover"
+            />
+          )}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          {isVideo && !isPlaying ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (videoRef.current) {
+                  void videoRef.current.play();
+                  setIsPlaying(true);
+                }
+              }}
+              className="absolute inset-0 z-10 flex items-center justify-center"
+              aria-label="Lire la video"
+            >
+              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-plum/90 shadow-float">
+                <Image src="/assets/icon-play.svg" alt="Lire" width={56} height={56} className="h-14 w-14" />
+              </span>
+            </button>
+          ) : null}
         </div>
 
         <div className="space-y-6 px-5 py-5">
@@ -156,10 +192,14 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               <Image src="/assets/icon-cloud-linked.svg" alt="Liens" width={24} height={16} className="h-4 w-auto" />
               Nuage de cartes liees
             </button>
-            <button type="button" className="flex items-center gap-2 font-medium">
-              <Image src="/assets/icon-filter.svg" alt="Filtre" width={19} height={20} className="h-4 w-auto" />
-              Filtrer les cartes
-            </button>
+            <CardFilterSheet>
+              {({ open }) => (
+                <button type="button" onClick={open} className="flex items-center gap-2 font-medium">
+                  <Image src="/assets/icon-filter.svg" alt="Filtre" width={19} height={20} className="h-4 w-auto" />
+                  Filtrer les cartes
+                </button>
+              )}
+            </CardFilterSheet>
           </div>
 
           <div className="space-y-4">
@@ -171,7 +211,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               >
                 <div className="relative aspect-[1.05]">
                   <Image
-                    src={relatedItem.media_url}
+                    src={relatedItem.media_kind === "video" ? relatedItem.poster_url || "/assets/icon-play.svg" : relatedItem.media_url}
                     alt={relatedItem.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 430px"

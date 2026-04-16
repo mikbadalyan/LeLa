@@ -26,6 +26,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     city: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    bio: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     avatar_url: Mapped[str] = mapped_column(String(255))
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole), default=UserRole.CONTRIBUTOR
@@ -57,6 +58,18 @@ class User(Base):
     received_shares = relationship(
         "Share",
         foreign_keys="Share.recipient_id",
+        back_populates="recipient",
+        cascade="all, delete-orphan",
+    )
+    sent_messages = relationship(
+        "DirectMessage",
+        foreign_keys="DirectMessage.sender_id",
+        back_populates="sender",
+        cascade="all, delete-orphan",
+    )
+    received_messages = relationship(
+        "DirectMessage",
+        foreign_keys="DirectMessage.recipient_id",
         back_populates="recipient",
         cascade="all, delete-orphan",
     )

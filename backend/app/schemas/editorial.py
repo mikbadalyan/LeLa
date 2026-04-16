@@ -42,6 +42,8 @@ class EditorialCardRead(BaseModel):
     description: str
     narrative_text: str
     media_url: str
+    media_kind: str = "image"
+    poster_url: Optional[str] = None
     created_at: datetime
     contributor: ContributorRead
     linked_entity: Optional[RelatedEntitySummary] = None

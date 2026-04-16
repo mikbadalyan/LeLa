@@ -14,6 +14,7 @@ from app.schemas.social import MapMarkerRead
 from app.services.editorial_service import (
     get_editorial_detail,
     get_liked_editorials,
+    list_user_editorials,
     list_map_markers,
     toggle_like,
 )
@@ -38,6 +39,14 @@ def read_map_markers(
     date: Optional[str] = None,
 ) -> list[MapMarkerRead]:
     return list_map_markers(db, city=city, selected_date=date)
+
+
+@router.get("/mine", response_model=list[EditorialCardRead])
+def read_my_editorials(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> list[EditorialCardRead]:
+    return list_user_editorials(db, current_user)
 
 
 @router.get("/{editorial_id}", response_model=EditorialDetailRead)

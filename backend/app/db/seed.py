@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -30,11 +31,21 @@ def _imported(path: str) -> str:
     return f"{get_settings().backend_public_url}/static/imported/{path}"
 
 
+def _picture(path: str) -> str:
+    encoded_path = quote(path, safe="/")
+    return f"{get_settings().backend_public_url}/picture/{encoded_path}"
+
+
 def _sync_existing_seed_assets(db: Session) -> None:
     asset_map = {
-        "place-wurth": _imported("carte-wurth.svg"),
-        "place-piscine": _imported("card-lieu-audio-piscine.svg"),
-        "place-collection": _imported("carte-wurth.svg"),
+        "place-wurth": _picture("cards/five.png"),
+        "person-tomi": _picture("cards/six.png"),
+        "event-demolition": _picture("cards/one.png"),
+        "event-chasse": _picture("cards/two.png"),
+        "place-piscine": _picture("cards/four.png"),
+        "event-parfum": _picture("cards/one.png"),
+        "person-juliette": _picture("cards/three.png"),
+        "place-collection": _picture("lété-au-musée-würth.mp4"),
     }
 
     objects = db.scalars(
@@ -113,7 +124,7 @@ def seed_database(db: Session) -> None:
             subtitle="1 Rue du Bain aux Plantes, Strasbourg",
             description="Situe a Erstein, pres de Strasbourg, le Musee Wurth propose une immersion accessible et inspirante dans l'art moderne et contemporain.",
             narrative_text="A travers une programmation d'expositions temporaires de grande qualite, le musee met en dialogue des artistes majeurs et des talents emergents issus de la collection Wurth.",
-            media_url=_imported("carte-wurth.svg"),
+            media_url=_picture("cards/five.png"),
             created_at=datetime(2026, 4, 5, 10, 0, tzinfo=timezone.utc),
             contributor_id="user-charles",
         ),
@@ -124,7 +135,7 @@ def seed_database(db: Session) -> None:
             subtitle="dessinateur, illustrateur et auteur",
             description="Jean-Thomas Ungerer, dit Tomi Ungerer, ne a Strasbourg, est une figure singuliere et transfrontaliere de l'illustration europeenne.",
             narrative_text="Considere comme l'un des plus brillants dessinateurs de sa generation, il a mene une carriere internationale ou le dessin editorial rencontrait l'enfance, la satire et la narration.",
-            media_url=_media("tomi-ungerer.svg"),
+            media_url=_picture("cards/six.png"),
             created_at=datetime(2026, 4, 5, 9, 0, tzinfo=timezone.utc),
             contributor_id="user-charles",
         ),
@@ -135,7 +146,7 @@ def seed_database(db: Session) -> None:
             subtitle="Insolite",
             description="Le Casino Barriere Ribeauville imagine une animation spectaculaire basee sur un grand jeu de demolition et de tirages au sort.",
             narrative_text="Cette proposition evenementielle transforme le divertissement en capsule editoriale: le lieu, les gestes et les spectateurs s'entrelacent pour raconter un moment de ville.",
-            media_url=_media("demolition-day.svg"),
+            media_url=_picture("cards/one.png"),
             created_at=datetime(2026, 4, 4, 18, 30, tzinfo=timezone.utc),
             contributor_id="user-charles",
         ),
@@ -146,7 +157,7 @@ def seed_database(db: Session) -> None:
             subtitle="Pour les enfants",
             description="Une chasse aux oeufs imaginee comme une capsule sensible entre musee, jardin et printemps, accessible aux familles en quete d'une sortie douce.",
             narrative_text="Le recit editorial met en avant les details qui font vivre l'experience: le paysage, les gestes des enfants, la surprise et la couleur comme fil de memoire.",
-            media_url=_media("merci-mon-lapin.svg"),
+            media_url=_picture("cards/two.png"),
             created_at=datetime(2026, 4, 4, 17, 0, tzinfo=timezone.utc),
             contributor_id="user-charles",
         ),
@@ -157,7 +168,7 @@ def seed_database(db: Session) -> None:
             subtitle="Piscine du Wacken",
             description="Un bassin urbain, calme et clair, pour nager entre deux rendez-vous ou redecouvrir un quartier par le corps et le rythme.",
             narrative_text="Dans LE_LA, meme un equipement quotidien devient un point d'entree editorial: on part du lieu, on glisse vers ses usages, puis vers les personnes qui l'habitent.",
-            media_url=_imported("card-lieu-audio-piscine.svg"),
+            media_url=_picture("cards/four.png"),
             created_at=datetime(2026, 4, 4, 11, 0, tzinfo=timezone.utc),
             contributor_id="user-steve",
         ),
@@ -168,7 +179,7 @@ def seed_database(db: Session) -> None:
             subtitle="le spectacle des 45 ans du Royal Palace",
             description="Un grand show a la fois populaire et flamboyant ou la scenographie dialogue avec le costume, la musique et la memoire du cabaret.",
             narrative_text="Cette carte met en avant la dimension spectaculaire du territoire: un evenement devient un noeud entre patrimoine vivant, imaginaire collectif et destination.",
-            media_url=_media("parfum-etoiles.svg"),
+            media_url=_picture("cards/one.png"),
             created_at=datetime(2026, 4, 3, 20, 0, tzinfo=timezone.utc),
             contributor_id="user-steve",
         ),
@@ -179,7 +190,7 @@ def seed_database(db: Session) -> None:
             subtitle="Metteuse en scene, comedienne, directrice de compagnie",
             description="Une artiste qui traverse la scene, la transmission et la mise en recit de gestes fragiles ou puissants selon les contextes.",
             narrative_text="Sa presence dans le graphe editorial relie le spectacle vivant a des lieux, des collaborations et des moments de ville qui se racontent mieux ensemble que separes.",
-            media_url=_media("juliette-steiner.svg"),
+            media_url=_picture("cards/three.png"),
             created_at=datetime(2026, 4, 3, 15, 0, tzinfo=timezone.utc),
             contributor_id="user-steve",
         ),
@@ -190,7 +201,7 @@ def seed_database(db: Session) -> None:
             subtitle="Musee Wurth | Erstein",
             description="Une carte de mediation pour entrer dans la collection, ses parcours, ses dialogues et les artistes qu'elle fait emerger.",
             narrative_text="Le dispositif editorial de LE_LA permet d'aborder la collection comme une constellation de cartes: expositions, artistes, evenements et lieux se renvoient l'un a l'autre.",
-            media_url=_imported("carte-wurth.svg"),
+            media_url=_picture("lété-au-musée-würth.mp4"),
             created_at=datetime(2026, 4, 3, 9, 0, tzinfo=timezone.utc),
             contributor_id="user-charles",
         ),

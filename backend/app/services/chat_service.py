@@ -19,7 +19,7 @@ from app.schemas.chat import (
     ChatResponse,
     ChatRouteSuggestion,
 )
-from app.services.editorial_service import LOAD_OPTIONS
+from app.services.editorial_service import LOAD_OPTIONS, _resolve_media_kind, _resolve_poster_url
 
 TYPE_ROUTE_MAP = {
     EditorialType.PLACE: "/feed?focus=place",
@@ -124,6 +124,8 @@ def _serialize_editorial_suggestion(item: EditorialObject) -> ChatEditorialSugge
         subtitle=item.subtitle,
         description=item.description,
         media_url=item.media_url,
+        media_kind=_resolve_media_kind(item.media_url),
+        poster_url=_resolve_poster_url(item),
         href=f"/editorial/{item.id}",
     )
 

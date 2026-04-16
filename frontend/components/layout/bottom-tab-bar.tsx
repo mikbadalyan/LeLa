@@ -22,7 +22,7 @@ const items: Array<{
   { key: "contribute", href: "/contribute", label: "Contributions", icon: "/assets/icon-plus-navbar.svg" },
   {
     key: "conversations",
-    href: "/feed?focus=chat",
+    href: "/conversations",
     label: "Conversations",
     icon: "/assets/icon-chat.svg"
   },

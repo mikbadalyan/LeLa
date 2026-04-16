@@ -33,6 +33,8 @@ class ChatEditorialSuggestion(BaseModel):
     subtitle: Optional[str] = None
     description: str
     media_url: str
+    media_kind: str = "image"
+    poster_url: Optional[str] = None
     href: str
 
 

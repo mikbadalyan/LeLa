@@ -79,7 +79,7 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
         >
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
             <Image
-              src={item.media_url}
+              src={item.media_kind === "video" ? item.poster_url || "/assets/icon-play.svg" : item.media_url}
               alt={item.title}
               fill
               sizes="64px"

@@ -12,6 +12,7 @@ from app.models.user import User
 from app.schemas.auth import UserRead
 from app.schemas.social import FriendRead, ShareCreate, ShareRead, UserSearchResultRead
 from app.services.auth_service import serialize_user
+from app.services.message_service import create_editorial_message
 
 
 def _serialize_friend(user: User, created_at=None) -> FriendRead:
@@ -137,6 +138,7 @@ def create_share(db: Session, current_user: User, payload: ShareCreate) -> Share
         editorial_object_id=payload.editorial_id,
     )
     db.add(share)
+    create_editorial_message(db, current_user, friend, editorial)
     db.commit()
     db.refresh(share)
 

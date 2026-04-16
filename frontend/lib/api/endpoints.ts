@@ -7,6 +7,7 @@ import type {
   ChatResponse,
   ContributionPayload,
   ContributionRecord,
+  ConversationSummary,
   EditorialCard,
   EditorialDetail,
   FeedQueryFilters,
@@ -14,10 +15,13 @@ import type {
   FriendRecord,
   LoginPayload,
   MapMarker,
+  MessagePayload,
+  MessageRecord,
   ModerationContribution,
   RegisterPayload,
   SharePayload,
   ShareRecord,
+  UserUpdatePayload,
   UserSearchResult
 } from "@/lib/api/types";
 
@@ -28,6 +32,7 @@ export function getFeed(params: {
   token?: string | null;
   city?: string | null;
   date?: string | null;
+  media?: "all" | "video" | null;
 }) {
   const search = new URLSearchParams();
 
@@ -49,6 +54,10 @@ export function getFeed(params: {
 
   if (params.date) {
     search.set("date", params.date);
+  }
+
+  if (params.media && params.media !== "all") {
+    search.set("media", params.media);
   }
 
   return apiRequest<FeedResponse>(`/api/feed?${search.toString()}`, {
@@ -78,6 +87,14 @@ export function register(payload: RegisterPayload) {
 
 export function getCurrentUser(token: string) {
   return apiRequest<AuthResponse["user"]>("/api/auth/me", {
+    token
+  });
+}
+
+export function updateCurrentUser(payload: UserUpdatePayload, token: string) {
+  return apiRequest<AuthResponse["user"]>("/api/auth/me", {
+    method: "PATCH",
+    body: payload,
     token
   });
 }
@@ -137,6 +154,12 @@ export function approveContribution(id: string, token: string) {
   });
 }
 
+export function getMyContributions(token: string) {
+  return apiRequest<ModerationContribution[]>("/api/contributions/mine", {
+    token
+  });
+}
+
 export function getFriends(token: string) {
   return apiRequest<FriendRecord[]>("/api/social/friends", {
     token
@@ -190,8 +213,34 @@ export function getMapMarkers(filters: FeedQueryFilters, token?: string | null) 
   });
 }
 
+export function getMyEditorials(token: string) {
+  return apiRequest<EditorialCard[]>("/api/editorial/mine", {
+    token
+  });
+}
+
 export function submitChatFeedback(payload: ChatFeedbackPayload, token?: string | null) {
   return apiRequest<ChatFeedbackResponse>("/api/chat/feedback", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function getConversations(token: string) {
+  return apiRequest<ConversationSummary[]>("/api/messages/conversations", {
+    token
+  });
+}
+
+export function getConversationMessages(participantId: string, token: string) {
+  return apiRequest<MessageRecord[]>(`/api/messages/conversations/${participantId}`, {
+    token
+  });
+}
+
+export function sendConversationMessage(payload: MessagePayload, token: string) {
+  return apiRequest<MessageRecord>("/api/messages", {
     method: "POST",
     body: payload,
     token

@@ -21,16 +21,33 @@ export function MobileShell({
   headerRight,
   className,
   showBottomBar = true,
-  showModeNav = true
+  showModeNav = true,
 }: PropsWithChildren<MobileShellProps>) {
   return (
     <div className="min-h-screen bg-halo px-3 py-4 text-ink">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-shell border border-white/60 bg-shell shadow-card">
+        {/* Header sits above the scroll container (z-20 inside TopHeader) */}
         <TopHeader rightContent={headerRight} />
+
         {showModeNav ? <ModeNav activeMode={activeMode} /> : null}
-        <main id="lela-scroll-container" className={cn("flex-1 overflow-y-auto", className)}>
+
+        {/*
+          overflow-y-auto is kept for scrolling.
+          We do NOT use overflow-hidden here so that card 3D flip transforms
+          are not clipped by the scroll container.
+        */}
+        <main
+          id="lela-scroll-container"
+          className={cn(
+            "flex-1 overflow-y-auto",
+            // Establish a stacking context that doesn't clip 3D children
+            "isolate",
+            className
+          )}
+        >
           {children}
         </main>
+
         {showBottomBar ? <BottomTabBar activeTab={activeTab} /> : null}
       </div>
     </div>

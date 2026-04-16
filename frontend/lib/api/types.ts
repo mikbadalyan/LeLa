@@ -12,8 +12,10 @@ export interface Contributor {
   id: string;
   username: string;
   display_name: string;
+  email?: string | null;
   avatar_url: string;
   city?: string | null;
+  bio?: string | null;
   role: UserRole;
 }
 
@@ -32,6 +34,8 @@ export interface EditorialCard {
   description: string;
   narrative_text: string;
   media_url: string;
+  media_kind: "image" | "video";
+  poster_url?: string | null;
   created_at: string;
   contributor: Contributor;
   linked_entity: RelatedEntitySummary | null;
@@ -68,6 +72,7 @@ export interface FeedResponse {
 export interface FeedQueryFilters {
   city?: string | null;
   date?: string | null;
+  media?: "all" | "video" | null;
 }
 
 export interface LoginPayload {
@@ -81,6 +86,13 @@ export interface RegisterPayload {
   password: string;
   city?: string;
   role: UserRole;
+}
+
+export interface UserUpdatePayload {
+  username?: string;
+  email?: string;
+  city?: string;
+  bio?: string;
 }
 
 export interface AuthResponse {
@@ -151,6 +163,39 @@ export interface ShareRecord {
   created_at: string;
 }
 
+export interface ConversationSummary {
+  participant: Contributor;
+  last_message_preview: string;
+  last_message_at: string;
+  unread_count: number;
+  last_message_kind: "text" | "editorial";
+}
+
+export interface MessageEditorialAttachment {
+  id: string;
+  title: string;
+  subtitle?: string | null;
+  media_url: string;
+  media_kind: "image" | "video";
+  poster_url?: string | null;
+  href: string;
+}
+
+export interface MessageRecord {
+  id: string;
+  content?: string | null;
+  created_at: string;
+  is_mine: boolean;
+  sender: Contributor;
+  recipient: Contributor;
+  editorial?: MessageEditorialAttachment | null;
+}
+
+export interface MessagePayload {
+  recipient_id: string;
+  content: string;
+}
+
 export interface MapMarker {
   editorial_id: string;
   type: "place" | "event";
@@ -189,6 +234,8 @@ export interface ChatEditorialSuggestion {
   subtitle?: string | null;
   description: string;
   media_url: string;
+  media_kind: "image" | "video";
+  poster_url?: string | null;
   href: string;
 }
 

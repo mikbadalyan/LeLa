@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, SlidersHorizontal } from "lucide-react";
 
 import { EditorialFeedCard } from "@/components/cards/editorial-feed-card";
 import { MobileShell } from "@/components/layout/mobile-shell";
@@ -19,6 +19,20 @@ interface FeedScreenProps {
   focus: Focus;
 }
 
+const focusLabel: Record<Exclude<Focus, "chat">, string> = {
+  feed: "Tout le feed",
+  place: "Lieux",
+  person: "Acteurs",
+  event: "Evenements",
+};
+
+const focusDescription: Record<Exclude<Focus, "chat">, string> = {
+  feed: "Toutes les cartes editoriales du moment.",
+  place: "Musees, cafes, adresses et espaces a decouvrir.",
+  person: "Artistes, acteurs et figures du territoire.",
+  event: "Agenda, spectacles et rendez-vous dates.",
+};
+
 export function FeedScreen({ focus }: FeedScreenProps) {
   const filter = useFeedUiStore((state) => state.filter);
   const setFilter = useFeedUiStore((state) => state.setFilter);
@@ -35,7 +49,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
       setFilter(focus);
       return;
     }
-
     if (focus === "feed") {
       setFilter("all");
     }
@@ -44,14 +57,13 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const activeMode = focus === "feed" ? "feed" : focus;
   const feedQuery = useFeed(filter, city, selectedDate);
 
+  // Infinite scroll sentinel
   useEffect(() => {
     const element = sentinelRef.current;
     const root = document.getElementById("lela-scroll-container");
-
     if (!element || !root || !feedQuery.hasNextPage || feedQuery.isFetchingNextPage) {
       return;
     }
-
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
@@ -60,7 +72,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
       },
       { root, rootMargin: "240px" }
     );
-
     observer.observe(element);
     return () => observer.disconnect();
   }, [feedQuery.fetchNextPage, feedQuery.hasNextPage, feedQuery.isFetchingNextPage]);
@@ -78,27 +89,37 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     );
   }
 
+  const currentLabel = focus === "feed" ? "feed" : focus;
+  const displayLabel = focusLabel[currentLabel as Exclude<Focus, "chat">];
+  const displayDesc = focusDescription[currentLabel as Exclude<Focus, "chat">];
+
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="space-y-4 px-3 py-4">
+      {/* Context card */}
       <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-borderSoft">
-        <p className="text-xs uppercase tracking-[0.18em] text-plum">Contexte</p>
-        <p className="mt-2 text-lg font-semibold text-ink">
-          {filter === "all"
-            ? "Tout le feed"
-            : filter === "place"
-              ? "Lieux"
-              : filter === "person"
-                ? "Acteurs"
-                : filter === "event"
-                  ? "Evenements"
-                  : "Magazine"}
-        </p>
-        <p className="mt-1 text-sm leading-6 text-graphite">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-[0.18em] text-plum">Contexte</p>
+            <p className="mt-2 text-lg font-semibold text-ink">{displayLabel}</p>
+            <p className="mt-1 text-sm leading-6 text-graphite">{displayDesc}</p>
+          </div>
+          <div className="shrink-0 rounded-2xl bg-plum/10 p-2 text-plum">
+            <SlidersHorizontal className="h-5 w-5" />
+          </div>
+        </div>
+        <p className="mt-3 text-xs font-medium text-graphite/60">
           {city} · {formatFrenchDate(selectedDate)}
         </p>
+
+        {/* Flip hint — shown once */}
+        <div className="mt-3 flex items-center gap-2 rounded-[16px] bg-mist px-3 py-2 text-xs text-graphite/70">
+          <span>💡</span>
+          <span>Cliquez sur l'icone ↺ d'une carte pour voir son verso.</span>
+        </div>
       </div>
 
-      {items.length ? (
+      {/* Feed items */}
+      {items.length > 0 ? (
         items.map((item) => (
           <EditorialFeedCard
             key={item.id}
@@ -112,20 +133,26 @@ export function FeedScreen({ focus }: FeedScreenProps) {
         </div>
       )}
 
+      {/* Initial loading spinner */}
       {feedQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
           <LoaderCircle className="h-7 w-7 animate-spin text-plum" />
         </div>
       ) : null}
 
+      {/* Infinite scroll sentinel + pagination state */}
       <div ref={sentinelRef} className="flex items-center justify-center py-5">
         {feedQuery.isFetchingNextPage ? (
           <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
         ) : feedQuery.hasNextPage ? (
-          <span className="text-sm text-graphite/70">Chargement des cartes suivantes...</span>
-        ) : (
-          <span className="text-sm text-graphite/70">Vous avez atteint le bout du fil.</span>
-        )}
+          <span className="text-sm text-graphite/70">
+            Chargement des cartes suivantes...
+          </span>
+        ) : items.length > 0 ? (
+          <span className="text-sm text-graphite/70">
+            Vous avez atteint le bout du fil.
+          </span>
+        ) : null}
       </div>
     </MobileShell>
   );
