@@ -4,6 +4,7 @@ from typing import Annotated
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_optional_user
@@ -14,6 +15,7 @@ from app.schemas.social import MapMarkerRead
 from app.services.editorial_service import (
     get_editorial_detail,
     get_liked_editorials,
+    list_editorials_for_user,
     list_user_editorials,
     list_map_markers,
     toggle_like,
@@ -47,6 +49,19 @@ def read_my_editorials(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[EditorialCardRead]:
     return list_user_editorials(db, current_user)
+
+
+@router.get("/users/{user_id}", response_model=list[EditorialCardRead])
+def read_user_editorials(
+    user_id: str,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Optional[User], Depends(get_optional_user)],
+) -> list[EditorialCardRead]:
+    profile_user = db.scalar(select(User).where(User.id == user_id))
+    if not profile_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+
+    return list_editorials_for_user(db, profile_user, current_user)
 
 
 @router.get("/{editorial_id}", response_model=EditorialDetailRead)

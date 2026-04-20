@@ -3,7 +3,6 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   CalendarClock,
-  Check,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -11,28 +10,24 @@ import {
   ImagePlus,
   MapPin,
   Newspaper,
+  Mic2,
   UploadCloud,
   UserRound,
+  X,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
+import { useI18n } from "@/features/shell/i18n";
 import { createContribution } from "@/lib/api/endpoints";
 import type { ContributionPayload } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
 
 type ContributionType = ContributionPayload["type"];
-
 type StepId = "type" | "media" | "details" | "review";
-
-const steps: Array<{ id: StepId; label: string; short: string }> = [
-  { id: "type", label: "Type", short: "01" },
-  { id: "media", label: "Media", short: "02" },
-  { id: "details", label: "Details", short: "03" },
-  { id: "review", label: "Review", short: "04" },
-];
+const stepOrder: StepId[] = ["type", "media", "details", "review"];
 
 const initialForm: ContributionPayload = {
   type: "magazine",
@@ -66,91 +61,58 @@ const typeMeta: Record<
 > = {
   magazine: {
     label: "Magazine",
-    teaser: "Une capsule editoriale, une anecdote, un angle narratif.",
-    helper: "Ideal pour raconter une histoire courte reliee a une carte existante.",
+    teaser: "Une capsule editoriale courte, comme un post inspire.",
+    helper: "Ideal pour un angle, une anecdote ou une recommandation.",
     icon: Newspaper,
   },
   place: {
     label: "Lieu",
-    teaser: "Un endroit a ajouter au graphe avec ses infos pratiques.",
-    helper: "Parfait pour un musee, un cafe, un parc ou une adresse utile.",
+    teaser: "Un endroit utile ou remarquable a ajouter au graphe.",
+    helper: "Adresse, ambiance et infos pratiques en un seul post.",
     icon: MapPin,
   },
   person: {
     label: "Personne",
-    teaser: "Un profil, un artiste, un acteur local, une rencontre.",
-    helper: "Ajoutez un role, un contexte et les liens avec le territoire.",
+    teaser: "Un profil, un artiste, une rencontre ou une personnalite.",
+    helper: "Ajoutez son role et ce qui le relie au territoire.",
     icon: UserRound,
   },
   event: {
     label: "Evenement",
-    teaser: "Un rendez-vous date, situe, avec prix ou infos utiles.",
-    helper: "Ajoutez la temporalite et les lieux/personnes rattaches.",
+    teaser: "Un rendez-vous date avec son lieu et ses details.",
+    helper: "Parfait pour un spectacle, une expo ou une sortie.",
     icon: CalendarClock,
   },
 };
 
-function FieldBlock({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="space-y-2">
-      <div>
-        <p className="text-sm font-semibold text-ink">{label}</p>
-        {hint ? <p className="text-xs leading-5 text-graphite/75">{hint}</p> : null}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function StepPill({
-  active,
-  complete,
-  short,
-  label,
-}: {
-  active: boolean;
-  complete: boolean;
-  short: string;
-  label: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-3 rounded-full px-3 py-2 text-sm transition",
-        active
-          ? "bg-plum text-white shadow-float"
-          : complete
-            ? "bg-[#E9F5EE] text-[#246B45]"
-            : "bg-white text-graphite ring-1 ring-borderSoft"
-      )}
-    >
-      <span
-        className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
-          active
-            ? "bg-white/15 text-white"
-            : complete
-              ? "bg-[#246B45] text-white"
-              : "bg-mist text-graphite"
-        )}
-      >
-        {complete ? <Check className="h-4 w-4" /> : short}
-      </span>
-      <span className="truncate font-semibold">{label}</span>
-    </div>
-  );
-}
+const stepCopy: Record<
+  StepId,
+  { eyebrow: string; title: string; description: string }
+> = {
+  type: {
+    eyebrow: "Nouvelle publication",
+    title: "Choisissez le format",
+    description: "Comme sur Instagram, on commence par le type de publication.",
+  },
+  media: {
+    eyebrow: "Nouvelle publication",
+    title: "Ajoutez votre visuel",
+    description: "Selectionnez l'image ou la video principale de la carte.",
+  },
+  details: {
+    eyebrow: "Nouvelle publication",
+    title: "Ecrivez la legende",
+    description: "Ajoutez le texte, le lieu et les champs utiles a votre carte.",
+  },
+  review: {
+    eyebrow: "Nouvelle publication",
+    title: "Verifier avant d'envoyer",
+    description: "Votre proposition partira ensuite en attente de validation.",
+  },
+};
 
 function getStepIndex(step: StepId) {
-  return steps.findIndex((entry) => entry.id === step);
+  return stepOrder.indexOf(step);
 }
 
 function deriveTypeSpecificError(form: ContributionPayload) {
@@ -186,16 +148,132 @@ function deriveTypeSpecificError(form: ContributionPayload) {
   }
 }
 
+function FieldBlock({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2.5">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-ink">{label}</p>
+        {hint ? <p className="text-xs leading-5 text-graphite/75">{hint}</p> : null}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Surface({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("rounded-[26px] bg-white px-4 py-4 shadow-card", className)}>
+      {children}
+    </div>
+  );
+}
+
+function StepDots({
+  step,
+  labels,
+}: {
+  step: StepId;
+  labels: Array<{ id: StepId; label: string }>;
+}) {
+  const activeIndex = getStepIndex(step);
+
+  return (
+    <div className="flex items-center gap-2">
+      {labels.map((entry, index) => {
+        const active = entry.id === step;
+        const complete = index < activeIndex;
+
+        return (
+          <div
+            key={entry.id}
+            className={cn(
+              "h-2.5 rounded-full transition-all",
+              active ? "w-10 bg-plum" : "w-2.5",
+              complete ? "bg-plum/55" : active ? "" : "bg-borderSoft"
+            )}
+            aria-label={entry.label}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function TypeCard({
+  active,
+  label,
+  teaser,
+  icon: Icon,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  teaser: string;
+  icon: typeof Newspaper;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex aspect-square flex-col items-start justify-between rounded-[24px] border px-4 py-4 text-left transition",
+        active
+          ? "border-plum bg-[linear-gradient(160deg,#6A2BE8_0%,#8F61F5_100%)] text-white shadow-float"
+          : "border-borderSoft bg-[#FCFAF8] text-ink"
+      )}
+    >
+      <div
+        className={cn(
+          "rounded-2xl p-3",
+          active ? "bg-white/15 text-white" : "bg-plum/10 text-plum"
+        )}
+      >
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <p className="text-base font-semibold">{label}</p>
+        <p className={cn("mt-2 text-xs leading-5", active ? "text-white/80" : "text-graphite/75")}>
+          {teaser}
+        </p>
+      </div>
+    </button>
+  );
+}
+
 export function ContributionForm() {
+  const { t } = useI18n();
   const token = useAuthStore((state) => state.token);
   const [form, setForm] = useState<ContributionPayload>(initialForm);
   const [step, setStep] = useState<StepId>("type");
   const [message, setMessage] = useState<string | null>(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const activeStepIndex = getStepIndex(step);
   const currentTypeMeta = typeMeta[form.type];
+  const currentStepCopy = stepCopy[step];
+  const steps: Array<{ id: StepId; label: string }> = [
+    { id: "type", label: t("contribute.stepType") },
+    { id: "media", label: t("contribute.stepMedia") },
+    { id: "details", label: t("contribute.stepDetails") },
+    { id: "review", label: t("contribute.stepPreview") },
+  ];
 
   useEffect(() => {
     return () => {
@@ -204,6 +282,10 @@ export function ContributionForm() {
       }
     };
   }, [mediaPreviewUrl]);
+
+  useEffect(() => {
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [step]);
 
   const updateForm = <K extends keyof ContributionPayload>(
     key: K,
@@ -233,7 +315,7 @@ export function ContributionForm() {
       return createContribution(payload, token);
     },
     onSuccess: () => {
-      setMessage("Contribution envoyee. Elle est maintenant en attente de validation.");
+      setMessage(t("contribute.sent"));
       setForm(initialForm);
       setStep("type");
       if (mediaPreviewUrl) {
@@ -249,6 +331,7 @@ export function ContributionForm() {
 
   const goNext = () => {
     if (step === "type") {
+      setMessage(null);
       setStep("media");
       return;
     }
@@ -306,80 +389,41 @@ export function ContributionForm() {
       "media_kind",
       file.type.startsWith("video/")
         ? "video"
-        : "image"
+        : file.type.startsWith("audio/")
+          ? "audio"
+          : "image"
     );
     setMessage(null);
   };
 
-  const renderTypeStep = () => (
-    <div className="space-y-4">
-      <div>
-        <p className="text-sm uppercase tracking-[0.22em] text-plum">Etape 1</p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">Que voulez-vous publier ?</h2>
-        <p className="mt-2 text-sm leading-6 text-graphite">
-          Commencez comme sur Instagram ou TikTok: choisissez le format de votre carte, puis nous
-          adaptons les champs utiles pour la suite.
-        </p>
-      </div>
-
-      <div className="grid gap-3">
-        {(Object.entries(typeMeta) as Array<[ContributionType, (typeof typeMeta)[ContributionType]]>).map(
-          ([type, meta]) => {
-            const Icon = meta.icon;
-            const active = form.type === type;
-
-            return (
-              <button
-                key={type}
-                type="button"
-                onClick={() => updateForm("type", type)}
-                className={cn(
-                  "rounded-[28px] border px-4 py-4 text-left transition",
-                  active
-                    ? "border-plum bg-plum text-white shadow-float"
-                    : "border-borderSoft bg-white text-ink"
-                )}
-              >
-                <div className="flex items-start gap-4">
-                  <div
-                    className={cn(
-                      "rounded-2xl p-3",
-                      active ? "bg-white/15 text-white" : "bg-plum/10 text-plum"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-lg font-semibold">{meta.label}</p>
-                    <p className={cn("mt-1 text-sm", active ? "text-white/85" : "text-graphite")}>
-                      {meta.teaser}
-                    </p>
-                    <p className={cn("mt-2 text-xs", active ? "text-white/75" : "text-graphite/70")}>
-                      {meta.helper}
-                    </p>
-                  </div>
-                </div>
-              </button>
-            );
-          }
-        )}
-      </div>
-    </div>
-  );
+  const clearMedia = () => {
+    if (mediaPreviewUrl) {
+      URL.revokeObjectURL(mediaPreviewUrl);
+    }
+    setMediaPreviewUrl(null);
+    updateForm("media_name", "");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const renderMediaPreview = () => {
     if (!mediaPreviewUrl) {
       return (
-        <div className="flex aspect-[4/5] items-center justify-center rounded-[28px] border border-dashed border-borderSoft bg-[#F8F5F1] text-center">
+        <div className="flex aspect-[4/5] items-center justify-center rounded-[28px] bg-[linear-gradient(180deg,#FBF6F1_0%,#EFE5DA_100%)] text-center ring-1 ring-borderSoft">
           <div className="max-w-[16rem] space-y-3 px-6 text-graphite">
             {form.media_kind === "video" ? (
-              <Film className="mx-auto h-9 w-9 text-plum" />
+              <Film className="mx-auto h-10 w-10 text-plum" />
+            ) : form.media_kind === "audio" ? (
+              <Mic2 className="mx-auto h-10 w-10 text-plum" />
             ) : (
-              <ImagePlus className="mx-auto h-9 w-9 text-plum" />
+              <ImagePlus className="mx-auto h-10 w-10 text-plum" />
             )}
-            <p className="font-display text-base font-semibold">Ajoutez un media pour commencer votre carte</p>
+            <p className="text-base font-semibold text-ink">
+              Votre couverture apparaitra ici
+            </p>
             <p className="text-xs leading-5 text-graphite/75">
-              Une image ou une video donnera le ton de votre capsule.
+              Ajoutez un visuel principal avant de continuer.
             </p>
           </div>
         </div>
@@ -396,6 +440,30 @@ export function ContributionForm() {
       );
     }
 
+    if (form.media_kind === "audio") {
+      return (
+        <div className="overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)] px-5 py-8 text-white shadow-card">
+          <div className="flex aspect-[4/5] flex-col justify-between">
+            <div className="rounded-full bg-white/15 p-3 text-white w-fit">
+              <Mic2 className="h-6 w-6" />
+            </div>
+            <div className="space-y-5">
+              <div className="flex items-end justify-between gap-2 opacity-35">
+                {[36, 54, 28, 42, 60, 32, 48, 24].map((height, index) => (
+                  <span
+                    key={`preview-audio-${index}`}
+                    className="w-2 rounded-full bg-white"
+                    style={{ height }}
+                  />
+                ))}
+              </div>
+              <audio src={mediaPreviewUrl} controls className="w-full" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <img
         src={mediaPreviewUrl}
@@ -405,131 +473,153 @@ export function ContributionForm() {
     );
   };
 
+  const renderTypeStep = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        {(Object.entries(typeMeta) as Array<[ContributionType, (typeof typeMeta)[ContributionType]]>).map(
+          ([type, meta]) => (
+            <TypeCard
+              key={type}
+              active={form.type === type}
+              label={meta.label}
+              teaser={meta.teaser}
+              icon={meta.icon}
+              onClick={() => updateForm("type", type)}
+            />
+          )
+        )}
+      </div>
+
+      <Surface className="bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+        <p className="text-sm font-semibold text-ink">{currentTypeMeta.label}</p>
+        <p className="mt-2 text-sm leading-6 text-graphite">{currentTypeMeta.helper}</p>
+      </Surface>
+    </div>
+  );
+
   const renderMediaStep = () => (
-    <div className="space-y-5">
-      <div>
-        <p className="text-sm uppercase tracking-[0.22em] text-plum">Etape 2</p>
-        <h2 className="font-display mt-2 text-[2rem] font-semibold tracking-[-0.02em] text-ink">Choisissez votre media</h2>
-        <p className="mt-2 text-sm leading-6 text-graphite">
-          Ajoutez d'abord le visuel principal de la carte. Vous pouvez importer un fichier ou
-          simplement renseigner son nom si l'asset final sera ajoute plus tard.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {renderMediaPreview()}
 
-      <div className="grid gap-5 md:grid-cols-[1.05fr_0.95fr]">
-        <div>{renderMediaPreview()}</div>
-
-        <div className="space-y-4 rounded-[28px] bg-white px-4 py-4 shadow-sm">
-          <div className="grid grid-cols-2 gap-2">
-            {(["image", "video"] as const).map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                onClick={() => updateForm("media_kind", kind)}
-                className={cn(
-                  "rounded-2xl px-4 py-3 text-sm font-semibold transition",
-                  form.media_kind === kind
-                    ? "bg-plum text-white"
-                    : "bg-[#F6F2ED] text-graphite"
-                )}
-              >
-                {kind === "image" ? "Image" : "Video"}
-              </button>
-            ))}
-          </div>
-
-          <div className="rounded-[24px] border border-dashed border-borderSoft bg-[#FCFAF8] px-4 py-5">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-plum/10 p-3 text-plum">
-                <UploadCloud className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-ink">Importer un media</p>
-                <p className="text-xs leading-5 text-graphite/75">
-                  Image ou video. Nous gardons pour l'instant le nom du fichier cote backend.
-                </p>
-              </div>
-            </div>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={form.media_kind === "video" ? "video/*" : "image/*,video/*"}
-              className="hidden"
-              onChange={(event) => handleMediaSelection(event.target.files?.[0] ?? null)}
-            />
-
-            <Button
+      <Surface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+        <div className="grid grid-cols-2 gap-2">
+          {(["image", "video", "audio"] as const).map((kind) => (
+            <button
+              key={kind}
               type="button"
-              variant="secondary"
-              className="mt-4 w-full rounded-3xl"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {form.media_kind === "video" ? (
-                <Film className="mr-2 h-5 w-5" />
-              ) : (
-                <ImagePlus className="mr-2 h-5 w-5" />
+              onClick={() => updateForm("media_kind", kind)}
+              className={cn(
+                "rounded-full px-4 py-3 text-sm font-semibold transition",
+                form.media_kind === kind
+                  ? "bg-plum text-white"
+                  : "bg-white text-graphite ring-1 ring-borderSoft"
               )}
-              Choisir {form.media_kind === "video" ? "une video" : "une image"}
-            </Button>
-          </div>
-
-          <FieldBlock
-            label="Nom de l'asset"
-            hint="Utile si le media final sera remplace plus tard par votre equipe."
-          >
-            <Input
-              placeholder="ex: wurth_capsule_finale.mp4"
-              value={form.media_name}
-              onChange={(event) => updateForm("media_name", event.target.value)}
-            />
-          </FieldBlock>
+            >
+              {kind === "image" ? "Image" : kind === "video" ? "Video" : "Audio"}
+            </button>
+          ))}
         </div>
-      </div>
-    </div>
-  );
 
-  const renderGraphFields = () => (
-    <div className="grid gap-3 md:grid-cols-2">
-      <FieldBlock
-        label="Lieu lie"
-        hint="Nom du lieu deja connu ou a creer."
-      >
-        <Input
-          placeholder="ex: Musee Wurth | Erstein"
-          value={form.linked_place_name}
-          onChange={(event) => updateForm("linked_place_name", event.target.value)}
-        />
-      </FieldBlock>
-      <FieldBlock
-        label="Personne liee"
-        hint="Artiste, habitant, contributeur, intervenant."
-      >
-        <Input
-          placeholder="ex: Tomi Ungerer"
-          value={form.linked_person_name}
-          onChange={(event) => updateForm("linked_person_name", event.target.value)}
-        />
-      </FieldBlock>
-    </div>
-  );
+        <div className="space-y-3">
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {form.media_kind === "video" ? (
+              <Film className="mr-2 h-5 w-5" />
+            ) : form.media_kind === "audio" ? (
+              <Mic2 className="mr-2 h-5 w-5" />
+            ) : (
+              <ImagePlus className="mr-2 h-5 w-5" />
+            )}
+            Choisir{" "}
+            {form.media_kind === "video"
+              ? "une video"
+              : form.media_kind === "audio"
+                ? "un audio"
+                : "une image"}
+          </Button>
 
-  const renderDetailStep = () => (
-    <div className="space-y-5">
-      <div>
-        <p className="text-sm uppercase tracking-[0.22em] text-plum">Etape 3</p>
-        <h2 className="font-display mt-2 text-[2rem] font-semibold tracking-[-0.02em] text-ink">
-          Ajoutez le contexte de votre {currentTypeMeta.label.toLowerCase()}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-graphite">
-          Ecrivez comme une vraie publication: un titre, une legende, puis les infos qui donnent
-          envie d'ouvrir la carte.
-        </p>
-      </div>
+          {form.media_name ? (
+            <Button type="button" variant="secondary" className="w-full shadow-none" onClick={clearMedia}>
+              <X className="mr-2 h-4 w-4" />
+              Retirer le media
+            </Button>
+          ) : null}
 
-      <div className="space-y-4 rounded-[28px] bg-white px-4 py-4 shadow-sm">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={
+              form.media_kind === "video"
+                ? "video/*"
+                : form.media_kind === "audio"
+                  ? "audio/*"
+                  : "image/*,video/*,audio/*"
+            }
+            className="hidden"
+            onChange={(event) => handleMediaSelection(event.target.files?.[0] ?? null)}
+          />
+        </div>
+
         <FieldBlock
-          label={form.type === "person" ? "Nom de la personne" : "Titre de la carte"}
+          label="Nom du fichier"
+          hint="Gardez ce champ si l'asset definitif sera remplace plus tard."
+        >
+          <Input
+            placeholder="ex: capsule_musee_wurth.mp4"
+            value={form.media_name}
+            onChange={(event) => updateForm("media_name", event.target.value)}
+          />
+        </FieldBlock>
+      </Surface>
+    </div>
+  );
+
+  const renderDetailsStep = () => (
+    <div className="space-y-4">
+      <Surface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+        <div className="flex items-center gap-3">
+          <div className="relative h-16 w-16 overflow-hidden rounded-[20px] bg-mist">
+            {mediaPreviewUrl ? (
+              form.media_kind === "video" ? (
+                <video
+                  src={mediaPreviewUrl}
+                  className="h-full w-full object-cover"
+                  muted
+                  playsInline
+                />
+              ) : (
+                <img src={mediaPreviewUrl} alt="Preview" className="h-full w-full object-cover" />
+              )
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[#EFE5DA] text-plum">
+                {form.media_kind === "video" ? (
+                  <Film className="h-5 w-5" />
+                ) : form.media_kind === "audio" ? (
+                  <Mic2 className="h-5 w-5" />
+                ) : (
+                  <ImagePlus className="h-5 w-5" />
+                )}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+              {currentTypeMeta.label}
+            </p>
+            <p className="truncate text-base font-semibold text-ink">
+              {form.title || "Titre de la publication"}
+            </p>
+            <p className="truncate text-sm text-graphite/70">
+              {form.subtitle || "Ajoutez une accroche ou un sous-titre"}
+            </p>
+          </div>
+        </div>
+
+        <FieldBlock
+          label={form.type === "person" ? "Nom de la personne" : "Titre"}
           hint="Le titre principal visible dans le feed."
         >
           <Input
@@ -548,157 +638,148 @@ export function ContributionForm() {
         </FieldBlock>
 
         <FieldBlock
-          label={
-            form.type === "person"
-              ? "Sous-titre / posture editoriale"
-              : "Accroche ou sous-titre"
-          }
-          hint="Optionnel mais tres utile pour donner une lecture immediate."
+          label="Sous-titre"
+          hint="Optionnel, pour donner tout de suite la bonne lecture."
         >
           <Input
-            placeholder={
-              form.type === "person"
-                ? "ex: metteuse en scene, plasticienne et pedagogue"
-                : "ex: capsule urbaine, insolite, pour les enfants..."
-            }
+            placeholder="ex: pour les enfants, expo, capsule urbaine..."
             value={form.subtitle}
             onChange={(event) => updateForm("subtitle", event.target.value)}
           />
         </FieldBlock>
 
         <FieldBlock
-          label="Legende / caption"
-          hint="Le texte principal du post. Racontez l'histoire, l'ambiance et les liens possibles."
+          label="Legende"
+          hint="Ecrivez ici comme une vraie publication mobile."
         >
           <Textarea
-            placeholder="Ecrivez le recit editorial, ce qu'il faut retenir, pourquoi cette carte merite d'exister..."
+            placeholder="Racontez l'histoire, l'ambiance, ce qu'il faut retenir..."
             value={form.description}
             onChange={(event) => updateForm("description", event.target.value)}
+            className="min-h-40"
           />
         </FieldBlock>
-      </div>
+      </Surface>
 
-      <div className="space-y-4 rounded-[28px] bg-white px-4 py-4 shadow-sm">
+      <Surface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
         <div>
-          <p className="text-base font-semibold text-ink">Infos contextuelles</p>
-          <p className="text-sm text-graphite/75">
-            Ces champs evoluent selon le type de carte choisi.
+          <p className="text-base font-semibold text-ink">Lieu et graphe</p>
+          <p className="mt-1 text-sm text-graphite/75">
+            Ajoutez seulement les liens utiles a cette carte.
           </p>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2">
-          <FieldBlock label="Ville">
+        <FieldBlock label="Ville">
+          <Input
+            placeholder="ex: Strasbourg"
+            value={form.city}
+            onChange={(event) => updateForm("city", event.target.value)}
+          />
+        </FieldBlock>
+
+        {(form.type === "place" || form.type === "event") ? (
+          <FieldBlock label="Adresse">
             <Input
-              placeholder="ex: Strasbourg"
-              value={form.city}
-              onChange={(event) => updateForm("city", event.target.value)}
+              placeholder="ex: 1 Rue du Bain aux Plantes"
+              value={form.address}
+              onChange={(event) => updateForm("address", event.target.value)}
             />
           </FieldBlock>
+        ) : null}
 
-          {(form.type === "place" || form.type === "event") && (
-            <FieldBlock
-              label="Adresse"
-              hint={form.type === "event" ? "Lieu physique ou adresse du rendez-vous." : undefined}
-            >
-              <Input
-                placeholder="ex: 1 Rue du Bain aux Plantes"
-                value={form.address}
-                onChange={(event) => updateForm("address", event.target.value)}
-              />
-            </FieldBlock>
-          )}
+        <FieldBlock label="Lieu lie">
+          <Input
+            placeholder="ex: Musee Wurth | Erstein"
+            value={form.linked_place_name}
+            onChange={(event) => updateForm("linked_place_name", event.target.value)}
+          />
+        </FieldBlock>
 
-          {form.type === "place" && (
-            <>
-              <FieldBlock label="Quartier / precision">
-                <Input
-                  placeholder="ex: pres du centre, a deux pas du tram"
-                  value={form.neighborhood}
-                  onChange={(event) => updateForm("neighborhood", event.target.value)}
-                />
-              </FieldBlock>
-              <FieldBlock label="Horaires">
-                <Input
-                  placeholder="ex: mar-dim 10h-18h"
-                  value={form.opening_hours}
-                  onChange={(event) => updateForm("opening_hours", event.target.value)}
-                />
-              </FieldBlock>
-            </>
-          )}
+        <FieldBlock label="Personne liee">
+          <Input
+            placeholder="ex: Tomi Ungerer"
+            value={form.linked_person_name}
+            onChange={(event) => updateForm("linked_person_name", event.target.value)}
+          />
+        </FieldBlock>
 
-          {form.type === "person" && (
-            <FieldBlock label="Role">
-              <Input
-                placeholder="ex: illustrateur, commissaire, musicienne"
-                value={form.role}
-                onChange={(event) => updateForm("role", event.target.value)}
-              />
-            </FieldBlock>
-          )}
-
-          {form.type === "event" && (
-            <>
-              <FieldBlock label="Date et heure de debut">
-                <Input
-                  type="datetime-local"
-                  value={form.event_date}
-                  onChange={(event) => updateForm("event_date", event.target.value)}
-                />
-              </FieldBlock>
-              <FieldBlock label="Date de fin">
-                <Input
-                  type="datetime-local"
-                  value={form.end_date}
-                  onChange={(event) => updateForm("end_date", event.target.value)}
-                />
-              </FieldBlock>
-              <FieldBlock label="Prix">
-                <Input
-                  placeholder="ex: 12 EUR / gratuit"
-                  value={form.price}
-                  onChange={(event) => updateForm("price", event.target.value)}
-                />
-              </FieldBlock>
-            </>
-          )}
-
-          {form.type === "magazine" && (
-            <FieldBlock label="Evenement lie">
-              <Input
-                placeholder="ex: Chasse aux oeufs"
-                value={form.linked_event_name}
-                onChange={(event) => updateForm("linked_event_name", event.target.value)}
-              />
-            </FieldBlock>
-          )}
-        </div>
-
-        {renderGraphFields()}
-
-        {form.type === "person" ? (
+        {(form.type === "magazine" || form.type === "person") ? (
           <FieldBlock label="Evenement lie">
             <Input
-              placeholder="ex: ouverture d'exposition, spectacle, rencontre"
+              placeholder="ex: ouverture, spectacle, rencontre"
               value={form.linked_event_name}
               onChange={(event) => updateForm("linked_event_name", event.target.value)}
             />
           </FieldBlock>
         ) : null}
+      </Surface>
 
-        {form.type === "event" ? (
-          <FieldBlock label="Personne liee">
+      <Surface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+        <div>
+          <p className="text-base font-semibold text-ink">Details supplementaires</p>
+          <p className="mt-1 text-sm text-graphite/75">
+            Ces champs s'adaptent au type de publication.
+          </p>
+        </div>
+
+        {form.type === "place" ? (
+          <>
+            <FieldBlock label="Quartier / precision">
+              <Input
+                placeholder="ex: pres du tram, entree cour laterale"
+                value={form.neighborhood}
+                onChange={(event) => updateForm("neighborhood", event.target.value)}
+              />
+            </FieldBlock>
+            <FieldBlock label="Horaires">
+              <Input
+                placeholder="ex: mar-dim 10h-18h"
+                value={form.opening_hours}
+                onChange={(event) => updateForm("opening_hours", event.target.value)}
+              />
+            </FieldBlock>
+          </>
+        ) : null}
+
+        {form.type === "person" ? (
+          <FieldBlock label="Role">
             <Input
-              placeholder="ex: compagnie invitee, intervenant, artiste"
-              value={form.linked_person_name}
-              onChange={(event) => updateForm("linked_person_name", event.target.value)}
+              placeholder="ex: illustrateur, commissaire, musicienne"
+              value={form.role}
+              onChange={(event) => updateForm("role", event.target.value)}
             />
           </FieldBlock>
         ) : null}
 
+        {form.type === "event" ? (
+          <>
+            <FieldBlock label="Date et heure de debut">
+              <Input
+                type="datetime-local"
+                value={form.event_date}
+                onChange={(event) => updateForm("event_date", event.target.value)}
+              />
+            </FieldBlock>
+            <FieldBlock label="Date de fin">
+              <Input
+                type="datetime-local"
+                value={form.end_date}
+                onChange={(event) => updateForm("end_date", event.target.value)}
+              />
+            </FieldBlock>
+            <FieldBlock label="Prix">
+              <Input
+                placeholder="ex: 12 EUR / gratuit"
+                value={form.price}
+                onChange={(event) => updateForm("price", event.target.value)}
+              />
+            </FieldBlock>
+          </>
+        ) : null}
+
         <FieldBlock
-          label="Lien externe ou reference"
-          hint="Billetterie, site officiel, note editoriale, source de verification."
+          label="Lien externe"
+          hint="Billetterie, site officiel, note editoriale ou reference."
         >
           <Input
             placeholder="https://..."
@@ -706,15 +787,13 @@ export function ContributionForm() {
             onChange={(event) => updateForm("external_url", event.target.value)}
           />
         </FieldBlock>
-      </div>
+      </Surface>
     </div>
   );
 
   const reviewRows = [
     { label: "Type", value: currentTypeMeta.label },
-    { label: "Media", value: form.media_name || "Aucun media" },
     { label: "Titre", value: form.title || "A renseigner" },
-    { label: "Sous-titre", value: form.subtitle || "Aucun" },
     { label: "Ville", value: form.city || "Aucune" },
     { label: "Adresse", value: form.address || "Aucune" },
     { label: "Role", value: form.role || "Aucun" },
@@ -729,137 +808,161 @@ export function ContributionForm() {
     const TypeIcon = currentTypeMeta.icon;
 
     return (
-      <div className="space-y-5">
-      <div>
-        <p className="text-sm uppercase tracking-[0.22em] text-plum">Etape 4</p>
-        <h2 className="font-display mt-2 text-[2rem] font-semibold tracking-[-0.02em] text-ink">Verifiez avant publication</h2>
-        <p className="mt-2 text-sm leading-6 text-graphite">
-          Vous etes sur l'ecran final avant envoi. La contribution partira ensuite en moderation
-          avec le statut <span className="font-semibold">pending</span>.
-        </p>
-      </div>
+      <div className="space-y-4">
+        <div className="overflow-hidden rounded-[28px] bg-editorial text-white shadow-card">
+          <div className="relative aspect-[4/5]">
+            {mediaPreviewUrl ? (
+              form.media_kind === "video" ? (
+                <video
+                  src={mediaPreviewUrl}
+                  className="h-full w-full object-cover"
+                  muted
+                  playsInline
+                />
+              ) : form.media_kind === "audio" ? (
+                <div className="flex h-full w-full flex-col justify-between bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)] px-5 py-5">
+                  <div className="rounded-full bg-white/15 p-3 text-white w-fit">
+                    <Mic2 className="h-6 w-6" />
+                  </div>
+                  <audio src={mediaPreviewUrl} controls className="w-full" />
+                </div>
+              ) : (
+                <img src={mediaPreviewUrl} alt="Preview" className="h-full w-full object-cover" />
+              )
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(160deg,#6A2BE8_0%,#1D2230_100%)]">
+                <TypeIcon className="h-10 w-10" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute left-4 top-4 rounded-full bg-black/25 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] backdrop-blur-md">
+              {currentTypeMeta.label}
+            </div>
+            <div className="absolute inset-x-4 bottom-4">
+              <p className="text-[1.7rem] font-semibold leading-[0.95] tracking-[-0.03em]">
+                {form.title || currentTypeMeta.label}
+              </p>
+              {form.subtitle ? (
+                <p className="mt-2 text-sm text-white/85">{form.subtitle}</p>
+              ) : null}
+              {form.city ? (
+                <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  {form.city}
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
-      <div className="grid gap-5 md:grid-cols-[0.95fr_1.05fr]">
-        <div className="space-y-4 rounded-[28px] bg-white px-4 py-4 shadow-sm">
-          {renderMediaPreview()}
-          <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-plum">
-              Caption
+        <Surface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+          <div className="rounded-[22px] bg-white px-4 py-4 ring-1 ring-borderSoft">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+              Legende
             </p>
             <p className="mt-3 text-sm leading-7 text-graphite">
               {form.description || "Aucune legende pour le moment."}
             </p>
           </div>
-        </div>
 
-        <div className="space-y-4 rounded-[28px] bg-white px-4 py-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-plum/10 p-3 text-plum">
-              <TypeIcon className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-ink">{form.title || currentTypeMeta.label}</p>
-              <p className="text-sm text-graphite/75">{form.subtitle || currentTypeMeta.teaser}</p>
-            </div>
-          </div>
-
-          <div className="grid gap-3">
+          <div className="space-y-2">
             {reviewRows.map((row) => (
               <div
                 key={row.label}
-                className="flex items-start justify-between gap-4 rounded-2xl bg-[#FCFAF8] px-4 py-3"
+                className="flex items-start justify-between gap-4 rounded-[20px] bg-white px-4 py-3 ring-1 ring-borderSoft"
               >
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-graphite/65">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/65">
                   {row.label}
                 </p>
-                <p className="text-right text-sm text-ink">{row.value}</p>
+                <p className="max-w-[60%] text-right text-sm text-ink">{row.value}</p>
               </div>
             ))}
           </div>
 
-          <div className="rounded-[24px] bg-[#F8F0FF] px-4 py-4 text-sm text-graphite">
-            <p className="font-semibold text-plum">Ce qui va etre cree</p>
-            <ul className="mt-3 space-y-2 leading-6">
-              <li>Un brouillon editorial de type {currentTypeMeta.label.toLowerCase()}</li>
-              <li>Le media principal reference par son nom dans le payload</li>
-              <li>Les liens de graphe saisis pour faciliter la moderation</li>
-            </ul>
+          <div className="rounded-[22px] bg-[#F8F0FF] px-4 py-4 text-sm text-graphite">
+            <p className="font-semibold text-plum">Moderation</p>
+            <p className="mt-2 leading-6">
+              Une fois envoyee, votre publication restera en attente jusqu'a validation.
+            </p>
           </div>
-        </div>
-      </div>
+        </Surface>
       </div>
     );
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {steps.map((entry, index) => (
-          <StepPill
-            key={entry.id}
-            short={entry.short}
-            label={entry.label}
-            active={step === entry.id}
-            complete={index < activeStepIndex}
-          />
-        ))}
-      </div>
+    <div ref={containerRef} className="space-y-4">
+      <Surface className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
+              {t("contribute.studio")}
+            </p>
+            <h2 className="mt-2 text-[1.45rem] font-semibold leading-tight tracking-[-0.03em] text-ink">
+              {currentStepCopy.title}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-graphite">
+              {currentStepCopy.description}
+            </p>
+          </div>
+          <div className="rounded-full bg-[#F8F0FF] px-3 py-2 text-xs font-semibold text-plum">
+            {activeStepIndex + 1}/{steps.length}
+          </div>
+        </div>
+        <StepDots step={step} labels={steps} />
+      </Surface>
 
-      <div className="rounded-[32px] bg-[#F8F5F1] px-4 py-4">
-        <form
-          className="space-y-5"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (validationError) {
-              setMessage(validationError);
-              return;
-            }
+      <form
+        className="space-y-4"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (validationError) {
+            setMessage(validationError);
+            return;
+          }
 
-            mutation.mutate(form);
-          }}
-        >
-          {step === "type" ? renderTypeStep() : null}
-          {step === "media" ? renderMediaStep() : null}
-          {step === "details" ? renderDetailStep() : null}
-          {step === "review" ? renderReviewStep() : null}
+          mutation.mutate(form);
+        }}
+      >
+        {message ? (
+          <Surface className="text-sm leading-6 text-graphite">{message}</Surface>
+        ) : null}
 
-          <div className="sticky bottom-4 z-10 rounded-[28px] bg-white/94 px-4 py-4 shadow-card backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm text-graphite/75">
-                {step !== "type" ? (
-                  <Button type="button" variant="ghost" className="px-3 py-2" onClick={goBack}>
-                    <ChevronLeft className="mr-1 h-4 w-4" />
-                    Retour
-                  </Button>
-                ) : (
-                  <div className="flex items-center gap-2 text-xs text-graphite/70">
-                    <Clock3 className="h-4 w-4" />
-                    Parcours de publication en 4 etapes
-                  </div>
-                )}
-              </div>
+        {step === "type" ? renderTypeStep() : null}
+        {step === "media" ? renderMediaStep() : null}
+        {step === "details" ? renderDetailsStep() : null}
+        {step === "review" ? renderReviewStep() : null}
 
-              {step !== "review" ? (
-                <Button type="button" onClick={goNext}>
-                  Continuer
-                  <ChevronRight className="ml-2 h-4 w-4" />
+        <div className="sticky bottom-4 z-10 rounded-[26px] bg-white/96 px-4 py-4 shadow-card backdrop-blur-md">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2 text-xs text-graphite/70">
+              {step !== "type" ? (
+                <Button type="button" variant="ghost" className="px-3 py-2" onClick={goBack}>
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  {t("contribute.back")}
                 </Button>
               ) : (
-                <Button type="submit" disabled={mutation.isPending}>
-                  <UploadCloud className="mr-2 h-5 w-5" />
-                  Soumettre pour validation
-                </Button>
+                <>
+                  <Clock3 className="h-4 w-4 shrink-0" />
+                  <span className="line-clamp-2">{t("contribute.path")}</span>
+                </>
               )}
             </div>
-          </div>
-        </form>
-      </div>
 
-      {message ? (
-        <div className="rounded-[28px] bg-white px-4 py-4 text-sm text-graphite shadow-sm">
-          {message}
+            {step !== "review" ? (
+              <Button type="button" onClick={goNext}>
+                {t("contribute.next")}
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button type="submit" disabled={mutation.isPending}>
+                <UploadCloud className="mr-2 h-5 w-5" />
+                {t("contribute.submit")}
+              </Button>
+            )}
+          </div>
         </div>
-      ) : null}
+      </form>
     </div>
   );
 }

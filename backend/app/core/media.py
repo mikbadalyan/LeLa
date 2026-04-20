@@ -5,6 +5,7 @@ from typing import Optional
 from urllib.parse import quote
 
 VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm"}
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
 PLACE_COLLECTION_VIDEO = quote("lété-au-musée-würth.mp4", safe="/")
 PLACE_COLLECTION_POSTER = quote("cards/five.png", safe="/")
 
@@ -16,6 +17,8 @@ def resolve_media_kind(media_url: str | None) -> str | None:
     suffix = Path(media_url).suffix.lower()
     if suffix in VIDEO_EXTENSIONS:
         return "video"
+    if suffix in AUDIO_EXTENSIONS:
+        return "audio"
     if suffix in {".jpg", ".jpeg", ".png", ".webp", ".svg"}:
         return "image"
     return "unknown"

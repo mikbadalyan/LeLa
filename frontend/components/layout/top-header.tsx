@@ -15,9 +15,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { languageOptions, useI18n } from "@/features/shell/i18n";
 import { Input } from "@/components/ui/input";
 import { useShellStore } from "@/features/shell/store";
-import { formatFrenchDate } from "@/lib/utils/format";
 
 interface TopHeaderProps {
   rightContent?: ReactNode;
@@ -30,6 +30,7 @@ type Panel = "city" | "date" | "menu" | null;
 export function TopHeader({ rightContent }: TopHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { language, setLanguage, t, formatDate } = useI18n();
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
   const setCity = useShellStore((state) => state.setCity);
@@ -85,8 +86,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
   const menuLinks = [
     {
-      label: "Fil complet",
-      description: "Retourner au feed complet et reinitialiser les filtres.",
+      label: t("menu.fullFeed"),
+      description: t("menu.fullFeedDescription"),
       icon: Home,
       action: () => {
         resetFilters();
@@ -95,8 +96,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Carte",
-      description: "Ouvrir la page carte OpenStreetMap.",
+      label: t("menu.map"),
+      description: t("menu.mapDescription"),
       icon: Map,
       action: () => {
         router.push("/map");
@@ -104,8 +105,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Aimes",
-      description: "Voir toutes les cartes que vous avez aimees.",
+      label: t("menu.likes"),
+      description: t("menu.likesDescription"),
       icon: Heart,
       action: () => {
         router.push("/likes");
@@ -113,8 +114,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Relations",
-      description: "Rechercher des profils et gerer vos amis.",
+      label: t("menu.relations"),
+      description: t("menu.relationsDescription"),
       icon: Users,
       action: () => {
         router.push("/relations");
@@ -122,8 +123,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Contribuer",
-      description: "Publier une nouvelle proposition.",
+      label: t("menu.contribute"),
+      description: t("menu.contributeDescription"),
       icon: PlusCircle,
       action: () => {
         router.push("/contribute");
@@ -131,8 +132,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Compte",
-      description: "Ouvrir votre profil et la moderation.",
+      label: t("menu.account"),
+      description: t("menu.accountDescription"),
       icon: UserCircle2,
       action: () => {
         router.push("/profile");
@@ -151,30 +152,34 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         />
       ) : null}
 
-      <header className="relative z-20 border-b border-borderSoft bg-white/90 px-4 py-3 backdrop-blur">
-        <div className="flex items-center justify-between gap-3 text-sm text-graphite">
+      <header className="relative z-20 border-b border-borderSoft/90 bg-white/92 px-4 py-2.5 backdrop-blur-md">
+        <div className="flex items-center justify-between gap-2 text-sm text-graphite">
           {/* City selector */}
           <button
             type="button"
             onClick={() => toggle("city")}
-            className={`flex items-center gap-2 rounded-full px-2 py-1 font-medium underline decoration-1 underline-offset-2 transition hover:bg-mist ${
-              openPanel === "city" ? "bg-mist" : ""
+            className={`flex min-w-0 items-center gap-2 rounded-full border px-3 py-1.5 font-medium transition ${
+              openPanel === "city"
+                ? "border-plum/20 bg-[#F8F0FF] text-plum"
+                : "border-transparent bg-mist/70 hover:bg-mist"
             }`}
           >
             <Map className="h-4 w-4 shrink-0" />
-            <span className="truncate">{city}</span>
+            <span className="truncate text-[13px]">{city}</span>
           </button>
 
           {/* Date selector */}
           <button
             type="button"
             onClick={() => toggle("date")}
-            className={`flex items-center gap-2 rounded-full px-2 py-1 font-medium transition hover:bg-mist ${
-              openPanel === "date" ? "bg-mist" : ""
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 font-medium transition ${
+              openPanel === "date"
+                ? "border-plum/20 bg-[#F8F0FF] text-plum"
+                : "border-transparent bg-mist/70 hover:bg-mist"
             }`}
           >
             <CalendarDays className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap">{formatFrenchDate(selectedDate)}</span>
+            <span className="whitespace-nowrap text-[13px]">{formatDate(selectedDate)}</span>
           </button>
 
           {/* Right actions */}
@@ -183,10 +188,12 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
             <button
               type="button"
               onClick={() => toggle("menu")}
-              className={`rounded-full p-2 transition hover:bg-mist ${
-                openPanel === "menu" ? "bg-mist" : ""
+              className={`rounded-full border p-2 transition ${
+                openPanel === "menu"
+                  ? "border-plum/20 bg-[#F8F0FF] text-plum"
+                  : "border-transparent bg-mist/70 hover:bg-mist"
               }`}
-              aria-label="Ouvrir le menu"
+              aria-label={t("header.menu")}
             >
               {openPanel === "menu" ? (
                 <X className="h-5 w-5" />
@@ -204,7 +211,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
             <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[28px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Changer de ville</p>
+                  <p className="text-sm font-semibold text-ink">{t("header.changeCity")}</p>
                   <p className="text-xs leading-5 text-graphite/75">
                     Le feed, la carte et les pages likes utiliseront cette ville comme contexte.
                   </p>
@@ -212,7 +219,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                 <Input
                   value={draftCity}
                   onChange={(event) => setDraftCity(event.target.value)}
-                  placeholder="Entrez une ville"
+                  placeholder={t("header.cityPlaceholder")}
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       setCity(draftCity);
@@ -242,20 +249,20 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    type="button"
-                    onClick={() => {
-                      setCity(draftCity);
-                      setOpenPanel(null);
-                    }}
-                  >
-                    Appliquer
+                  type="button"
+                  onClick={() => {
+                    setCity(draftCity);
+                    setOpenPanel(null);
+                  }}
+                >
+                    {t("header.apply")}
                   </Button>
                   <Button
                     type="button"
                     variant="secondary"
                     onClick={() => setOpenPanel(null)}
                   >
-                    Fermer
+                    {t("header.close")}
                   </Button>
                 </div>
               </div>
@@ -267,9 +274,9 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
             <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[28px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
               <div className="space-y-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink">Choisir une date</p>
+                  <p className="text-sm font-semibold text-ink">{t("header.chooseDate")}</p>
                   <p className="text-xs leading-5 text-graphite/75">
-                    Les evenements et la carte se recalculent a partir de cette date.
+                    {t("header.dateHint")}
                   </p>
                 </div>
                 <Input
@@ -283,14 +290,14 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                     type="button"
                     onClick={() => setOpenPanel(null)}
                   >
-                    Appliquer
+                    {t("header.apply")}
                   </Button>
                   <Button
                     type="button"
                     variant="secondary"
                     onClick={() => setOpenPanel(null)}
                   >
-                    Fermer
+                    {t("header.close")}
                   </Button>
                 </div>
               </div>
@@ -304,10 +311,10 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-plum">
-                      Navigation
+                      {t("header.navigation")}
                     </p>
                     <p className="mt-1 text-sm text-graphite">
-                      {city} · {formatFrenchDate(selectedDate)}
+                      {city} · {formatDate(selectedDate)}
                     </p>
                   </div>
                   <Button
@@ -318,7 +325,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                       setOpenPanel(null);
                     }}
                   >
-                    Reinitialiser
+                    {t("header.reset")}
                   </Button>
                 </div>
 
@@ -344,6 +351,47 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                       </button>
                     );
                   })}
+                </div>
+
+                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+                    {t("menu.language")}
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    {languageOptions.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        onClick={() => setLanguage(option.code)}
+                        className={`flex items-center gap-2 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
+                          language === option.code
+                            ? "bg-plum text-white"
+                            : "bg-white text-ink ring-1 ring-borderSoft hover:bg-mist"
+                        }`}
+                      >
+                        <span className="text-base">{option.flag}</span>
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+                    {t("menu.help")}
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-graphite">{t("menu.helpText")}</p>
+                </div>
+
+                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+                    {t("menu.howToUse")}
+                  </p>
+                  <div className="mt-3 space-y-2 text-sm leading-6 text-graphite">
+                    <p>1. {t("menu.howToUseStep1")}</p>
+                    <p>2. {t("menu.howToUseStep2")}</p>
+                    <p>3. {t("menu.howToUseStep3")}</p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { LoaderCircle, SlidersHorizontal } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { LoaderCircle, X } from "lucide-react";
 
 import { EditorialFeedCard } from "@/components/cards/editorial-feed-card";
 import { MobileShell } from "@/components/layout/mobile-shell";
@@ -11,7 +11,7 @@ import { useFeed, useToggleLike } from "@/features/feed/hooks";
 import { useFeedUiStore } from "@/features/feed/store";
 import { useShellStore } from "@/features/shell/store";
 import { useFeedScrollRestoration } from "@/lib/hooks/use-feed-scroll";
-import { formatFrenchDate } from "@/lib/utils/format";
+import type { EditorialCard } from "@/lib/api/types";
 
 type Focus = "feed" | "place" | "person" | "event" | "chat";
 
@@ -19,19 +19,14 @@ interface FeedScreenProps {
   focus: Focus;
 }
 
-const focusLabel: Record<Exclude<Focus, "chat">, string> = {
-  feed: "Tout le feed",
-  place: "Lieux",
-  person: "Acteurs",
-  event: "Evenements",
-};
+function cloudIds(item: EditorialCard) {
+  return [item.id, item.linked_entity?.id].filter(Boolean) as string[];
+}
 
-const focusDescription: Record<Exclude<Focus, "chat">, string> = {
-  feed: "Toutes les cartes editoriales du moment.",
-  place: "Musees, cafes, adresses et espaces a decouvrir.",
-  person: "Artistes, acteurs et figures du territoire.",
-  event: "Agenda, spectacles et rendez-vous dates.",
-};
+function isInCloud(item: EditorialCard, activeCloudIds: string[]) {
+  const itemIds = cloudIds(item);
+  return itemIds.some((value) => activeCloudIds.includes(value));
+}
 
 export function FeedScreen({ focus }: FeedScreenProps) {
   const filter = useFeedUiStore((state) => state.filter);
@@ -40,6 +35,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
   const likeMutation = useToggleLike(token);
 
   useFeedScrollRestoration();
@@ -80,6 +76,13 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     () => feedQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [feedQuery.data]
   );
+  const visibleItems = useMemo(() => {
+    if (!cloudFilterIds?.length) {
+      return items;
+    }
+
+    return items.filter((item) => isInCloud(item, cloudFilterIds));
+  }, [cloudFilterIds, items]);
 
   if (focus === "chat") {
     return (
@@ -89,47 +92,45 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     );
   }
 
-  const currentLabel = focus === "feed" ? "feed" : focus;
-  const displayLabel = focusLabel[currentLabel as Exclude<Focus, "chat">];
-  const displayDesc = focusDescription[currentLabel as Exclude<Focus, "chat">];
-
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="space-y-4 px-3 py-4">
-      {/* Context card */}
-      <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm ring-1 ring-borderSoft">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.18em] text-plum">Contexte</p>
-            <p className="mt-2 text-lg font-semibold text-ink">{displayLabel}</p>
-            <p className="mt-1 text-sm leading-6 text-graphite">{displayDesc}</p>
-          </div>
-          <div className="shrink-0 rounded-2xl bg-plum/10 p-2 text-plum">
-            <SlidersHorizontal className="h-5 w-5" />
-          </div>
+      {cloudFilterIds?.length ? (
+        <div className="flex items-center justify-between rounded-full bg-white px-4 py-3 text-sm text-ink shadow-sm ring-1 ring-borderSoft">
+          <span>Nuage de cartes liees actif</span>
+          <button
+            type="button"
+            onClick={() => setCloudFilterIds(null)}
+            className="inline-flex items-center gap-2 rounded-full bg-mist px-3 py-2 text-xs font-semibold text-graphite"
+          >
+            <X className="h-4 w-4" />
+            Tout afficher
+          </button>
         </div>
-        <p className="mt-3 text-xs font-medium text-graphite/60">
-          {city} · {formatFrenchDate(selectedDate)}
-        </p>
-
-        {/* Flip hint — shown once */}
-        <div className="mt-3 flex items-center gap-2 rounded-[16px] bg-mist px-3 py-2 text-xs text-graphite/70">
-          <span>💡</span>
-          <span>Cliquez sur l'icone ↺ d'une carte pour voir son verso.</span>
-        </div>
-      </div>
+      ) : null}
 
       {/* Feed items */}
-      {items.length > 0 ? (
-        items.map((item) => (
+      {visibleItems.length > 0 ? (
+        visibleItems.map((item) => (
           <EditorialFeedCard
             key={item.id}
             item={item}
             onLike={(id) => likeMutation.mutate(id)}
+            onToggleCloud={(selectedItem) =>
+              setCloudFilterIds((current) => {
+                const nextIds = cloudIds(selectedItem);
+                const currentKey = current?.slice().sort().join("|");
+                const nextKey = nextIds.slice().sort().join("|");
+                return currentKey === nextKey ? null : nextIds;
+              })
+            }
+            cloudActive={Boolean(cloudFilterIds?.length && isInCloud(item, cloudFilterIds))}
           />
         ))
       ) : feedQuery.isLoading ? null : (
         <div className="rounded-[28px] bg-white px-4 py-6 text-sm leading-6 text-graphite shadow-sm ring-1 ring-borderSoft">
-          Aucune carte ne correspond a cette combinaison ville/date pour le moment.
+          {cloudFilterIds?.length
+            ? "Aucune autre carte liee n'est encore chargee dans le fil."
+            : "Aucune carte ne correspond a cette combinaison ville/date pour le moment."}
         </div>
       )}
 

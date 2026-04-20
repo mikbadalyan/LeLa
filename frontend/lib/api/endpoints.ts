@@ -91,6 +91,12 @@ export function getCurrentUser(token: string) {
   });
 }
 
+export function getUserById(userId: string, token?: string | null) {
+  return apiRequest<AuthResponse["user"]>(`/api/auth/users/${userId}`, {
+    token
+  });
+}
+
 export function updateCurrentUser(payload: UserUpdatePayload, token: string) {
   return apiRequest<AuthResponse["user"]>("/api/auth/me", {
     method: "PATCH",
@@ -215,6 +221,12 @@ export function getMapMarkers(filters: FeedQueryFilters, token?: string | null) 
 
 export function getMyEditorials(token: string) {
   return apiRequest<EditorialCard[]>("/api/editorial/mine", {
+    token
+  });
+}
+
+export function getUserEditorials(userId: string, token?: string | null) {
+  return apiRequest<EditorialCard[]>(`/api/editorial/users/${userId}`, {
     token
   });
 }

@@ -22,6 +22,13 @@ def serialize_user(user: User) -> UserRead:
     )
 
 
+def get_user_by_id(db: Session, user_id: str) -> UserRead:
+    user = db.scalar(select(User).where(User.id == user_id))
+    if not user:
+        raise ValueError("Utilisateur introuvable.")
+    return serialize_user(user)
+
+
 def register_user(db: Session, payload: RegisterRequest) -> AuthResponse:
     existing_user = db.scalar(
         select(User).where((User.email == payload.email) | (User.username == payload.username))

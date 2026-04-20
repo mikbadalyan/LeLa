@@ -34,7 +34,7 @@ export interface EditorialCard {
   description: string;
   narrative_text: string;
   media_url: string;
-  media_kind: "image" | "video";
+  media_kind: "image" | "video" | "audio";
   poster_url?: string | null;
   created_at: string;
   contributor: Contributor;
@@ -115,7 +115,7 @@ export interface ContributionPayload {
   end_date?: string;
   price?: string;
   media_name?: string;
-  media_kind?: "image" | "video";
+  media_kind?: "image" | "video" | "audio";
   external_url?: string;
   linked_place_name?: string;
   linked_person_name?: string;
@@ -176,7 +176,7 @@ export interface MessageEditorialAttachment {
   title: string;
   subtitle?: string | null;
   media_url: string;
-  media_kind: "image" | "video";
+  media_kind: "image" | "video" | "audio";
   poster_url?: string | null;
   href: string;
 }
@@ -234,7 +234,7 @@ export interface ChatEditorialSuggestion {
   subtitle?: string | null;
   description: string;
   media_url: string;
-  media_kind: "image" | "video";
+  media_kind: "image" | "video" | "audio";
   poster_url?: string | null;
   href: string;
 }

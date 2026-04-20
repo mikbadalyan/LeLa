@@ -14,4 +14,4 @@ venv
 backend/.mypy_cache
 backend/.ruff_cache
 frontend/.turbo
-
+*.tsbuildinfo

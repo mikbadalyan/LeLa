@@ -21,6 +21,7 @@ import {
   useChatStore,
 } from "@/features/chat/store";
 import { useAuthStore } from "@/features/auth/store";
+import { useI18n } from "@/features/shell/i18n";
 import { sendChatMessage, submitChatFeedback } from "@/lib/api/endpoints";
 import type {
   ChatEditorialSuggestion,
@@ -78,13 +79,17 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
           className="flex items-center gap-3 rounded-[22px] bg-white/90 p-3 ring-1 ring-[#E7D8C8]"
         >
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
-            <Image
-              src={item.media_kind === "video" ? item.poster_url || "/assets/icon-play.svg" : item.media_url}
-              alt={item.title}
-              fill
-              sizes="64px"
-              className="object-cover"
-            />
+            {item.media_kind === "audio" ? (
+              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+            ) : (
+              <Image
+                src={item.media_kind === "video" ? item.poster_url || "/assets/icon-play.svg" : item.media_url}
+                alt={item.title}
+                fill
+                sizes="64px"
+                className="object-cover"
+              />
+            )}
           </div>
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#B06A2C]">
@@ -107,26 +112,27 @@ function HistoryPanel({
   activeConversationId,
   onClose,
   onSelect,
+  title,
+  emptyLabel,
 }: {
   open: boolean;
   conversations: ChatConversation[];
   activeConversationId: string | null;
   onClose: () => void;
   onSelect: (conversationId: string) => void;
+  title: string;
+  emptyLabel: string;
 }) {
   if (!open) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[2px]">
-      <div className="absolute inset-x-0 bottom-0 max-h-[75vh] rounded-t-[32px] bg-white px-5 py-5 shadow-card">
+    <div className="fixed inset-0 z-40 flex items-start justify-center bg-black/35 px-4 pb-24 pt-24 backdrop-blur-[2px]">
+      <div className="w-full max-w-[360px] overflow-hidden rounded-[28px] bg-white px-5 py-5 shadow-card">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-lg font-semibold text-ink">Historique des chats</p>
-            <p className="text-sm text-graphite/70">
-              Reprenez une conversation precedente.
-            </p>
+            <p className="text-lg font-semibold text-ink">{title}</p>
           </div>
           <button
             type="button"
@@ -138,7 +144,7 @@ function HistoryPanel({
           </button>
         </div>
 
-        <div className="mt-5 space-y-3 overflow-y-auto pb-2">
+        <div className="mt-5 max-h-[52vh] space-y-3 overflow-y-auto pb-2">
           {conversations.length ? (
             conversations.map((conversation) => {
               const lastMessage = conversation.messages[conversation.messages.length - 1];
@@ -174,7 +180,7 @@ function HistoryPanel({
             })
           ) : (
             <div className="rounded-[24px] bg-[#FFF9F1] px-4 py-5 text-sm text-graphite/80 ring-1 ring-[#E7D8C8]">
-              Aucune conversation enregistree pour le moment.
+              {emptyLabel}
             </div>
           )}
         </div>
@@ -233,10 +239,10 @@ function MessageRating({
 }
 
 export function ChatScreen() {
+  const { t } = useI18n();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const token = useAuthStore((state) => state.token);
-  const user = useAuthStore((state) => state.user);
   const draft = useChatStore((state) => state.draft);
   const conversations = useChatStore((state) => state.conversations);
   const activeConversationId = useChatStore((state) => state.activeConversationId);
@@ -264,16 +270,6 @@ export function ChatScreen() {
   const activeConversation =
     conversations.find((conversation) => conversation.id === activeConversationId) ?? null;
   const messages = activeConversation?.messages ?? [];
-
-  const recentRequests = useMemo(() => {
-    const latestUserMessages = messages
-      .filter((message) => message.role === "user")
-      .slice(-3)
-      .reverse()
-      .map((message) => message.content);
-
-    return latestUserMessages.length ? latestUserMessages : STARTER_QUESTIONS.slice(1, 4);
-  }, [messages]);
 
   const toHistory = (entries: ChatMessage[]): ChatHistoryMessage[] =>
     entries.map((entry) => ({
@@ -386,11 +382,13 @@ export function ChatScreen() {
   };
 
   return (
-    <div className="flex min-h-full flex-col bg-[#F4E0C9]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#F4E0C9]">
       <HistoryPanel
         open={historyOpen}
         conversations={sortedConversations}
         activeConversationId={activeConversationId}
+        title={t("chat.history")}
+        emptyLabel={t("chat.emptyHistory")}
         onClose={() => setHistoryOpen(false)}
         onSelect={(conversationId) => {
           setActiveConversation(conversationId);
@@ -398,74 +396,63 @@ export function ChatScreen() {
         }}
       />
 
-      <div className="bg-[#F59A3D] px-6 py-8 text-white">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-3xl font-medium italic leading-tight">
-              Le_La Chat se met
-              <br />a 4 pattes pour vous aider !
-            </p>
-            <p className="mt-3 text-sm text-white/85">
-              {user ? `Bonjour ${user.display_name}, ` : ""}
-              posez une question sur la navigation ou sur les cartes LE_LA.
-            </p>
-            {activeConversation ? (
-              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
-                Discussion: {activeConversation.title}
-              </p>
-            ) : null}
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-11 px-3 text-xs"
-              onClick={() => setHistoryOpen(true)}
-            >
-              <History className="mr-2 h-4 w-4" />
-              Historique
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-11 px-3 text-xs"
-              onClick={startNewConversation}
-            >
-              <MessageSquarePlus className="mr-2 h-4 w-4" />
-              Nouvelle
-            </Button>
-          </div>
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#E6D4C0] bg-[#F4E0C9]/96 px-4 py-3 backdrop-blur-md">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A9652B]">
+            {t("chat.title")}
+          </p>
+          {activeConversation ? (
+            <p className="mt-1 text-sm font-medium text-[#7C5332]">{activeConversation.title}</p>
+          ) : (
+            <p className="mt-1 text-sm font-medium text-[#7C5332]">{t("chat.newDiscussion")}</p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-9 px-3 text-xs shadow-none"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <History className="mr-2 h-4 w-4" />
+            {t("chat.history")}
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            className="h-9 px-3 text-xs shadow-none"
+            onClick={startNewConversation}
+          >
+            <MessageSquarePlus className="mr-2 h-4 w-4" />
+            {t("chat.new")}
+          </Button>
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 px-5 py-6 pb-40">
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="space-y-4 pb-20">
         {!messages.length ? (
-          <div>
-            <h2 className="text-lg font-semibold text-[#7C5332]">
-              Questions les plus posees a Strasbourg
-            </h2>
-            <div className="mt-4 space-y-3">
+          <div className="space-y-3">
               {STARTER_QUESTIONS.map((question) => (
                 <button
                   key={question}
                   type="button"
                   onClick={() => submitMessage(question)}
-                  className="block text-left text-base text-[#B06A2C] underline decoration-1 underline-offset-4"
+                  className="block w-full rounded-[22px] bg-[#FFF9F1] px-4 py-3 text-left text-sm font-medium text-[#A9652B] ring-1 ring-[#E7D8C8]"
                 >
                   {question}
                 </button>
               ))}
-            </div>
           </div>
         ) : (
           <div className="space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`rounded-[28px] px-4 py-4 shadow-sm ${
+                className={`rounded-[28px] px-4 py-4 shadow-sm ring-1 ${
                   message.role === "user"
-                    ? "ml-8 bg-plum text-white"
-                    : "mr-3 bg-[#FFF9F1] text-ink"
+                    ? "ml-8 border-transparent bg-plum text-white"
+                    : "mr-3 border-[#E7D8C8] bg-[#FFF9F1] text-ink"
                 }`}
               >
                 <p className="whitespace-pre-wrap text-[15px] leading-7">{message.content}</p>
@@ -506,63 +493,35 @@ export function ChatScreen() {
             ))}
 
             {respondMutation.isPending ? (
-              <div className="mr-3 rounded-[28px] bg-[#FFF9F1] px-4 py-4 text-ink shadow-sm">
+              <div className="mr-3 rounded-[28px] border border-[#E7D8C8] bg-[#FFF9F1] px-4 py-4 text-ink shadow-sm">
                 <p className="flex items-center gap-2 text-[15px]">
                   <LoaderCircle className="h-4 w-4 animate-spin text-plum" />
-                  LE_LA Chat reflechit a la meilleure reponse...
+                  {t("chat.thinking")}
                 </p>
               </div>
             ) : null}
             <div ref={bottomRef} />
           </div>
         )}
-
-        <div>
-          <h3 className="text-lg font-semibold text-[#7C5332]">Dernieres requetes</h3>
-          <div className="mt-4 space-y-3">
-            {recentRequests.map((question) => (
-              <button
-                key={question}
-                type="button"
-                onClick={() => submitMessage(question)}
-                className="block text-left text-base text-[#D08B46] underline decoration-1 underline-offset-4"
-              >
-                {question}
-              </button>
-            ))}
-          </div>
-        </div>
+      </div>
       </div>
 
       <form
         onSubmit={handleSubmit}
-        className="sticky bottom-0 mt-auto border-t border-[#E6D4C0] bg-[#F4E0C9]/95 px-4 py-4 backdrop-blur"
+        className="shrink-0 border-t border-[#E6D4C0] bg-[#F4E0C9]/95 px-4 py-4 backdrop-blur-md"
       >
-        <div className="rounded-[28px] bg-white px-4 py-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <label
-              htmlFor="lela-chat-input"
-              className="block text-base font-semibold text-graphite"
-            >
-              Ecrivez votre message
-            </label>
-            {sortedConversations.length ? (
-              <span className="text-xs font-medium text-[#8C633A]">
-                {sortedConversations.length} chat{sortedConversations.length > 1 ? "s" : ""}
-              </span>
-            ) : null}
-          </div>
-          <div className="mt-3 rounded-[24px] border border-borderSoft bg-[#FCFAF8] p-4">
+        <div className="rounded-[28px] bg-white px-3 py-3 shadow-sm">
+          <div className="rounded-[24px] border border-borderSoft bg-[#FCFAF8] p-4">
             <textarea
               id="lela-chat-input"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              placeholder="Ex: Montre-moi les capsules liees au Musee Wurth"
-              className="min-h-24 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-[#BFAF9E]"
+              placeholder={t("chat.placeholder")}
+              className="min-h-16 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-[#BFAF9E]"
             />
-            <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs text-[#9B7A5C]">
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3 text-xs text-[#9B7A5C]">
                 <Image
                   src="/assets/icon-compose.svg"
                   alt="Compose"
@@ -570,13 +529,15 @@ export function ChatScreen() {
                   height={27}
                   className="h-5 w-auto"
                 />
-                <span>Entree pour envoyer, maj + entree pour un saut de ligne</span>
+                <span className="line-clamp-2">
+                  {sortedConversations.length} {t("chat.saved")}
+                </span>
               </div>
               <Button
                 type="submit"
                 className="h-12 gap-2 rounded-full px-4 py-0"
                 disabled={!draft.trim() || respondMutation.isPending}
-                aria-label="Envoyer le message"
+                aria-label={t("conversations.send")}
               >
                 {respondMutation.isPending ? (
                   <LoaderCircle className="h-5 w-5 animate-spin" />
@@ -589,7 +550,7 @@ export function ChatScreen() {
                     className="h-5 w-auto"
                   />
                 )}
-                <span>Envoyer</span>
+                <span>{t("conversations.send")}</span>
               </Button>
             </div>
           </div>

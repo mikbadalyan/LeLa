@@ -17,6 +17,7 @@ from app.schemas.auth import (
 )
 from app.services.auth_service import (
     authenticate_user,
+    get_user_by_id,
     register_user,
     serialize_user,
     update_user_profile,
@@ -58,3 +59,14 @@ def update_me(
         return update_user_profile(db, current_user, payload)
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+
+
+@router.get("/users/{user_id}", response_model=UserRead)
+def read_user_by_id(
+    user_id: str,
+    db: Annotated[Session, Depends(get_db)],
+) -> UserRead:
+    try:
+        return get_user_by_id(db, user_id)
+    except ValueError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error

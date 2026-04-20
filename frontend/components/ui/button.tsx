@@ -14,10 +14,12 @@ export function Button({
   className,
   variant = "primary",
   fullWidth,
+  type = "button",
   ...props
 }: PropsWithChildren<ButtonProps>) {
   return (
     <button
+      type={type}
       className={cn(
         "inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-transform duration-200 active:scale-[0.98]",
         fullWidth && "w-full",
@@ -33,4 +35,3 @@ export function Button({
     </button>
   );
 }
-

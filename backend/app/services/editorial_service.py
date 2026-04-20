@@ -602,6 +602,39 @@ def list_user_editorials(
     ]
 
 
+def list_editorials_for_user(
+    db: Session,
+    profile_user: User,
+    viewer: Optional[User] = None,
+) -> list[EditorialCardRead]:
+    items = db.scalars(
+        select(EditorialObject)
+        .options(*LOAD_OPTIONS)
+        .where(EditorialObject.contributor_id == profile_user.id)
+        .order_by(EditorialObject.created_at.desc())
+    ).all()
+
+    if not items:
+        return []
+
+    item_ids = [item.id for item in items]
+    linked = _bulk_linked_entities(db, item_ids)
+    counts = _bulk_like_counts(db, item_ids)
+    liked_set = _bulk_liked_by_user(db, item_ids, viewer.id) if viewer else set()
+
+    return [
+        _serialize_card(
+            db,
+            item,
+            viewer,
+            linked_entity=linked.get(item.id),
+            like_count=counts.get(item.id, 0),
+            is_liked=item.id in liked_set,
+        )
+        for item in items
+    ]
+
+
 
 
 def _resolve_media_kind(media_url: str | None) -> str | None:

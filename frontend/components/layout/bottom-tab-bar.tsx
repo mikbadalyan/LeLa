@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserCircle2 } from "lucide-react";
 
+import { useI18n } from "@/features/shell/i18n";
 import { cn } from "@/lib/utils/cn";
 
 type Tab = "likes" | "contribute" | "conversations" | "relations" | "profile";
@@ -31,25 +32,36 @@ const items: Array<{
 ];
 
 export function BottomTabBar({ activeTab }: BottomTabBarProps) {
+  const { t } = useI18n();
+
+  const labels: Record<Tab, string> = {
+    likes: t("tabs.likes"),
+    contribute: t("tabs.contribute"),
+    conversations: t("tabs.conversations"),
+    relations: t("tabs.relations"),
+    profile: t("tabs.profile"),
+  };
+
   return (
-    <nav className="grid grid-cols-5 gap-2 bg-plum px-2 py-2 text-white">
+    <nav className="sticky bottom-0 z-40 grid shrink-0 grid-cols-5 gap-2 border-t border-white/10 bg-plum/95 px-2 pb-[max(env(safe-area-inset-bottom),0.85rem)] pt-3 text-white backdrop-blur-md">
       {items.map(({ key, href, label, icon }) => {
         const isActive = key === activeTab;
+        const translatedLabel = labels[key] ?? label;
         return (
           <Link
             key={key}
             href={href}
             className={cn(
-              "flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-center text-[11px] font-medium transition",
-              isActive ? "bg-white/12" : "opacity-90"
+              "flex min-h-[66px] flex-col items-center justify-center gap-1.5 rounded-2xl px-1 py-2.5 text-center text-[11px] font-medium transition",
+              isActive ? "bg-white/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]" : "opacity-90 hover:bg-white/7"
             )}
           >
             {icon ? (
-              <Image src={icon} alt={label} width={25} height={25} className="h-5 w-auto" />
+              <Image src={icon} alt={translatedLabel} width={25} height={25} className="h-[22px] w-auto" />
             ) : (
-              <UserCircle2 className="h-5 w-5" />
+              <UserCircle2 className="h-[22px] w-[22px]" />
             )}
-            <span className="leading-tight">{label}</span>
+            <span className="leading-tight">{translatedLabel}</span>
           </Link>
         );
       })}

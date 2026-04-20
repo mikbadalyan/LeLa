@@ -1,22 +1,58 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { type ReactNode, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LoaderCircle, Search, UserPlus, UserRoundCheck, Users } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { LoaderCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
+import { useI18n } from "@/features/shell/i18n";
 import { addFriend, getFriends, removeFriend, searchUsers } from "@/lib/api/endpoints";
+
+function UserRow({
+  avatar,
+  name,
+  username,
+  city,
+  action,
+  href,
+}: {
+  avatar: string;
+  name: string;
+  username: string;
+  city?: string | null;
+  action: ReactNode;
+  href: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3">
+      <Link href={href} className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-mist">
+        <Image src={avatar} alt={name} fill sizes="56px" className="object-cover" />
+      </Link>
+      <Link href={href} className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold text-ink">{name}</p>
+        <p className="truncate text-xs text-graphite/70">
+          @{username}
+          {city ? ` · ${city}` : ""}
+        </p>
+      </Link>
+      {action}
+    </div>
+  );
+}
 
 export function RelationsScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
+  const currentUserId = useAuthStore((state) => state.user?.id);
   const [searchValue, setSearchValue] = useState("");
   const deferredSearch = useDeferredValue(searchValue);
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!token) {
@@ -52,121 +88,111 @@ export function RelationsScreen() {
     },
   });
 
+  const query = deferredSearch.trim().toLowerCase();
+
+  const filteredFriends = useMemo(() => {
+    const items = friendsQuery.data ?? [];
+    if (!query) {
+      return items;
+    }
+    return items.filter((friend) =>
+      [friend.display_name, friend.username, friend.city ?? ""].some((value) =>
+        value.toLowerCase().includes(query)
+      )
+    );
+  }, [friendsQuery.data, query]);
+
+  const suggestedAccounts = useMemo(() => {
+    const items = usersQuery.data ?? [];
+    return items.filter((entry) => !entry.is_friend && entry.id !== currentUserId);
+  }, [currentUserId, usersQuery.data]);
+
   return (
-    <MobileShell activeMode="feed" activeTab="relations" className="space-y-4 px-4 py-5">
-      <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
-        <div className="flex items-start gap-4">
-          <div className="rounded-2xl bg-[#F8F0FF] p-3 text-plum">
-            <Users className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-semibold text-ink">Relations</h1>
-            <p className="mt-2 text-sm leading-6 text-graphite">
-              Recherchez des personnes inscrites par nom, pseudo ou ville, puis ajoutez-les a votre cercle.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
-          <Input
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-            placeholder="Rechercher un profil, un pseudo, une ville..."
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-plum">Vos amis</p>
-            <h2 className="mt-2 text-xl font-semibold text-ink">Liste d&apos;amis</h2>
-          </div>
-          <div className="rounded-full bg-mist px-3 py-2 text-sm font-semibold text-graphite">
-            {friendsQuery.data?.length ?? 0}
+    <MobileShell activeMode="feed" activeTab="relations" className="bg-[#F6F1EB] px-3 py-3">
+      <div className="space-y-3">
+        <div className="rounded-[24px] bg-white px-4 py-3 shadow-card">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
+            <Input
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder={t("relations.search")}
+              className="border-0 bg-[#F7F1EA] pl-10 shadow-none ring-0"
+            />
           </div>
         </div>
 
-        {friendsQuery.isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+        <div className="rounded-[28px] bg-white shadow-card">
+          <div className="border-b border-borderSoft/80 px-4 py-3">
+            <p className="text-sm font-semibold text-ink">{t("relations.friends")}</p>
           </div>
-        ) : friendsQuery.data?.length ? (
-          <div className="mt-4 space-y-3">
-            {friendsQuery.data.map((friend) => (
-              <div
-                key={friend.id}
-                className="flex items-center justify-between gap-3 rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-ink">{friend.display_name}</p>
-                  <p className="text-xs text-graphite/70">
-                    @{friend.username} {friend.city ? `· ${friend.city}` : ""}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => removeFriendMutation.mutate(friend.id)}
-                >
-                  Retirer
-                </Button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4 rounded-[24px] bg-mist px-4 py-5 text-sm leading-6 text-graphite">
-            Vous n&apos;avez pas encore d&apos;amis ajoutes.
-          </div>
-        )}
-      </div>
+          {friendsQuery.isLoading ? (
+            <div className="flex items-center justify-center px-4 py-8 text-plum">
+              <LoaderCircle className="h-5 w-5 animate-spin" />
+            </div>
+          ) : filteredFriends.length ? (
+            <div className="divide-y divide-borderSoft/80">
+              {filteredFriends.map((friend) => (
+                <UserRow
+                  key={friend.id}
+                  avatar={friend.avatar_url}
+                  name={friend.display_name}
+                  username={friend.username}
+                  city={friend.city}
+                  href={friend.id === currentUserId ? "/profile" : `/profile/${friend.id}`}
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => removeFriendMutation.mutate(friend.id)}
+                      className="rounded-full bg-mist px-3 py-2 text-xs font-semibold text-ink"
+                    >
+                      {t("relations.friend")}
+                    </button>
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="px-4 py-6 text-sm text-graphite/70">{t("relations.emptyFriends")}</div>
+          )}
+        </div>
 
-      <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
-        <p className="text-xs uppercase tracking-[0.18em] text-plum">Recherche</p>
-        <h2 className="mt-2 text-xl font-semibold text-ink">Profils inscrits</h2>
-
-        {usersQuery.isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+        <div className="rounded-[28px] bg-white shadow-card">
+          <div className="border-b border-borderSoft/80 px-4 py-3">
+            <p className="text-sm font-semibold text-ink">{t("relations.suggested")}</p>
           </div>
-        ) : usersQuery.data?.length ? (
-          <div className="mt-4 space-y-3">
-            {usersQuery.data.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between gap-3 rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-ink">{user.display_name}</p>
-                  <p className="text-xs text-graphite/70">
-                    @{user.username} {user.city ? `· ${user.city}` : ""}
-                  </p>
-                </div>
-                {user.is_friend ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={() => removeFriendMutation.mutate(user.id)}
-                  >
-                    <UserRoundCheck className="mr-2 h-4 w-4" />
-                    Ami
-                  </Button>
-                ) : (
-                  <Button type="button" onClick={() => addFriendMutation.mutate(user.id)}>
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Ajouter
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="mt-4 rounded-[24px] bg-mist px-4 py-5 text-sm leading-6 text-graphite">
-            Aucun profil ne correspond a cette recherche.
-          </div>
-        )}
+          {usersQuery.isLoading ? (
+            <div className="flex items-center justify-center px-4 py-8 text-plum">
+              <LoaderCircle className="h-5 w-5 animate-spin" />
+            </div>
+          ) : suggestedAccounts.length ? (
+            <div className="divide-y divide-borderSoft/80">
+              {suggestedAccounts.map((user) => (
+                <UserRow
+                  key={user.id}
+                  avatar={user.avatar_url}
+                  name={user.display_name}
+                  username={user.username}
+                  city={user.city}
+                  href={user.id === currentUserId ? "/profile" : `/profile/${user.id}`}
+                  action={
+                    <button
+                      type="button"
+                      onClick={() => addFriendMutation.mutate(user.id)}
+                      className="rounded-full bg-plum px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      {t("relations.add")}
+                    </button>
+                  }
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="px-4 py-6 text-sm text-graphite/70">
+              {t("relations.emptySuggested")}
+            </div>
+          )}
+        </div>
       </div>
     </MobileShell>
   );
