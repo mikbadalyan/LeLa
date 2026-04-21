@@ -31,6 +31,7 @@ export function ConversationsScreen() {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const currentUserId = useAuthStore((state) => state.user?.id);
+  const messageNotifications = useAuthStore((state) => state.user?.settings?.message_notifications);
   const [draftSearch, setDraftSearch] = useState("");
   const deferredSearch = useDeferredValue(draftSearch);
   const { t, formatDateTime } = useI18n();
@@ -45,7 +46,7 @@ export function ConversationsScreen() {
     queryKey: ["conversations", Boolean(token)],
     queryFn: () => getConversations(token!),
     enabled: Boolean(token),
-    refetchInterval: 8000,
+    refetchInterval: messageNotifications === false ? false : 8000,
   });
 
   const searchQuery = useQuery({

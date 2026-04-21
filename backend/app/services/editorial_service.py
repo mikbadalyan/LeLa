@@ -21,6 +21,7 @@ from app.schemas.editorial import (
     RelatedEntitySummary,
 )
 from app.schemas.social import MapMarkerRead
+from app.services.auth_service import can_view_private_profile
 
 LOAD_OPTIONS = (
     selectinload(EditorialObject.contributor),
@@ -607,6 +608,9 @@ def list_editorials_for_user(
     profile_user: User,
     viewer: Optional[User] = None,
 ) -> list[EditorialCardRead]:
+    if profile_user.profile_visibility == "private" and not can_view_private_profile(viewer, profile_user):
+        return []
+
     items = db.scalars(
         select(EditorialObject)
         .options(*LOAD_OPTIONS)

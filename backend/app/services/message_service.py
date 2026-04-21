@@ -17,7 +17,7 @@ from app.schemas.message import (
     MessageEditorialAttachment,
     MessageRead,
 )
-from app.services.auth_service import serialize_user
+from app.services.auth_service import can_user_receive_direct_message, serialize_user
 
 
 def _serialize_editorial(editorial: Optional[EditorialObject]) -> Optional[MessageEditorialAttachment]:
@@ -41,8 +41,8 @@ def _serialize_message(message: DirectMessage, current_user: User) -> MessageRea
         content=message.body,
         created_at=message.created_at,
         is_mine=message.sender_id == current_user.id,
-        sender=UserRead(**serialize_user(message.sender).model_dump()),
-        recipient=UserRead(**serialize_user(message.recipient).model_dump()),
+        sender=UserRead(**serialize_user(message.sender, viewer=current_user).model_dump()),
+        recipient=UserRead(**serialize_user(message.recipient, viewer=current_user).model_dump()),
         editorial=_serialize_editorial(message.editorial_object),
     )
 
@@ -100,7 +100,7 @@ def list_conversations(db: Session, current_user: User) -> list[ConversationSumm
         )
         summaries.append(
             ConversationSummaryRead(
-                participant=UserRead(**serialize_user(participant).model_dump()),
+                participant=UserRead(**serialize_user(participant, viewer=current_user).model_dump()),
                 last_message_preview=preview,
                 last_message_at=last_message.created_at,
                 unread_count=unread_count,
@@ -147,6 +147,8 @@ def read_conversation(db: Session, current_user: User, participant_id: str) -> l
 
 def create_message(db: Session, current_user: User, payload: MessageCreate) -> MessageRead:
     recipient = _ensure_participant(db, current_user, payload.recipient_id)
+    if not can_user_receive_direct_message(db, current_user, recipient):
+        raise ValueError("Cet utilisateur n'accepte pas ce type de messages.")
     content = (payload.content or "").strip()
     if not content:
         raise ValueError("Le message ne peut pas etre vide.")
@@ -171,6 +173,8 @@ def create_editorial_message(
     recipient: User,
     editorial: EditorialObject,
 ) -> None:
+    if not can_user_receive_direct_message(db, current_user, recipient):
+        raise ValueError("Cet utilisateur n'accepte pas ce type de messages.")
     message = DirectMessage(
         sender_id=current_user.id,
         recipient_id=recipient.id,

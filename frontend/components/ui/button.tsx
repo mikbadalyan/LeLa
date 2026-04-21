@@ -21,7 +21,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition-transform duration-200 active:scale-[0.98]",
+        "inline-flex min-h-[44px] items-center justify-center rounded-[18px] px-4 py-2.5 text-[13px] font-semibold transition-transform duration-200 active:scale-[0.98]",
         fullWidth && "w-full",
         variant === "primary" &&
           "bg-plum text-white shadow-float hover:bg-plumSoft",

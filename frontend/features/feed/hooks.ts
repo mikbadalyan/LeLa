@@ -44,6 +44,9 @@ export function useToggleLike(token: string | null) {
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["website-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["website-highlights"] });
+      queryClient.invalidateQueries({ queryKey: ["website-editorial"] });
       queryClient.invalidateQueries({ queryKey: ["editorial", id] });
       queryClient.invalidateQueries({ queryKey: ["liked-editorials"] });
     }

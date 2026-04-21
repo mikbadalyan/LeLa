@@ -1,6 +1,16 @@
-const CACHE_NAME = "lela-shell-v1";
+const CACHE_NAME = "lela-shell-v2";
 const OFFLINE_URL = "/offline";
-const CORE_ASSETS = ["/feed", "/offline", "/manifest.webmanifest"];
+const CORE_ASSETS = ["/offline", "/manifest.webmanifest", "/icon", "/apple-icon"];
+
+function isStaticAsset(url) {
+  return (
+    url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/assets/") ||
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname === "/icon" ||
+    url.pathname === "/apple-icon"
+  );
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,20 +43,40 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  if (requestUrl.pathname.startsWith("/api/")) {
+    return;
+  }
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+    );
+    return;
+  }
+
+  if (!isStaticAsset(requestUrl)) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
-      if (cached) {
-        return cached;
-      }
-
-      return fetch(event.request)
+      const networkFetch = fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          if (response && response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
           return response;
         })
-        .catch(() => caches.match(OFFLINE_URL));
+        .catch(() => cached);
+
+      return cached || networkFetch;
     })
   );
 });
-

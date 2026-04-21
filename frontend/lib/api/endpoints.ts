@@ -18,9 +18,13 @@ import type {
   MessagePayload,
   MessageRecord,
   ModerationContribution,
+  PasswordChangePayload,
+  PasswordChangeResponse,
   RegisterPayload,
   SharePayload,
   ShareRecord,
+  UserSettings,
+  UserSettingsUpdatePayload,
   UserUpdatePayload,
   UserSearchResult
 } from "@/lib/api/types";
@@ -100,6 +104,28 @@ export function getUserById(userId: string, token?: string | null) {
 export function updateCurrentUser(payload: UserUpdatePayload, token: string) {
   return apiRequest<AuthResponse["user"]>("/api/auth/me", {
     method: "PATCH",
+    body: payload,
+    token
+  });
+}
+
+export function getCurrentSettings(token: string) {
+  return apiRequest<UserSettings>("/api/auth/settings", {
+    token
+  });
+}
+
+export function updateCurrentSettings(payload: UserSettingsUpdatePayload, token: string) {
+  return apiRequest<UserSettings>("/api/auth/settings", {
+    method: "PATCH",
+    body: payload,
+    token
+  });
+}
+
+export function changePassword(payload: PasswordChangePayload, token: string) {
+  return apiRequest<PasswordChangeResponse>("/api/auth/password", {
+    method: "POST",
     body: payload,
     token
   });

@@ -7,7 +7,7 @@ import { Providers } from "@/components/layout/providers";
 
 export const metadata: Metadata = {
   title: "LE_LA",
-  description: "Plateforme editoriale mobile-first pour explorer lieux, personnes et evenements.",
+  description: "Plateforme editoriale disponible en version website et en Progressive Web App pour explorer lieux, personnes et evenements.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

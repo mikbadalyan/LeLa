@@ -77,7 +77,27 @@ type TranslationKey =
   | "contribute.back"
   | "contribute.submit"
   | "contribute.path"
-  | "contribute.sent";
+  | "contribute.sent"
+  | "website.home"
+  | "website.explore"
+  | "website.map"
+  | "website.openApp"
+  | "website.login"
+  | "website.account"
+  | "website.selectorTitle"
+  | "website.selectorDescription"
+  | "website.selectorWebsite"
+  | "website.selectorWebsiteDescription"
+  | "website.selectorApp"
+  | "website.selectorAppDescription"
+  | "website.heroKicker"
+  | "website.heroTitle"
+  | "website.heroDescription"
+  | "website.liveFeed"
+  | "website.viewAll"
+  | "website.featured"
+  | "website.related"
+  | "website.footerLine";
 
 const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
   fr: {
@@ -154,6 +174,26 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "contribute.submit": "Soumettre",
     "contribute.path": "Parcours mobile en 4 etapes",
     "contribute.sent": "Contribution envoyee. Elle est maintenant en attente de validation.",
+    "website.home": "Accueil",
+    "website.explore": "Explorer",
+    "website.map": "Carte",
+    "website.openApp": "Ouvrir la PWA",
+    "website.login": "Connexion",
+    "website.account": "Compte",
+    "website.selectorTitle": "Choisissez votre experience LE_LA",
+    "website.selectorDescription": "La plateforme existe maintenant en deux versions complementaires : un site web editorial et la PWA mobile-first.",
+    "website.selectorWebsite": "Website",
+    "website.selectorWebsiteDescription": "Une experience grand ecran pour decouvrir l'univers LE_LA, parcourir les capsules et explorer la carte.",
+    "website.selectorApp": "Progressive Web App",
+    "website.selectorAppDescription": "La version mobile-first, installable, pensee pour contribuer, discuter et naviguer a une main.",
+    "website.heroKicker": "Edition connectee",
+    "website.heroTitle": "Le territoire se lit comme un graphe editorial.",
+    "website.heroDescription": "Explorez lieux, personnes et evenements depuis une interface web plus ample, tout en gardant la logique de la plateforme mobile.",
+    "website.liveFeed": "Flux vivant",
+    "website.viewAll": "Voir tout",
+    "website.featured": "Capsule a la une",
+    "website.related": "Capsules reliees",
+    "website.footerLine": "LE_LA relie les lieux, les personnes et les evenements dans une meme lecture editoriale.",
   },
   en: {
     "tabs.likes": "Likes",
@@ -229,6 +269,26 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "contribute.submit": "Submit",
     "contribute.path": "4-step mobile flow",
     "contribute.sent": "Contribution sent. It is now waiting for moderation.",
+    "website.home": "Home",
+    "website.explore": "Explore",
+    "website.map": "Map",
+    "website.openApp": "Open the PWA",
+    "website.login": "Login",
+    "website.account": "Account",
+    "website.selectorTitle": "Choose your LE_LA experience",
+    "website.selectorDescription": "The platform now comes in two complementary versions: an editorial website and the mobile-first PWA.",
+    "website.selectorWebsite": "Website",
+    "website.selectorWebsiteDescription": "A large-screen experience to discover LE_LA, browse capsules, and explore the map.",
+    "website.selectorApp": "Progressive Web App",
+    "website.selectorAppDescription": "The installable mobile-first version designed for contribution, messaging, and one-hand navigation.",
+    "website.heroKicker": "Connected editorial",
+    "website.heroTitle": "A territory read as an editorial graph.",
+    "website.heroDescription": "Explore places, people, and events through a spacious web experience while keeping the same platform logic.",
+    "website.liveFeed": "Live feed",
+    "website.viewAll": "View all",
+    "website.featured": "Featured capsule",
+    "website.related": "Related capsules",
+    "website.footerLine": "LE_LA connects places, people, and events in one editorial reading.",
   },
   de: {
     "tabs.likes": "Likes",
@@ -304,6 +364,26 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "contribute.submit": "Senden",
     "contribute.path": "Mobiler Ablauf in 4 Schritten",
     "contribute.sent": "Beitrag gesendet. Er wartet jetzt auf Freigabe.",
+    "website.home": "Start",
+    "website.explore": "Entdecken",
+    "website.map": "Karte",
+    "website.openApp": "PWA offnen",
+    "website.login": "Login",
+    "website.account": "Konto",
+    "website.selectorTitle": "Wahle dein LE_LA Erlebnis",
+    "website.selectorDescription": "Die Plattform gibt es jetzt in zwei erganzenden Versionen: als Editorial-Website und als mobile-first PWA.",
+    "website.selectorWebsite": "Website",
+    "website.selectorWebsiteDescription": "Ein Grossbild-Erlebnis zum Entdecken von LE_LA, zum Durchsehen der Capsules und zur Kartenerkundung.",
+    "website.selectorApp": "Progressive Web App",
+    "website.selectorAppDescription": "Die installierbare mobile-first Version fur Beitrage, Nachrichten und Navigation mit einer Hand.",
+    "website.heroKicker": "Vernetzte Editorial-Welt",
+    "website.heroTitle": "Ein Gebiet als editorialer Graph gelesen.",
+    "website.heroDescription": "Erkunde Orte, Personen und Events in einer grosszugigen Webansicht mit derselben Plattformlogik.",
+    "website.liveFeed": "Live-Feed",
+    "website.viewAll": "Alles ansehen",
+    "website.featured": "Highlight",
+    "website.related": "Verbundene Capsules",
+    "website.footerLine": "LE_LA verbindet Orte, Personen und Events in einer einzigen editorialen Lekture.",
   },
   hy: {
     "tabs.likes": "Սիրվածներ",
@@ -379,6 +459,26 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "contribute.submit": "Ուղարկել",
     "contribute.path": "4 քայլանոց մոբայլ հոսք",
     "contribute.sent": "Նյութը ուղարկվեց։ Այժմ այն սպասում է հաստատման։",
+    "website.home": "Գլխավոր",
+    "website.explore": "Բացահայտել",
+    "website.map": "Քարտեզ",
+    "website.openApp": "Բացել PWA-ն",
+    "website.login": "Մուտք",
+    "website.account": "Հաշիվ",
+    "website.selectorTitle": "Ընտրեք LE_LA-ի տարբերակը",
+    "website.selectorDescription": "Հարթակն այժմ ունի երկու լրացնող տարբերակ՝ խմբագրական կայք և mobile-first PWA։",
+    "website.selectorWebsite": "Կայք",
+    "website.selectorWebsiteDescription": "Լայն էկրանների փորձառություն՝ LE_LA-ը բացահայտելու, capsule-ները դիտելու և քարտեզը ուսումնասիրելու համար։",
+    "website.selectorApp": "Progressive Web App",
+    "website.selectorAppDescription": "Տեղադրվող mobile-first տարբերակ՝ ավելացնելու, նամակագրության և մեկ ձեռքով նավիգացիայի համար։",
+    "website.heroKicker": "Կապակցված խմբագրական հարթակ",
+    "website.heroTitle": "Տարածքը կարդացվում է որպես խմբագրական գրաֆ։",
+    "website.heroDescription": "Բացահայտեք վայրերը, մարդկանց և իրադարձությունները ավելի լայն web փորձառությամբ՝ պահելով նույն տրամաբանությունը։",
+    "website.liveFeed": "Կենդանի հոսք",
+    "website.viewAll": "Տեսնել բոլորը",
+    "website.featured": "Գլխավոր capsule",
+    "website.related": "Կապված capsule-ներ",
+    "website.footerLine": "LE_LA-ն միավորում է վայրերը, մարդկանց և իրադարձությունները մեկ խմբագրական ընթերցման մեջ։",
   },
 };
 

@@ -61,26 +61,26 @@ const typeMeta: Record<
 > = {
   magazine: {
     label: "Magazine",
-    teaser: "Une capsule editoriale courte, comme un post inspire.",
-    helper: "Ideal pour un angle, une anecdote ou une recommandation.",
+    teaser: "Capsule editoriale",
+    helper: "Post, idee, angle.",
     icon: Newspaper,
   },
   place: {
     label: "Lieu",
-    teaser: "Un endroit utile ou remarquable a ajouter au graphe.",
-    helper: "Adresse, ambiance et infos pratiques en un seul post.",
+    teaser: "Nouveau lieu",
+    helper: "Adresse et infos utiles.",
     icon: MapPin,
   },
   person: {
     label: "Personne",
-    teaser: "Un profil, un artiste, une rencontre ou une personnalite.",
-    helper: "Ajoutez son role et ce qui le relie au territoire.",
+    teaser: "Nouveau profil",
+    helper: "Role et lien au territoire.",
     icon: UserRound,
   },
   event: {
     label: "Evenement",
-    teaser: "Un rendez-vous date avec son lieu et ses details.",
-    helper: "Parfait pour un spectacle, une expo ou une sortie.",
+    teaser: "Nouveau rendez-vous",
+    helper: "Date, lieu, details.",
     icon: CalendarClock,
   },
 };
@@ -90,24 +90,24 @@ const stepCopy: Record<
   { eyebrow: string; title: string; description: string }
 > = {
   type: {
-    eyebrow: "Nouvelle publication",
-    title: "Choisissez le format",
-    description: "Comme sur Instagram, on commence par le type de publication.",
+    eyebrow: "Publication",
+    title: "Type",
+    description: "",
   },
   media: {
-    eyebrow: "Nouvelle publication",
-    title: "Ajoutez votre visuel",
-    description: "Selectionnez l'image ou la video principale de la carte.",
+    eyebrow: "Publication",
+    title: "Media",
+    description: "",
   },
   details: {
-    eyebrow: "Nouvelle publication",
-    title: "Ecrivez la legende",
-    description: "Ajoutez le texte, le lieu et les champs utiles a votre carte.",
+    eyebrow: "Publication",
+    title: "Details",
+    description: "",
   },
   review: {
-    eyebrow: "Nouvelle publication",
-    title: "Verifier avant d'envoyer",
-    description: "Votre proposition partira ensuite en attente de validation.",
+    eyebrow: "Publication",
+    title: "Apercu",
+    description: "",
   },
 };
 
@@ -420,10 +420,7 @@ export function ContributionForm() {
               <ImagePlus className="mx-auto h-10 w-10 text-plum" />
             )}
             <p className="text-base font-semibold text-ink">
-              Votre couverture apparaitra ici
-            </p>
-            <p className="text-xs leading-5 text-graphite/75">
-              Ajoutez un visuel principal avant de continuer.
+              Apercu du media
             </p>
           </div>
         </div>
@@ -491,8 +488,10 @@ export function ContributionForm() {
       </div>
 
       <Surface className="bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
-        <p className="text-sm font-semibold text-ink">{currentTypeMeta.label}</p>
-        <p className="mt-2 text-sm leading-6 text-graphite">{currentTypeMeta.helper}</p>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <p className="font-semibold text-ink">{currentTypeMeta.label}</p>
+          <p className="text-xs text-graphite/72">{currentTypeMeta.helper}</p>
+        </div>
       </Surface>
     </div>
   );
@@ -881,9 +880,7 @@ export function ContributionForm() {
 
           <div className="rounded-[22px] bg-[#F8F0FF] px-4 py-4 text-sm text-graphite">
             <p className="font-semibold text-plum">Moderation</p>
-            <p className="mt-2 leading-6">
-              Une fois envoyee, votre publication restera en attente jusqu'a validation.
-            </p>
+            <p className="mt-2 leading-6">Votre publication sera visible apres validation.</p>
           </div>
         </Surface>
       </div>
@@ -892,7 +889,7 @@ export function ContributionForm() {
 
   return (
     <div ref={containerRef} className="space-y-4">
-      <Surface className="space-y-4">
+      <Surface className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
@@ -901,9 +898,6 @@ export function ContributionForm() {
             <h2 className="mt-2 text-[1.45rem] font-semibold leading-tight tracking-[-0.03em] text-ink">
               {currentStepCopy.title}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-graphite">
-              {currentStepCopy.description}
-            </p>
           </div>
           <div className="rounded-full bg-[#F8F0FF] px-3 py-2 text-xs font-semibold text-plum">
             {activeStepIndex + 1}/{steps.length}
@@ -944,7 +938,7 @@ export function ContributionForm() {
               ) : (
                 <>
                   <Clock3 className="h-4 w-4 shrink-0" />
-                  <span className="line-clamp-2">{t("contribute.path")}</span>
+                  <span className="line-clamp-2">4 etapes</span>
                 </>
               )}
             </div>

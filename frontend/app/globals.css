@@ -4,6 +4,19 @@
 
 :root {
   color-scheme: light;
+  --shell-rgb: 236 232 228;
+  --ink-rgb: 40 48 60;
+  --paper-rgb: 255 255 255;
+  --mist-rgb: 246 242 238;
+  --plum-rgb: 138 63 252;
+  --plum-soft-rgb: 165 109 255;
+  --graphite-rgb: 67 73 85;
+  --editorial-rgb: 75 81 93;
+  --apricot-rgb: 247 161 72;
+  --sand-rgb: 245 228 207;
+  --border-soft-rgb: 40 48 60;
+  --bg-start: #f3ede6;
+  --bg-end: #ebe2da;
 }
 
 * {
@@ -14,13 +27,42 @@ html {
   scroll-behavior: smooth;
 }
 
+html[data-theme="dark"] {
+  --shell-rgb: 22 25 31;
+  --ink-rgb: 239 236 230;
+  --paper-rgb: 28 32 38;
+  --mist-rgb: 37 41 49;
+  --plum-rgb: 191 151 255;
+  --plum-soft-rgb: 214 187 255;
+  --graphite-rgb: 192 198 209;
+  --editorial-rgb: 171 178 190;
+  --apricot-rgb: 255 188 112;
+  --sand-rgb: 73 64 54;
+  --border-soft-rgb: 225 228 235;
+  --bg-start: #111418;
+  --bg-end: #1a1f25;
+}
+
+html[data-contrast="high"] {
+  --border-soft-rgb: 16 16 16;
+}
+
+html[data-theme="dark"][data-contrast="high"] {
+  --border-soft-rgb: 255 255 255;
+}
+
+html[data-text-scale="large"] {
+  font-size: 17px;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0) 32%),
-    linear-gradient(180deg, #f3ede6 0%, #ebe2da 100%);
-  color: #28303c;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 32%),
+    linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  color: rgb(var(--ink-rgb));
   font-family: Avenir Next, Trebuchet MS, ui-rounded, sans-serif;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 a {
@@ -44,3 +86,31 @@ select {
   background: rgba(67, 73, 85, 0.2);
 }
 
+html[data-theme="dark"] .bg-white {
+  background-color: rgb(var(--paper-rgb)) !important;
+}
+
+html[data-theme="dark"] .bg-white\/92 {
+  background-color: rgba(28, 32, 38, 0.92) !important;
+}
+
+html[data-theme="dark"] .bg-white\/78 {
+  background-color: rgba(28, 32, 38, 0.78) !important;
+}
+
+html[data-theme="dark"] .bg-white\/72 {
+  background-color: rgba(28, 32, 38, 0.72) !important;
+}
+
+html[data-theme="dark"] .border-black\/5 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}

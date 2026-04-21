@@ -4,11 +4,18 @@ import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPinned, Newspaper, Volume2 } from "lucide-react";
+import { Heart, MapPinned, Volume2 } from "lucide-react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { CardFilterSheet } from "@/components/ui/card-filter-sheet";
+import {
+  CloudIcon,
+  EditorialTypeIcon,
+  FilterIcon,
+  MediaStateIcon,
+  ShareIcon,
+} from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
@@ -20,16 +27,7 @@ interface DetailScreenProps {
 }
 
 function typeIcon(type: "magazine" | "place" | "person" | "event") {
-  switch (type) {
-    case "magazine":
-      return <Newspaper className="h-5 w-5" />;
-    case "place":
-      return <Image src="/assets/icon-location.svg" alt="Lieu" width={18} height={25} className="h-5 w-auto" />;
-    case "person":
-      return <Image src="/assets/icon-actors.svg" alt="Acteur" width={25} height={25} className="h-5 w-auto" />;
-    case "event":
-      return <Image src="/assets/icon-event.svg" alt="Evenement" width={26} height={25} className="h-5 w-auto" />;
-  }
+  return <EditorialTypeIcon type={type} className="h-5 w-5" />;
 }
 
 function cloudIds(item: EditorialCard) {
@@ -90,6 +88,29 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
     ? item.related.filter((relatedItem) => isInCloud(relatedItem, cloudFilterIds))
     : item.related;
 
+  const togglePrimaryPlayback = () => {
+    if (isVideo && videoRef.current) {
+      if (videoRef.current.paused) {
+        void videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+      return;
+    }
+
+    if (isAudio && audioRef.current) {
+      if (audioRef.current.paused) {
+        void audioRef.current.play();
+        setIsPlaying(true);
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  };
+
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="bg-[#F8F5F1]">
       <article className="bg-[#F8F5F1]">
@@ -140,21 +161,19 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             />
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          {isVideo && !isPlaying ? (
+          {(isVideo || isAudio) ? (
             <button
               type="button"
-              onClick={() => {
-                if (videoRef.current) {
-                  void videoRef.current.play();
-                  setIsPlaying(true);
-                }
-              }}
-              className="absolute inset-0 z-10 flex items-center justify-center"
-              aria-label="Lire la video"
+              onClick={togglePrimaryPlayback}
+              className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-plum/92 shadow-float"
+              aria-label={isPlaying ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
             >
-              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-plum/90 shadow-float">
-                <Image src="/assets/icon-play.svg" alt="Lire" width={56} height={56} className="h-14 w-14" />
-              </span>
+              <MediaStateIcon
+                kind={isAudio ? "audio" : "video"}
+                isPlaying={isPlaying}
+                className="h-8 w-8 text-white"
+                strokeWidth={2.4}
+              />
             </button>
           ) : null}
           {isAudio ? (
@@ -221,7 +240,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <ShareSheet editorialId={item.id} editorialTitle={item.title}>
               {({ open }) => (
                 <Button variant="secondary" className="rounded-3xl shadow-none" onClick={open}>
-                  <Image src="/assets/icon-send.svg" alt="Share" width={25} height={25} className="mr-2 h-4 w-auto" />
+                  <ShareIcon className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Share
                 </Button>
               )}
@@ -248,13 +267,13 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               }
               className="flex items-center gap-2 font-medium"
             >
-              <Image src="/assets/icon-cloud-linked.svg" alt="Liens" width={24} height={16} className="h-4 w-auto" />
+              <CloudIcon className="h-4 w-4" strokeWidth={2.15} />
               {cloudFilterIds?.length ? "Tout afficher" : "Nuage de cartes liees"}
             </button>
             <CardFilterSheet>
               {({ open }) => (
                 <button type="button" onClick={open} className="flex items-center gap-2 font-medium">
-                  <Image src="/assets/icon-filter.svg" alt="Filtre" width={19} height={20} className="h-4 w-auto" />
+                  <FilterIcon className="h-4 w-4" strokeWidth={2.15} />
                   Filtrer les cartes
                 </button>
               )}
@@ -306,7 +325,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                           className="rounded-full bg-white/18 p-2 backdrop-blur"
                           aria-label="Partager cette carte"
                         >
-                          <Image src="/assets/icon-send-white.svg" alt="Share" width={25} height={25} className="h-5 w-auto" />
+                          <ShareIcon className="h-5 w-5 text-white" strokeWidth={2.2} />
                         </button>
                       )}
                     </ShareSheet>

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.editorial import EditorialObject
@@ -11,7 +11,11 @@ from app.models.share import Share
 from app.models.user import User
 from app.schemas.auth import UserRead
 from app.schemas.social import FriendRead, ShareCreate, ShareRead, UserSearchResultRead
-from app.services.auth_service import serialize_user
+from app.services.auth_service import (
+    can_user_receive_direct_message,
+    can_user_receive_friend_request,
+    serialize_user,
+)
 from app.services.message_service import create_editorial_message
 
 
@@ -46,20 +50,32 @@ def list_friends(db: Session, current_user: User) -> list[FriendRead]:
 
 def search_users(db: Session, current_user: User, query: Optional[str]) -> list[UserSearchResultRead]:
     normalized_query = (query or "").strip()
-
-    base_query = select(User).where(User.id != current_user.id).order_by(User.username.asc())
-    if normalized_query:
-        pattern = f"%{normalized_query}%"
-        base_query = base_query.where(
-            or_(User.username.ilike(pattern), User.email.ilike(pattern), User.city.ilike(pattern))
-        )
-
-    users = db.scalars(base_query.limit(20)).all()
     friend_ids = set(
         db.scalars(
             select(Friendship.friend_id).where(Friendship.user_id == current_user.id)
         ).all()
     )
+
+    base_query = select(User).where(User.id != current_user.id)
+    if friend_ids:
+        base_query = base_query.where(
+            or_(User.profile_indexing_enabled.is_(True), User.id.in_(friend_ids))
+        )
+    else:
+        base_query = base_query.where(User.profile_indexing_enabled.is_(True))
+
+    if normalized_query:
+        pattern = f"%{normalized_query}%"
+        base_query = base_query.where(
+            or_(
+                User.username.ilike(pattern),
+                User.city.ilike(pattern),
+                and_(User.searchable_by_email.is_(True), User.email.ilike(pattern)),
+            )
+        )
+
+    base_query = base_query.order_by(User.username.asc())
+    users = db.scalars(base_query.limit(20)).all()
 
     return [
         UserSearchResultRead(
@@ -77,6 +93,8 @@ def add_friend(db: Session, current_user: User, friend_id: str) -> FriendRead:
     friend = db.scalar(select(User).where(User.id == friend_id))
     if not friend:
         raise ValueError("Utilisateur introuvable.")
+    if not can_user_receive_friend_request(friend):
+        raise ValueError("Cet utilisateur n'accepte pas de nouvelles demandes d'amis.")
 
     existing = db.scalar(
         select(Friendship).where(
@@ -127,6 +145,8 @@ def create_share(db: Session, current_user: User, payload: ShareCreate) -> Share
     )
     if not is_friend:
         raise ValueError("Vous pouvez partager une carte uniquement avec vos amis.")
+    if not can_user_receive_direct_message(db, current_user, friend):
+        raise ValueError("Cet utilisateur n'accepte pas ce type de partages.")
 
     editorial = db.scalar(select(EditorialObject).where(EditorialObject.id == payload.editorial_id))
     if not editorial:

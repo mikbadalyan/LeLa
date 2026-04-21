@@ -1,5 +1,7 @@
 export type EditorialType = "magazine" | "place" | "person" | "event";
 export type UserRole = "contributor" | "moderator";
+export type ThemePreference = "system" | "light" | "dark";
+export type InterfaceLanguage = "fr" | "hy" | "en" | "de";
 
 export type RelationType =
   | "located_at"
@@ -17,6 +19,38 @@ export interface Contributor {
   city?: string | null;
   bio?: string | null;
   role: UserRole;
+  settings?: UserSettings | null;
+}
+
+export interface UserSettings {
+  interface_language: InterfaceLanguage;
+  theme_preference: ThemePreference;
+  compact_mode: boolean;
+  autoplay_previews: boolean;
+  reduce_motion: boolean;
+  large_text: boolean;
+  high_contrast: boolean;
+  sound_effects: boolean;
+  data_saver: boolean;
+  profile_visibility: "public" | "private";
+  show_email: boolean;
+  show_city: boolean;
+  show_activity_status: boolean;
+  searchable_by_email: boolean;
+  allow_friend_requests: boolean;
+  allow_direct_messages: "everyone" | "friends" | "none";
+  allow_tagging: boolean;
+  profile_indexing_enabled: boolean;
+  two_factor_enabled: boolean;
+  login_alerts: boolean;
+  security_reminders: boolean;
+  marketing_emails: boolean;
+  product_updates: boolean;
+  weekly_digest: boolean;
+  message_notifications: boolean;
+  friend_request_notifications: boolean;
+  moderation_notifications: boolean;
+  last_password_changed_at?: string | null;
 }
 
 export interface RelatedEntitySummary {
@@ -93,6 +127,46 @@ export interface UserUpdatePayload {
   email?: string;
   city?: string;
   bio?: string;
+}
+
+export interface UserSettingsUpdatePayload {
+  interface_language?: InterfaceLanguage;
+  theme_preference?: ThemePreference;
+  compact_mode?: boolean;
+  autoplay_previews?: boolean;
+  reduce_motion?: boolean;
+  large_text?: boolean;
+  high_contrast?: boolean;
+  sound_effects?: boolean;
+  data_saver?: boolean;
+  profile_visibility?: "public" | "private";
+  show_email?: boolean;
+  show_city?: boolean;
+  show_activity_status?: boolean;
+  searchable_by_email?: boolean;
+  allow_friend_requests?: boolean;
+  allow_direct_messages?: "everyone" | "friends" | "none";
+  allow_tagging?: boolean;
+  profile_indexing_enabled?: boolean;
+  two_factor_enabled?: boolean;
+  login_alerts?: boolean;
+  security_reminders?: boolean;
+  marketing_emails?: boolean;
+  product_updates?: boolean;
+  weekly_digest?: boolean;
+  message_notifications?: boolean;
+  friend_request_notifications?: boolean;
+  moderation_notifications?: boolean;
+}
+
+export interface PasswordChangePayload {
+  current_password: string;
+  new_password: string;
+}
+
+export interface PasswordChangeResponse {
+  message: string;
+  last_password_changed_at: string;
 }
 
 export interface AuthResponse {

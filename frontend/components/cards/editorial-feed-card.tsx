@@ -1,15 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { CalendarClock, Heart, MapPin, Newspaper, RotateCcw, Volume2 } from "lucide-react";
+import { CalendarClock, Heart, MapPin, RotateCcw, Volume2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CardFilterSheet } from "@/components/ui/card-filter-sheet";
+import {
+  CloudIcon,
+  EditorialTypeIcon,
+  FilterIcon,
+  MediaStateIcon,
+  ShareIcon,
+} from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
+import { useShellStore } from "@/features/shell/store";
 import type { EditorialCard } from "@/lib/api/types";
+import { cn } from "@/lib/utils/cn";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
 
 interface EditorialFeedCardProps {
@@ -20,16 +29,7 @@ interface EditorialFeedCardProps {
 }
 
 function typeIcon(type: EditorialCard["type"]) {
-  switch (type) {
-    case "magazine":
-      return <Newspaper className="h-[25px] w-[25px]" />;
-    case "place":
-      return <Image src="/assets/icon-location.svg" alt="Lieu" width={18} height={25} />;
-    case "person":
-      return <Image src="/assets/icon-actors.svg" alt="Acteur" width={25} height={25} />;
-    case "event":
-      return <Image src="/assets/icon-event.svg" alt="Evenement" width={26} height={25} />;
-  }
+  return <EditorialTypeIcon type={type} className="h-[25px] w-[25px]" />;
 }
 
 function typeLabel(type: EditorialCard["type"]) {
@@ -40,19 +40,6 @@ function typeLabel(type: EditorialCard["type"]) {
     event: "Evenement",
   };
   return map[type];
-}
-
-function actionAsset(item: EditorialCard) {
-  if (item.media_kind === "audio") {
-    return { src: "/assets/icon-listen.svg", alt: "Listen", size: 45 };
-  }
-  if (item.media_kind === "video") {
-    return { src: "/assets/icon-play.svg", alt: "Play", size: 45 };
-  }
-  if (item.type === "person") {
-    return { src: "/assets/icon-listen.svg", alt: "Listen", size: 45 };
-  }
-  return { src: "/assets/button-arrow.svg", alt: "Open", size: 45 };
 }
 
 function contributorHref(contributorId: string, currentUserId?: string) {
@@ -66,11 +53,13 @@ export function EditorialFeedCard({
   cloudActive = false,
 }: EditorialFeedCardProps) {
   const currentUserId = useAuthStore((state) => state.user?.id);
+  const autoplayPreviews = useShellStore((state) => state.autoplayPreviews);
+  const reduceMotion = useShellStore((state) => state.reduceMotion);
+  const dataSaver = useShellStore((state) => state.dataSaver);
   const [flipped, setFlipped] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const actionIcon = actionAsset(item);
   const canOpenMap = Boolean(
     item.metadata.address || item.metadata.city || item.type === "place" || item.type === "event"
   );
@@ -79,6 +68,21 @@ export function EditorialFeedCard({
   const locationText =
     item.metadata.address || item.metadata.city || item.linked_entity?.title || item.subtitle;
   const profileHref = contributorHref(item.contributor.id, currentUserId);
+
+  useEffect(() => {
+    if (!isVideo || !videoRef.current) {
+      return;
+    }
+
+    if (autoplayPreviews && !dataSaver) {
+      void videoRef.current.play().catch(() => undefined);
+      setIsPlayingPreview(true);
+      return;
+    }
+
+    videoRef.current.pause();
+    setIsPlayingPreview(false);
+  }, [autoplayPreviews, dataSaver, isVideo]);
 
   const toggleMediaPlayback = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -107,7 +111,7 @@ export function EditorialFeedCard({
   };
 
   const frontFace = (
-    <div className="relative aspect-[0.83] overflow-hidden rounded-[30px] bg-editorial text-white">
+    <div className="relative aspect-[0.82] overflow-hidden rounded-[28px] bg-editorial text-white shadow-card ring-1 ring-black/5">
       {isVideo ? (
         <video
           ref={videoRef}
@@ -117,7 +121,10 @@ export function EditorialFeedCard({
           loop
           playsInline
           preload="metadata"
-          className="absolute inset-0 h-full w-full object-cover"
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover",
+            reduceMotion ? "" : "transition duration-500"
+          )}
           onPause={() => setIsPlayingPreview(false)}
           onPlay={() => setIsPlayingPreview(true)}
         />
@@ -130,7 +137,7 @@ export function EditorialFeedCard({
             onPause={() => setIsPlayingPreview(false)}
             onPlay={() => setIsPlayingPreview(true)}
           />
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
           <div className="absolute inset-x-0 top-[18%] flex justify-center opacity-25">
             <div className="flex items-end gap-2">
               {[28, 44, 34, 52, 24, 46, 38].map((height, index) => (
@@ -149,7 +156,8 @@ export function EditorialFeedCard({
           alt={item.title}
           fill
           sizes="(max-width: 768px) 100vw, 390px"
-          className="object-cover"
+          className={cn("object-cover", reduceMotion ? "" : "transition duration-500")}
+          quality={dataSaver ? 62 : 82}
           priority={false}
         />
       )}
@@ -165,7 +173,7 @@ export function EditorialFeedCard({
       <div className="absolute left-4 top-4 z-10 max-w-[70%]">
         <Link
           href={profileHref}
-          className="flex items-center gap-2 rounded-full bg-black/25 px-2.5 py-1.5 text-xs text-white/90 backdrop-blur-md"
+          className="flex items-center gap-2 rounded-full bg-black/28 px-2.5 py-1.5 text-xs text-white/92 backdrop-blur-md"
         >
           <Image
             src={item.contributor.avatar_url}
@@ -182,10 +190,10 @@ export function EditorialFeedCard({
         <button
           type="button"
           onClick={() => onLike?.(item.id)}
-          className="rounded-full bg-white/18 p-2 backdrop-blur-md transition hover:bg-white/28"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
           aria-label={item.is_liked ? "Retirer des aimes" : "Aimer cette carte"}
         >
-          <Heart className={`h-[18px] w-[18px] ${item.is_liked ? "fill-white text-white" : "text-white"}`} />
+          <Heart className={`h-[17px] w-[17px] ${item.is_liked ? "fill-white text-white" : "text-white"}`} />
         </button>
 
         <ShareSheet editorialId={item.id} editorialTitle={item.title}>
@@ -193,16 +201,10 @@ export function EditorialFeedCard({
             <button
               type="button"
               onClick={open}
-              className="rounded-full bg-white/18 p-2 backdrop-blur-md transition hover:bg-white/28"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
               aria-label="Partager cette carte"
             >
-              <Image
-                src="/assets/icon-send-white.svg"
-                alt="Share"
-                width={22}
-                height={22}
-                className="h-[18px] w-auto"
-              />
+              <ShareIcon className="h-[17px] w-[17px] text-white" strokeWidth={2.25} />
             </button>
           )}
         </ShareSheet>
@@ -214,16 +216,16 @@ export function EditorialFeedCard({
             event.stopPropagation();
             setFlipped(true);
           }}
-          className="rounded-full bg-white/18 p-2 backdrop-blur-md transition hover:bg-white/28"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
           aria-label="Voir le dos de la carte"
         >
-          <RotateCcw className="h-[18px] w-[18px] text-white" />
+          <RotateCcw className="h-[17px] w-[17px] text-white" />
         </button>
       </div>
 
       <div className="absolute inset-x-4 bottom-4 z-10">
         <Link href={`/editorial/${item.id}`} className="block">
-          <h2 className="max-w-[14ch] text-[1.9rem] font-semibold leading-[0.95] tracking-[-0.03em]">
+          <h2 className="max-w-[14ch] text-[1.72rem] font-semibold leading-[0.96] tracking-[-0.035em]">
             {item.title}
           </h2>
           {locationText ? (
@@ -240,19 +242,28 @@ export function EditorialFeedCard({
           <button
             type="button"
             onClick={toggleMediaPlayback}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+            className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
             aria-label={isPlayingPreview ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
           >
-            <Image
-              src={actionIcon.src}
-              alt={actionIcon.alt}
-              width={actionIcon.size}
-              height={actionIcon.size}
-              className="h-11 w-11"
+            <MediaStateIcon
+              kind={isAudio ? "audio" : "video"}
+              isPlaying={isPlayingPreview}
+              className="h-6 w-6 text-white"
+              strokeWidth={2.4}
             />
           </button>
         </div>
-      ) : null}
+      ) : (
+        <div className="absolute bottom-5 right-4 z-10">
+          <Link
+            href={`/editorial/${item.id}`}
+            className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+            aria-label="Lire la fiche"
+          >
+            <MediaStateIcon kind="read" className="h-6 w-6 text-white" strokeWidth={2.3} />
+          </Link>
+        </div>
+      )}
 
       {isAudio ? (
         <div className="absolute left-4 bottom-24 z-10 rounded-full bg-white/16 px-3 py-2 text-xs font-semibold text-white backdrop-blur-md">
@@ -266,7 +277,7 @@ export function EditorialFeedCard({
   );
 
   const backFace = (
-    <div className="rounded-[30px] bg-white text-ink shadow-card ring-1 ring-black/5">
+    <div className="rounded-[28px] bg-white text-ink shadow-card ring-1 ring-black/5">
       <div className="relative bg-plum px-5 pb-8 pt-6 text-white">
         <button
           type="button"
@@ -283,7 +294,7 @@ export function EditorialFeedCard({
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               {typeLabel(item.type)}
             </p>
-            <h3 className="text-2xl font-semibold leading-tight">{item.title}</h3>
+            <h3 className="text-[1.65rem] font-semibold leading-tight tracking-[-0.03em]">{item.title}</h3>
             {item.subtitle ? <p className="mt-1 text-sm text-white/80">{item.subtitle}</p> : null}
           </div>
         </div>
@@ -370,26 +381,14 @@ export function EditorialFeedCard({
             className={cloudActive ? "bg-plum text-white shadow-none" : "shadow-none"}
             onClick={() => onToggleCloud?.(item)}
           >
-            <Image
-              src="/assets/icon-cloud-linked.svg"
-              alt="Liens"
-              width={24}
-              height={16}
-              className="mr-2 h-4 w-auto"
-            />
+            <CloudIcon className="mr-2 h-4 w-4" strokeWidth={2.15} />
             {cloudActive ? "Voir tout" : "Nuage lie"}
           </Button>
 
           <CardFilterSheet>
             {({ open }) => (
               <Button variant="secondary" type="button" onClick={open}>
-                <Image
-                  src="/assets/icon-filter.svg"
-                  alt="Filtre"
-                  width={19}
-                  height={20}
-                  className="mr-2 h-4 w-auto"
-                />
+                <FilterIcon className="mr-2 h-4 w-4" strokeWidth={2.15} />
                 Filtrer
               </Button>
             )}
@@ -412,6 +411,7 @@ export function EditorialFeedCard({
             href={`/editorial/${item.id}`}
             className="flex items-center justify-center gap-2 rounded-full bg-plum px-4 py-3 text-sm font-semibold text-white shadow-float"
           >
+            <MediaStateIcon kind="read" className="h-4 w-4 text-white" strokeWidth={2.3} />
             Ouvrir la fiche
           </Link>
 

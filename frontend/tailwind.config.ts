@@ -10,17 +10,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        shell: "#ECE8E4",
-        ink: "#28303C",
-        paper: "#FFFFFF",
-        mist: "#F6F2EE",
-        plum: "#8A3FFC",
-        plumSoft: "#A56DFF",
-        graphite: "#434955",
-        editorial: "#4B515D",
-        apricot: "#F7A148",
-        sand: "#F5E4CF",
-        borderSoft: "rgba(40, 48, 60, 0.12)"
+        shell: "rgb(var(--shell-rgb) / <alpha-value>)",
+        ink: "rgb(var(--ink-rgb) / <alpha-value>)",
+        paper: "rgb(var(--paper-rgb) / <alpha-value>)",
+        mist: "rgb(var(--mist-rgb) / <alpha-value>)",
+        plum: "rgb(var(--plum-rgb) / <alpha-value>)",
+        plumSoft: "rgb(var(--plum-soft-rgb) / <alpha-value>)",
+        graphite: "rgb(var(--graphite-rgb) / <alpha-value>)",
+        editorial: "rgb(var(--editorial-rgb) / <alpha-value>)",
+        apricot: "rgb(var(--apricot-rgb) / <alpha-value>)",
+        sand: "rgb(var(--sand-rgb) / <alpha-value>)",
+        borderSoft: "rgb(var(--border-soft-rgb) / <alpha-value>)"
       },
       boxShadow: {
         card: "0 18px 40px rgba(34, 37, 43, 0.18)",

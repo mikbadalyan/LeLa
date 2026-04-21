@@ -12,10 +12,16 @@ import { getFriends, shareEditorial } from "@/lib/api/endpoints";
 interface ShareSheetProps {
   editorialId: string;
   editorialTitle: string;
+  basePath?: string;
   children: (controls: { open: () => void }) => ReactNode;
 }
 
-export function ShareSheet({ editorialId, editorialTitle, children }: ShareSheetProps) {
+export function ShareSheet({
+  editorialId,
+  editorialTitle,
+  basePath = "",
+  children,
+}: ShareSheetProps) {
   const token = useAuthStore((state) => state.token);
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -75,7 +81,7 @@ export function ShareSheet({ editorialId, editorialTitle, children }: ShareSheet
             {!token ? (
               <div className="mt-5 rounded-[28px] bg-mist px-4 py-5 text-sm text-graphite">
                 Connectez-vous pour partager une carte avec vos amis.{" "}
-                <Link href="/login" className="font-semibold text-plum underline">
+                <Link href={`${basePath}/login`} className="font-semibold text-plum underline">
                   Ouvrir la connexion
                 </Link>
               </div>
@@ -108,7 +114,7 @@ export function ShareSheet({ editorialId, editorialTitle, children }: ShareSheet
             ) : (
               <div className="mt-5 rounded-[28px] bg-mist px-4 py-5 text-sm leading-6 text-graphite">
                 Aucun ami disponible pour le moment. Ajoutez des profils dans{" "}
-                <Link href="/relations" className="font-semibold text-plum underline">
+                <Link href={`${basePath}/relations`} className="font-semibold text-plum underline">
                   Relations
                 </Link>
                 .

@@ -2,13 +2,12 @@
 
 import {
   CalendarDays,
-  Heart,
-  Home,
-  Map,
+  CircleHelp,
+  Globe2,
   Menu,
-  PlusCircle,
-  UserCircle2,
-  Users,
+  MonitorSmartphone,
+  Map,
+  Settings2,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -18,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { languageOptions, useI18n } from "@/features/shell/i18n";
 import { Input } from "@/components/ui/input";
 import { useShellStore } from "@/features/shell/store";
+import { cn } from "@/lib/utils/cn";
 
 interface TopHeaderProps {
   rightContent?: ReactNode;
@@ -36,6 +36,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
   const setCity = useShellStore((state) => state.setCity);
   const setSelectedDate = useShellStore((state) => state.setSelectedDate);
   const resetFilters = useShellStore((state) => state.resetFilters);
+  const compactMode = useShellStore((state) => state.compactMode);
 
   const [openPanel, setOpenPanel] = useState<Panel>(null);
   const [draftCity, setDraftCity] = useState(city);
@@ -86,57 +87,38 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
   const menuLinks = [
     {
-      label: t("menu.fullFeed"),
-      description: t("menu.fullFeedDescription"),
-      icon: Home,
+      label: "Parametres",
+      description: "Preferences de l'app, media et confort.",
+      icon: Settings2,
       action: () => {
-        resetFilters();
-        router.push("/feed");
+        router.push("/settings");
         setOpenPanel(null);
       },
     },
     {
-      label: t("menu.map"),
-      description: t("menu.mapDescription"),
-      icon: Map,
+      label: "Langue",
+      description: "Choisir la langue de l'interface.",
+      icon: Globe2,
       action: () => {
-        router.push("/map");
+        router.push("/settings?tab=language");
         setOpenPanel(null);
       },
     },
     {
-      label: t("menu.likes"),
-      description: t("menu.likesDescription"),
-      icon: Heart,
+      label: "Aide",
+      description: "Astuces rapides et usage de LE_LA.",
+      icon: CircleHelp,
       action: () => {
-        router.push("/likes");
+        router.push("/settings?tab=help");
         setOpenPanel(null);
       },
     },
     {
-      label: t("menu.relations"),
-      description: t("menu.relationsDescription"),
-      icon: Users,
+      label: "Website",
+      description: "Ouvrir la version grand ecran.",
+      icon: MonitorSmartphone,
       action: () => {
-        router.push("/relations");
-        setOpenPanel(null);
-      },
-    },
-    {
-      label: t("menu.contribute"),
-      description: t("menu.contributeDescription"),
-      icon: PlusCircle,
-      action: () => {
-        router.push("/contribute");
-        setOpenPanel(null);
-      },
-    },
-    {
-      label: t("menu.account"),
-      description: t("menu.accountDescription"),
-      icon: UserCircle2,
-      action: () => {
-        router.push("/profile");
+        router.push("/website");
         setOpenPanel(null);
       },
     },
@@ -152,7 +134,12 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         />
       ) : null}
 
-      <header className="relative z-20 border-b border-borderSoft/90 bg-white/92 px-4 py-2.5 backdrop-blur-md">
+      <header
+        className={cn(
+          "relative z-20 border-b border-borderSoft/90 bg-white/92 px-4 backdrop-blur-md",
+          compactMode ? "py-2.5" : "py-3"
+        )}
+      >
         <div className="flex items-center justify-between gap-2 text-sm text-graphite">
           {/* City selector */}
           <button
@@ -165,7 +152,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
             }`}
           >
             <Map className="h-4 w-4 shrink-0" />
-            <span className="truncate text-[13px]">{city}</span>
+            <span className="truncate text-[12px]">{city}</span>
           </button>
 
           {/* Date selector */}
@@ -179,7 +166,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
             }`}
           >
             <CalendarDays className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap text-[13px]">{formatDate(selectedDate)}</span>
+            <span className="whitespace-nowrap text-[12px]">{formatDate(selectedDate)}</span>
           </button>
 
           {/* Right actions */}
@@ -208,13 +195,11 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         <div ref={panelRef}>
           {/* City panel */}
           {openPanel === "city" ? (
-            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[28px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[26px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{t("header.changeCity")}</p>
-                  <p className="text-xs leading-5 text-graphite/75">
-                    Le feed, la carte et les pages likes utiliseront cette ville comme contexte.
-                  </p>
+                  <p className="text-xs leading-5 text-graphite/75">Applique ce contexte partout dans l&apos;app.</p>
                 </div>
                 <Input
                   value={draftCity}
@@ -271,7 +256,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
           {/* Date panel */}
           {openPanel === "date" ? (
-            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[28px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[26px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{t("header.chooseDate")}</p>
@@ -306,12 +291,12 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
           {/* Menu panel */}
           {openPanel === "menu" ? (
-            <div className="absolute right-4 top-full z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-[32px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute right-4 top-full z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-[30px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-plum">
-                      {t("header.navigation")}
+                      Utilitaires
                     </p>
                     <p className="mt-1 text-sm text-graphite">
                       {city} · {formatDate(selectedDate)}
@@ -355,42 +340,31 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
                 <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
-                    {t("menu.language")}
+                    Langue active
                   </p>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    {languageOptions.map((option) => (
-                      <button
-                        key={option.code}
-                        type="button"
-                        onClick={() => setLanguage(option.code)}
-                        className={`flex items-center gap-2 rounded-2xl px-3 py-3 text-sm font-semibold transition ${
-                          language === option.code
-                            ? "bg-plum text-white"
-                            : "bg-white text-ink ring-1 ring-borderSoft hover:bg-mist"
-                        }`}
-                      >
-                        <span className="text-base">{option.flag}</span>
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                  <p className="mt-3 text-sm text-graphite">
+                    {languageOptions.find((option) => option.code === language)?.flag}{" "}
+                    {languageOptions.find((option) => option.code === language)?.label}
+                  </p>
                 </div>
 
                 <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
-                    {t("menu.help")}
+                    Contexte
                   </p>
-                  <p className="mt-3 text-sm leading-6 text-graphite">{t("menu.helpText")}</p>
-                </div>
-
-                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
-                    {t("menu.howToUse")}
-                  </p>
-                  <div className="mt-3 space-y-2 text-sm leading-6 text-graphite">
-                    <p>1. {t("menu.howToUseStep1")}</p>
-                    <p>2. {t("menu.howToUseStep2")}</p>
-                    <p>3. {t("menu.howToUseStep3")}</p>
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm text-graphite">
+                    <span>{city} · {formatDate(selectedDate)}</span>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="px-3 py-2 text-xs"
+                      onClick={() => {
+                        resetFilters();
+                        setOpenPanel(null);
+                      }}
+                    >
+                      {t("header.reset")}
+                    </Button>
                   </div>
                 </div>
               </div>

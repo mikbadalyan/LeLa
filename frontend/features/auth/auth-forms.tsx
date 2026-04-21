@@ -25,7 +25,11 @@ const initialLogin = {
   password: "",
 };
 
-export function AuthForms() {
+export function AuthForms({
+  redirectTo = "/feed",
+}: {
+  redirectTo?: string;
+}) {
   const router = useRouter();
   const setSession = useAuthStore((state) => state.setSession);
   const [mode, setMode] = useState<Mode>("login");
@@ -37,7 +41,7 @@ export function AuthForms() {
     mutationFn: login,
     onSuccess: (response) => {
       setSession(response.access_token, response.user);
-      router.push("/feed");
+      router.push(redirectTo);
     },
     onError: (mutationError: Error) => setError(mutationError.message),
   });
@@ -46,7 +50,7 @@ export function AuthForms() {
     mutationFn: register,
     onSuccess: (response) => {
       setSession(response.access_token, response.user);
-      router.push("/feed");
+      router.push(redirectTo);
     },
     onError: (mutationError: Error) => setError(mutationError.message),
   });
