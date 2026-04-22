@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   CircleHelp,
@@ -268,6 +268,7 @@ export function SettingsScreen({
   variant?: SettingsVariant;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -337,7 +338,7 @@ export function SettingsScreen({
   });
 
   useEffect(() => {
-    const incoming = settingsQuery.data ?? user?.settings;
+    const incoming = user?.settings ?? settingsQuery.data;
     if (!incoming) {
       return;
     }
@@ -391,6 +392,7 @@ export function SettingsScreen({
   };
 
   const applySettingsSuccess = (updatedSettings: UserSettings, message = "Parametres enregistres.") => {
+    queryClient.setQueryData(["auth-settings", token], updatedSettings);
     applyAppearanceLocally(updatedSettings);
     if (user) {
       setUser({ ...user, settings: updatedSettings });
