@@ -15,6 +15,7 @@ interface MobileShellProps {
   className?: string;
   showBottomBar?: boolean;
   showModeNav?: boolean;
+  padForBottomBar?: boolean;
 }
 
 export function MobileShell({
@@ -25,6 +26,7 @@ export function MobileShell({
   className,
   showBottomBar = true,
   showModeNav = true,
+  padForBottomBar = true,
 }: PropsWithChildren<MobileShellProps>) {
   const compactMode = useShellStore((state) => state.compactMode);
 
@@ -58,7 +60,7 @@ export function MobileShell({
             id="lela-scroll-container"
             className={cn(
               "min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth",
-              showBottomBar ? "pb-[calc(6.75rem+env(safe-area-inset-bottom))]" : "",
+              showBottomBar && padForBottomBar ? "pb-[calc(6.75rem+env(safe-area-inset-bottom))]" : "",
               "isolate",
               className
             )}

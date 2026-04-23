@@ -22,6 +22,7 @@ import {
 } from "@/features/chat/store";
 import { useAuthStore } from "@/features/auth/store";
 import { useI18n } from "@/features/shell/i18n";
+import { useShellStore } from "@/features/shell/store";
 import { sendChatMessage, submitChatFeedback } from "@/lib/api/endpoints";
 import type {
   ChatEditorialSuggestion,
@@ -242,6 +243,7 @@ export function ChatScreen() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const token = useAuthStore((state) => state.token);
+  const compactMode = useShellStore((state) => state.compactMode);
   const draft = useChatStore((state) => state.draft);
   const conversations = useChatStore((state) => state.conversations);
   const activeConversationId = useChatStore((state) => state.activeConversationId);
@@ -394,7 +396,7 @@ export function ChatScreen() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <HistoryPanel
         open={historyOpen}
         conversations={sortedConversations}
@@ -413,40 +415,30 @@ export function ChatScreen() {
       />
 
       <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft/10 bg-elevated/92 px-4 py-3 shadow-soft backdrop-blur-md">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue">
-            {t("chat.title")}
-          </p>
-          {activeConversation ? (
-            <p className="mt-1 text-sm font-medium text-graphite">{activeConversation.title}</p>
-          ) : (
-            <p className="mt-1 text-sm font-medium text-graphite">{t("chat.newDiscussion")}</p>
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex w-full items-center justify-end gap-2">
           <Button
             type="button"
             variant="secondary"
-            className="h-9 px-3 text-xs shadow-none"
+            className="h-10 w-10 rounded-full p-0 shadow-none"
             onClick={() => setHistoryOpen(true)}
+            aria-label={t("chat.history")}
           >
-            <History className="mr-2 h-4 w-4" />
-            {t("chat.history")}
+            <History className="h-5 w-5" />
           </Button>
           <Button
             type="button"
             variant="secondary"
-            className="h-9 px-3 text-xs shadow-none"
+            className="h-10 w-10 rounded-full p-0 shadow-none"
             onClick={startNewConversation}
+            aria-label={t("chat.new")}
           >
-            <MessageSquarePlus className="mr-2 h-4 w-4" />
-            {t("chat.new")}
+            <MessageSquarePlus className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-        <div className="space-y-4 pb-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-32">
+        <div className="space-y-4">
         {!messages.length ? (
           <div className="space-y-3">
               {starterQuestions.map((question) => (
@@ -534,10 +526,15 @@ export function ChatScreen() {
 
       <form
         onSubmit={handleSubmit}
-        className="sticky bottom-0 z-20 shrink-0 border-t border-borderSoft/10 bg-background/96 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] backdrop-blur-md"
+        className="fixed left-1/2 z-[60] w-full max-w-[430px] -translate-x-1/2 border-t border-borderSoft/10 bg-background/96 px-3 py-2 backdrop-blur-md"
+        style={{
+          bottom: compactMode
+            ? "calc(4.9rem + env(safe-area-inset-bottom))"
+            : "calc(5.2rem + env(safe-area-inset-bottom))",
+        }}
       >
-        <div className={`rounded-[28px] bg-elevated px-3 py-3 shadow-card ring-1 ring-borderSoft/10 transition ${composerFocused ? "shadow-blue ring-blue/20" : ""}`}>
-          <div className={`rounded-[24px] border border-borderSoft/10 bg-surface p-4 transition ${composerFocused ? "border-blue/35 bg-white/92" : ""}`}>
+        <div className={`rounded-full bg-elevated px-3 py-1.5 shadow-card ring-1 ring-borderSoft/10 transition ${composerFocused ? "shadow-blue ring-blue/20" : ""}`}>
+          <div className={`flex items-center gap-2 rounded-full border border-borderSoft/10 bg-surface px-3 py-1.5 transition ${composerFocused ? "border-blue/35 bg-white/92" : ""}`}>
             <textarea
               id="lela-chat-input"
               value={draft}
@@ -546,41 +543,27 @@ export function ChatScreen() {
               onFocus={() => setComposerFocused(true)}
               onBlur={() => setComposerFocused(false)}
               placeholder={t("chat.placeholder")}
-              className="min-h-16 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-graphite/45"
+              className="h-9 min-h-9 max-h-24 w-full resize-none bg-transparent pt-2 text-[15px] text-ink outline-none placeholder:text-graphite/45"
             />
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3 text-xs text-graphite/70">
+            <Button
+              type="button"
+              onClick={() => submitMessage(draft)}
+              className="h-9 w-9 shrink-0 rounded-full p-0"
+              disabled={!draft.trim() || respondMutation.isPending}
+              aria-label={t("conversations.send")}
+            >
+              {respondMutation.isPending ? (
+                <LoaderCircle className="h-4 w-4 animate-spin" />
+              ) : (
                 <Image
-                  src="/assets/icon-compose.svg"
-                  alt={t("chat.newDiscussion")}
-                  width={27}
-                  height={27}
-                  className="h-5 w-auto"
+                  src="/assets/icon-chat-send.svg"
+                  alt={t("conversations.send")}
+                  width={22}
+                  height={18}
+                  className="h-4 w-auto"
                 />
-                <span className="line-clamp-2">
-                  {sortedConversations.length} {t("chat.saved")}
-                </span>
-              </div>
-              <Button
-                type="submit"
-                className="h-12 gap-2 rounded-full px-4 py-0"
-                disabled={!draft.trim() || respondMutation.isPending}
-                aria-label={t("conversations.send")}
-              >
-                {respondMutation.isPending ? (
-                  <LoaderCircle className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Image
-                    src="/assets/icon-chat-send.svg"
-                    alt={t("conversations.send")}
-                    width={26}
-                    height={22}
-                    className="h-5 w-auto"
-                  />
-                )}
-                <span>{t("conversations.send")}</span>
-              </Button>
-            </div>
+              )}
+            </Button>
           </div>
         </div>
       </form>

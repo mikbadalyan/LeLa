@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, LoaderCircle, Play, Shuffle, Sparkles, Wand2, X } from "lucide-react";
+import { ArrowUp, LoaderCircle, Play, Shuffle, Wand2, X } from "lucide-react";
 
 import { EditorialFeedCard } from "@/components/cards/editorial-feed-card";
 import { MobileShell } from "@/components/layout/mobile-shell";
@@ -16,7 +16,6 @@ import type { EditorialCard } from "@/lib/api/types";
 import { resolveFeedFilterFromFocus } from "@/lib/utils/editorial";
 import { readRecentViewedEditorialIds, shuffleEditorials } from "@/lib/utils/discovery";
 import { cn } from "@/lib/utils/cn";
-import { formatFrenchDate } from "@/lib/utils/format";
 
 type Focus = "feed" | "place" | "person" | "event" | "chat";
 
@@ -54,6 +53,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const filter = useFeedUiStore((state) => state.filter);
   const setFilter = useFeedUiStore((state) => state.setFilter);
   const scrollY = useFeedUiStore((state) => state.scrollY);
+  const setScrollProgress = useFeedUiStore((state) => state.setScrollProgress);
   const token = useAuthStore((state) => state.token);
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
@@ -61,7 +61,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const previousItemCountRef = useRef(0);
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
   const [newItemsCount, setNewItemsCount] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const [discoverMode, setDiscoverMode] = useState(false);
   const [discoverSeed, setDiscoverSeed] = useState(() => Math.floor(Date.now() % 100000));
   const [storyModeOpen, setStoryModeOpen] = useState(false);
@@ -170,7 +169,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     const maxScrollable = Math.max(container.scrollHeight - container.clientHeight, 1);
     const nextProgress = Math.min(100, Math.max(0, (container.scrollTop / maxScrollable) * 100));
     setScrollProgress(nextProgress);
-  }, [scrollY, displayItems.length]);
+  }, [displayItems.length, scrollY, setScrollProgress]);
 
   const jumpToTop = () => {
     const container = document.getElementById("lela-scroll-container");
@@ -182,7 +181,12 @@ export function FeedScreen({ focus }: FeedScreenProps) {
 
   if (focus === "chat") {
     return (
-      <MobileShell activeMode="chat" activeTab="conversations" className="overflow-hidden p-0">
+      <MobileShell
+        activeMode="chat"
+        activeTab="conversations"
+        className="overflow-hidden p-0"
+        padForBottomBar={false}
+      >
         <ChatScreen />
       </MobileShell>
     );
@@ -197,24 +201,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
         onClose={() => setStoryModeOpen(false)}
         onLike={(id) => likeMutation.mutate(id)}
       />
-
-      <div className="card-enter rounded-[24px] bg-elevated px-4 py-3 text-ink shadow-soft ring-1 ring-borderSoft/10">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-semibold">
-            {city} · {formatFrenchDate(selectedDate)}
-          </p>
-          <span className="inline-flex items-center gap-1 rounded-full bg-blueSoft px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue">
-            <Sparkles className="h-3.5 w-3.5" />
-            Fil en direct
-          </span>
-        </div>
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-mist">
-          <span
-            className="block h-full rounded-full bg-blue transition-[width] duration-300"
-            style={{ width: `${scrollProgress}%` }}
-          />
-        </div>
-      </div>
 
       <div className="card-enter grid grid-cols-3 gap-2 rounded-[24px] bg-elevated p-2 shadow-soft ring-1 ring-borderSoft/10">
         <button

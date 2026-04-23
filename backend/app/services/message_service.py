@@ -147,8 +147,6 @@ def read_conversation(db: Session, current_user: User, participant_id: str) -> l
 
 def create_message(db: Session, current_user: User, payload: MessageCreate) -> MessageRead:
     recipient = _ensure_participant(db, current_user, payload.recipient_id)
-    if not can_user_receive_direct_message(db, current_user, recipient):
-        raise ValueError("Cet utilisateur n'accepte pas ce type de messages.")
     content = (payload.content or "").strip()
     if not content:
         raise ValueError("Le message ne peut pas etre vide.")

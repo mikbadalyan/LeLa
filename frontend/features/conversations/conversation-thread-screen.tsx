@@ -11,6 +11,7 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
 import { useI18n } from "@/features/shell/i18n";
+import { useShellStore } from "@/features/shell/store";
 import {
   getConversationMessages,
   getUserById,
@@ -27,7 +28,9 @@ export function ConversationThreadScreen({
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
   const { t, formatDateTime } = useI18n();
+  const compactMode = useShellStore((state) => state.compactMode);
   const [draftMessage, setDraftMessage] = useState("");
+  const [sendError, setSendError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const draftAppliedRef = useRef(false);
 
@@ -69,8 +72,12 @@ export function ConversationThreadScreen({
       ),
     onSuccess: () => {
       setDraftMessage("");
+      setSendError(null);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
       queryClient.invalidateQueries({ queryKey: ["conversation-messages", participantId] });
+    },
+    onError: (error: Error) => {
+      setSendError(error.message || "Envoi impossible pour le moment.");
     },
   });
 
@@ -78,19 +85,29 @@ export function ConversationThreadScreen({
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messagesQuery.data, sendMutation.isPending]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const submitMessage = () => {
     if (!draftMessage.trim() || sendMutation.isPending) {
       return;
     }
+    setSendError(null);
     sendMutation.mutate();
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submitMessage();
   };
 
   const participant = participantQuery.data;
   const messages = messagesQuery.data ?? [];
 
   return (
-    <MobileShell activeMode="feed" activeTab="conversations" className="overflow-hidden bg-background p-0">
+    <MobileShell
+      activeMode="feed"
+      activeTab="conversations"
+      className="overflow-hidden bg-background p-0"
+      padForBottomBar={false}
+    >
       <div className="flex h-full min-h-0 flex-col">
         <div className="flex items-center gap-3 border-b border-borderSoft/10 bg-elevated px-4 py-3 shadow-soft">
           <Link
@@ -121,7 +138,7 @@ export function ConversationThreadScreen({
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        <div className="flex-1 overflow-y-auto px-3 py-3 pb-32">
           {messagesQuery.isLoading ? (
             <div className="flex h-full items-center justify-center text-blue">
               <LoaderCircle className="h-5 w-5 animate-spin" />
@@ -197,18 +214,29 @@ export function ConversationThreadScreen({
 
         <form
           onSubmit={handleSubmit}
-          className="border-t border-borderSoft/10 bg-background/96 px-3 py-3 backdrop-blur-md"
+          className="fixed left-1/2 z-[60] w-full max-w-[430px] -translate-x-1/2 border-t border-borderSoft/10 bg-background/96 px-3 py-2.5 backdrop-blur-md"
+          style={{
+            bottom: compactMode
+              ? "calc(4.9rem + env(safe-area-inset-bottom))"
+              : "calc(5.2rem + env(safe-area-inset-bottom))",
+          }}
         >
-          <div className="flex items-center gap-2 rounded-full bg-elevated px-3 py-2 shadow-card ring-1 ring-borderSoft/10">
+          <div className="flex items-center gap-2 rounded-full bg-elevated px-3 py-1.5 shadow-card ring-1 ring-borderSoft/10">
             <Input
               value={draftMessage}
-              onChange={(event) => setDraftMessage(event.target.value)}
+              onChange={(event) => {
+                if (sendError) {
+                  setSendError(null);
+                }
+                setDraftMessage(event.target.value);
+              }}
               placeholder={t("conversations.typeMessage")}
-              className="border-0 bg-transparent px-0 py-0 shadow-none ring-0"
+              className="h-9 border-0 bg-transparent px-0 py-0 shadow-none ring-0"
             />
             <button
-              type="submit"
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-plum text-white disabled:opacity-50"
+              type="button"
+              onClick={submitMessage}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-plum text-white disabled:opacity-50"
               disabled={!draftMessage.trim() || sendMutation.isPending}
               aria-label={t("conversations.send")}
             >
@@ -219,6 +247,9 @@ export function ConversationThreadScreen({
               )}
             </button>
           </div>
+          {sendError ? (
+            <p className="mt-2 px-2 text-xs text-danger">{sendError}</p>
+          ) : null}
         </form>
       </div>
     </MobileShell>

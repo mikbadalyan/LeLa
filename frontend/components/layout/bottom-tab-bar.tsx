@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 
 import { TabIcon } from "@/components/ui/lela-icons";
@@ -43,6 +44,13 @@ export function BottomTabBar({ activeTab }: BottomTabBarProps) {
         "sticky bottom-0 z-50 grid shrink-0 grid-cols-5 gap-1.5 border-t border-white/12 bg-plum px-2 text-white shadow-[0_-18px_38px_rgba(35,25,48,0.18)] backdrop-blur-md",
         compactMode ? "pb-[max(env(safe-area-inset-bottom),0.8rem)] pt-2.5" : "pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
       )}
+      style={
+        {
+          "--lela-bottom-tab-offset": compactMode
+            ? "calc(4.8rem + env(safe-area-inset-bottom))"
+            : "calc(5.35rem + env(safe-area-inset-bottom))",
+        } as CSSProperties
+      }
     >
       {items.map(({ key, href, label }) => {
         const isActive = key === activeTab;

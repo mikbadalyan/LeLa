@@ -16,6 +16,12 @@ type TranslationKey =
   | "modes.events"
   | "modes.chat"
   | "header.menu"
+  | "header.notifications"
+  | "header.notificationsEmpty"
+  | "header.messages"
+  | "header.friends"
+  | "header.updates"
+  | "header.view"
   | "header.changeCity"
   | "header.cityPlaceholder"
   | "header.cityContextHint"
@@ -224,6 +230,12 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "modes.events": "Evenements",
     "modes.chat": "Chat",
     "header.menu": "Ouvrir le menu",
+    "header.notifications": "Ouvrir les notifications",
+    "header.notificationsEmpty": "Aucune nouvelle notification pour le moment.",
+    "header.messages": "Messages",
+    "header.friends": "Nouveaux amis",
+    "header.updates": "Nouveautes",
+    "header.view": "Voir",
     "header.changeCity": "Changer de ville",
     "header.cityPlaceholder": "Entrez une ville",
     "header.cityContextHint": "Applique ce contexte partout dans l'app.",
@@ -431,6 +443,12 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "modes.events": "Events",
     "modes.chat": "Chat",
     "header.menu": "Open menu",
+    "header.notifications": "Open notifications",
+    "header.notificationsEmpty": "No new notifications right now.",
+    "header.messages": "Messages",
+    "header.friends": "New friends",
+    "header.updates": "Updates",
+    "header.view": "View",
     "header.changeCity": "Change city",
     "header.cityPlaceholder": "Enter a city",
     "header.cityContextHint": "Apply this context across the app.",
@@ -638,6 +656,12 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "modes.events": "Events",
     "modes.chat": "Chat",
     "header.menu": "Menu offnen",
+    "header.notifications": "Benachrichtigungen offnen",
+    "header.notificationsEmpty": "Aktuell gibt es keine neuen Benachrichtigungen.",
+    "header.messages": "Nachrichten",
+    "header.friends": "Neue Freunde",
+    "header.updates": "Neuigkeiten",
+    "header.view": "Ansehen",
     "header.changeCity": "Stadt andern",
     "header.cityPlaceholder": "Stadt eingeben",
     "header.cityContextHint": "Wende diesen Kontext in der gesamten App an.",
@@ -845,6 +869,12 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "modes.events": "Իրադարձություններ",
     "modes.chat": "Չատ",
     "header.menu": "Բացել մենյուն",
+    "header.notifications": "Բացել ծանուցումները",
+    "header.notificationsEmpty": "Նոր ծանուցումներ դեռ չկան։",
+    "header.messages": "Նամակներ",
+    "header.friends": "Նոր ընկերներ",
+    "header.updates": "Թարմացումներ",
+    "header.view": "Դիտել",
     "header.changeCity": "Փոխել քաղաքը",
     "header.cityPlaceholder": "Մուտքագրեք քաղաք",
     "header.cityContextHint": "Կիրառեք այս համատեքստը ամբողջ հավելվածում։",

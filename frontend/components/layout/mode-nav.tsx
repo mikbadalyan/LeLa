@@ -34,18 +34,18 @@ export function ModeNav({ activeMode }: ModeNavProps) {
   const compactMode = useShellStore((state) => state.compactMode);
 
   return (
-    <div className={cn("border-b border-borderSoft/10 bg-shell/96 backdrop-blur-xl", compactMode ? "px-4 pt-3" : "px-4 pt-4")}>
-      <div className={cn("flex items-end gap-3", compactMode ? "" : "gap-4")}>
-        <Link href="/feed" className="flex flex-col items-center gap-1.5 pb-1" aria-label={t("modes.feed")}>
+    <div className={cn("border-b border-borderSoft/10 bg-shell/96 backdrop-blur-xl", compactMode ? "px-4 pt-2 pb-1" : "px-4 pt-2.5 pb-1.5")}>
+      <div className={cn("flex items-center gap-3", compactMode ? "" : "gap-4")}>
+        <Link href="/feed" className="flex min-h-[58px] flex-col items-center justify-center gap-1.5" aria-label={t("modes.feed")}>
           <LogoMark />
           <span
             className={cn(
-              "h-0 w-0 border-x-[9px] border-x-transparent border-t-[10px] transition",
-              activeMode === "feed" ? "border-t-blue" : "border-t-transparent"
+              "h-0 w-0 border-b-[10px] border-x-[9px] border-x-transparent transition",
+              activeMode === "feed" ? "border-b-blue" : "border-b-transparent"
             )}
           />
         </Link>
-        <nav className="flex flex-1 items-end justify-between gap-2">
+        <nav className="flex flex-1 items-center justify-between gap-2">
           {items.map(({ key, href, label }) => {
             const isActive = key === activeMode;
             const handleClick = () => {
@@ -68,7 +68,7 @@ export function ModeNav({ activeMode }: ModeNavProps) {
                 href={href}
                 onClick={handleClick}
                 className={cn(
-                  "relative flex min-w-[48px] flex-col items-center overflow-hidden rounded-t-[18px] px-2 pb-1 transition before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,rgba(51,101,200,0.18),transparent_70%)] before:opacity-0 before:transition before:duration-300",
+                  "relative flex min-h-[58px] min-w-[48px] flex-col items-center justify-center overflow-hidden rounded-t-[18px] px-2 pb-1 transition before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,rgba(51,101,200,0.18),transparent_70%)] before:opacity-0 before:transition before:duration-300",
                   compactMode ? "gap-1.5" : "gap-2",
                   isActive ? "bg-blueSoft/70 before:opacity-100" : "hover:bg-white/45"
                 )}
@@ -83,8 +83,8 @@ export function ModeNav({ activeMode }: ModeNavProps) {
                 />
                 <span
                   className={cn(
-                    "h-0 w-0 border-x-[9px] border-x-transparent border-t-[10px] transition",
-                    isActive ? "border-t-blue" : "border-t-transparent"
+                    "h-0 w-0 border-b-[10px] border-x-[9px] border-x-transparent transition",
+                    isActive ? "border-b-blue" : "border-b-transparent"
                   )}
                 />
               </Link>
