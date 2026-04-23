@@ -21,7 +21,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex min-h-[44px] items-center justify-center rounded-control px-4 py-2.5 text-[13px] font-semibold transition duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-55",
+        "interactive-action relative inline-flex min-h-[44px] items-center justify-center overflow-hidden rounded-control px-4 py-2.5 text-[13px] font-semibold transition duration-200 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-55 before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.26),transparent_60%)] before:opacity-0 before:transition before:duration-300 hover:before:opacity-100",
         fullWidth && "w-full",
         variant === "primary" &&
           "bg-plum text-white shadow-float hover:bg-plumSoft focus-visible:outline-blue/40",

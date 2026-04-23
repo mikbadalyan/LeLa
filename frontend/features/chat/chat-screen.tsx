@@ -40,7 +40,7 @@ function RouteChips({ routes }: { routes: ChatRouteSuggestion[] }) {
         <Link
           key={`${route.href}-${route.label}`}
           href={route.href}
-          className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/15"
+          className="interactive-action rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/15"
         >
           {route.label}
         </Link>
@@ -60,7 +60,7 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
         <Link
           key={item.id}
           href={item.href}
-          className="flex items-center gap-3 rounded-[22px] bg-elevated/92 p-3 ring-1 ring-borderSoft/10"
+          className="card-enter interactive-surface flex items-center gap-3 rounded-[22px] bg-elevated/92 p-3 ring-1 ring-borderSoft/10"
         >
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
             {item.media_kind === "audio" ? (
@@ -71,7 +71,7 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
                 alt={item.title}
                 fill
                 sizes="64px"
-                className="object-cover"
+                className="interactive-media object-cover"
               />
             )}
           </div>
@@ -252,6 +252,7 @@ export function ChatScreen() {
   const pushAssistantMessage = useChatStore((state) => state.pushAssistantMessage);
   const rateAssistantMessage = useChatStore((state) => state.rateAssistantMessage);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [composerFocused, setComposerFocused] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const currentPath = searchParams?.toString()
@@ -453,7 +454,7 @@ export function ChatScreen() {
                   key={question}
                   type="button"
                   onClick={() => submitMessage(question)}
-                  className="block w-full rounded-[22px] bg-elevated px-4 py-3 text-left text-sm font-medium text-blue shadow-soft ring-1 ring-borderSoft/10"
+                  className="card-enter interactive-action block w-full rounded-[22px] bg-elevated px-4 py-3 text-left text-sm font-medium text-blue shadow-soft ring-1 ring-borderSoft/10"
                 >
                   {question}
                 </button>
@@ -461,14 +462,15 @@ export function ChatScreen() {
           </div>
         ) : (
           <div className="space-y-4">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`rounded-[28px] px-4 py-4 shadow-sm ring-1 ${
+                className={`card-enter rounded-[28px] px-4 py-4 shadow-sm ring-1 ${
                   message.role === "user"
                     ? "ml-8 border-transparent bg-plum text-white"
                     : "mr-3 border-borderSoft/10 bg-elevated text-ink"
                 }`}
+                style={{ animationDelay: `${Math.min(index * 24, 180)}ms` }}
               >
                 <p className="whitespace-pre-wrap text-[15px] leading-7">{message.content}</p>
                 {message.role === "assistant" ? (
@@ -502,7 +504,7 @@ export function ChatScreen() {
                             key={question}
                             type="button"
                             onClick={() => submitMessage(question)}
-                            className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue"
+                            className="interactive-action rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue"
                           >
                             {question}
                           </button>
@@ -515,10 +517,12 @@ export function ChatScreen() {
             ))}
 
             {respondMutation.isPending ? (
-              <div className="mr-3 rounded-[28px] border border-borderSoft/10 bg-elevated px-4 py-4 text-ink shadow-soft">
+              <div className="card-enter mr-3 rounded-[28px] border border-borderSoft/10 bg-elevated px-4 py-4 text-ink shadow-soft">
                 <p className="flex items-center gap-2 text-[15px]">
-                  <LoaderCircle className="h-4 w-4 animate-spin text-plum" />
-                  {t("chat.thinking")}
+                  <span className="typing-dot h-2.5 w-2.5 rounded-full bg-blue" />
+                  <span className="typing-dot h-2.5 w-2.5 rounded-full bg-blue" />
+                  <span className="typing-dot h-2.5 w-2.5 rounded-full bg-blue" />
+                  <span className="ml-1 text-graphite/80">{t("chat.thinking")}</span>
                 </p>
               </div>
             ) : null}
@@ -532,13 +536,15 @@ export function ChatScreen() {
         onSubmit={handleSubmit}
         className="sticky bottom-0 z-20 shrink-0 border-t border-borderSoft/10 bg-background/96 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] backdrop-blur-md"
       >
-        <div className="rounded-[28px] bg-elevated px-3 py-3 shadow-card ring-1 ring-borderSoft/10">
-          <div className="rounded-[24px] border border-borderSoft/10 bg-surface p-4">
+        <div className={`rounded-[28px] bg-elevated px-3 py-3 shadow-card ring-1 ring-borderSoft/10 transition ${composerFocused ? "shadow-blue ring-blue/20" : ""}`}>
+          <div className={`rounded-[24px] border border-borderSoft/10 bg-surface p-4 transition ${composerFocused ? "border-blue/35 bg-white/92" : ""}`}>
             <textarea
               id="lela-chat-input"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleComposerKeyDown}
+              onFocus={() => setComposerFocused(true)}
+              onBlur={() => setComposerFocused(false)}
               placeholder={t("chat.placeholder")}
               className="min-h-16 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-graphite/45"
             />

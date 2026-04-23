@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { ExternalLink, LoaderCircle, MapPinned } from "lucide-react";
+import { ExternalLink, LoaderCircle, MapPinned, Shuffle } from "lucide-react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { useAuthStore } from "@/features/auth/store";
@@ -34,6 +34,8 @@ export function MapScreen({ editorialId }: MapScreenProps) {
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
 
+  const [mapFocusSeed, setMapFocusSeed] = useState(0);
+
   const markersQuery = useQuery({
     queryKey: ["map-markers", city, selectedDate, Boolean(token)],
     queryFn: () => getMapMarkers({ city, date: selectedDate }, token),
@@ -44,15 +46,20 @@ export function MapScreen({ editorialId }: MapScreenProps) {
       return null;
     }
 
-    return (
-      markersQuery.data.find((marker) => marker.editorial_id === editorialId) ??
-      markersQuery.data[0]
-    );
-  }, [editorialId, markersQuery.data]);
+    const explicit = markersQuery.data.find((marker) => marker.editorial_id === editorialId);
+    if (explicit) {
+      return explicit;
+    }
+    if (mapFocusSeed > 0) {
+      const index = mapFocusSeed % markersQuery.data.length;
+      return markersQuery.data[index];
+    }
+    return markersQuery.data[0];
+  }, [editorialId, markersQuery.data, mapFocusSeed]);
 
   return (
     <MobileShell activeMode="place" activeTab="relations" className="space-y-4 px-4 py-5">
-      <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
+      <div className="detail-reveal rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-start gap-4">
           <div className="rounded-2xl bg-blueSoft p-3 text-blue">
             <MapPinned className="h-5 w-5" />
@@ -62,6 +69,14 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             <p className="mt-2 text-sm leading-6 text-graphite">
               Carte ouverte via OpenStreetMap. Le contexte utilise {city} et la date du {formatFrenchDate(selectedDate)}.
             </p>
+            <button
+              type="button"
+              onClick={() => setMapFocusSeed((current) => current + 1)}
+              className="interactive-action mt-3 inline-flex items-center gap-2 rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/16"
+            >
+              <Shuffle className="h-3.5 w-3.5" />
+              Decouverte aleatoire
+            </button>
           </div>
         </div>
       </div>
@@ -72,16 +87,24 @@ export function MapScreen({ editorialId }: MapScreenProps) {
         </div>
       ) : activeMarker ? (
         <>
-          <div className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
+          <div className="detail-reveal detail-reveal-delay-1 relative overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
             <iframe
               title="Carte OpenStreetMap"
               src={buildMapSrc(activeMarker.latitude, activeMarker.longitude)}
               className="h-[22rem] w-full border-0"
               loading="lazy"
             />
+            <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10">
+              <div className="marker-pop rounded-[20px] bg-black/58 px-4 py-3 text-white ring-1 ring-white/14 backdrop-blur-md">
+                <p className="line-clamp-1 text-sm font-semibold">{activeMarker.title}</p>
+                <p className="line-clamp-1 text-xs text-white/75">
+                  {activeMarker.city ?? "Sans ville"}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
+          <div className="detail-reveal detail-reveal-delay-2 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
             <p className="text-xs uppercase tracking-[0.18em] text-blue">Point actif</p>
             <h2 className="mt-2 text-xl font-semibold text-ink">{activeMarker.title}</h2>
             {activeMarker.subtitle ? (
@@ -94,7 +117,7 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             <div className="mt-4 flex gap-3">
               <Link
                 href={activeMarker.href}
-                className="inline-flex items-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white shadow-float"
+                className="interactive-action inline-flex items-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white shadow-float"
               >
                 Ouvrir la fiche
               </Link>
@@ -102,7 +125,7 @@ export function MapScreen({ editorialId }: MapScreenProps) {
                 href={`https://www.openstreetmap.org/?mlat=${activeMarker.latitude}&mlon=${activeMarker.longitude}#map=15/${activeMarker.latitude}/${activeMarker.longitude}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-surface px-5 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10"
+                className="interactive-action inline-flex items-center rounded-full bg-surface px-5 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Ouvrir dans OSM
@@ -110,18 +133,19 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             </div>
           </div>
 
-          <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
+          <div className="detail-reveal detail-reveal-delay-3 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
             <p className="text-xs uppercase tracking-[0.18em] text-blue">Capsules localisees</p>
             <div className="mt-4 space-y-3">
-              {markersQuery.data?.map((marker) => (
+              {markersQuery.data?.map((marker, index) => (
                 <Link
                   key={marker.editorial_id}
                   href={`/map?editorial=${marker.editorial_id}`}
-                  className={`flex items-center justify-between gap-3 rounded-[24px] px-4 py-4 ring-1 transition ${
+                  className={`interactive-surface marker-pop flex items-center justify-between gap-3 rounded-[24px] px-4 py-4 ring-1 transition ${
                     activeMarker.editorial_id === marker.editorial_id
-                      ? "bg-blueSoft ring-blue/20"
+                      ? "bg-blueSoft ring-blue/26 shadow-blue"
                       : "bg-surface ring-borderSoft/10 hover:bg-mist"
                   }`}
+                  style={{ animationDelay: `${Math.min(index * 36, 200)}ms` }}
                 >
                   <div>
                     <p className="text-sm font-semibold text-ink">{marker.title}</p>

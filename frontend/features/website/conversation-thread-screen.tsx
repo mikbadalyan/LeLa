@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, LoaderCircle, SendHorizonal } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
@@ -14,17 +14,30 @@ import { getConversationMessages, getUserById, sendConversationMessage } from "@
 
 export function WebsiteConversationThreadScreen({ participantId }: { participantId: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const token = useAuthStore((state) => state.token);
   const { t, formatDateTime } = useI18n();
   const [draftMessage, setDraftMessage] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const draftAppliedRef = useRef(false);
 
   useEffect(() => {
     if (!token) {
       router.replace("/website/login");
     }
   }, [router, token]);
+
+  useEffect(() => {
+    if (draftAppliedRef.current) {
+      return;
+    }
+    const incomingDraft = searchParams.get("draft");
+    if (incomingDraft?.trim()) {
+      setDraftMessage(incomingDraft.trim());
+    }
+    draftAppliedRef.current = true;
+  }, [searchParams]);
 
   const participantQuery = useQuery({
     queryKey: ["website-conversation-participant", participantId],

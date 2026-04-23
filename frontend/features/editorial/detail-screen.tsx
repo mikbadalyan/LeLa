@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -21,6 +21,7 @@ import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
 import type { EditorialCard } from "@/lib/api/types";
 import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
+import { writeRecentViewedEditorialId } from "@/lib/utils/discovery";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
 
 interface DetailScreenProps {
@@ -48,6 +49,10 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
+  const [likePulse, setLikePulse] = useState(false);
+  const [sharePulse, setSharePulse] = useState(false);
+  const likePulseTimer = useRef<number | null>(null);
+  const sharePulseTimer = useRef<number | null>(null);
 
   const detailQuery = useQuery({
     queryKey: ["editorial", editorialId, viewerId],
@@ -71,6 +76,40 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   });
 
   const item = detailQuery.data;
+
+  useEffect(
+    () => () => {
+      if (likePulseTimer.current) {
+        window.clearTimeout(likePulseTimer.current);
+      }
+      if (sharePulseTimer.current) {
+        window.clearTimeout(sharePulseTimer.current);
+      }
+    },
+    []
+  );
+
+  const triggerLikePulse = () => {
+    setLikePulse(true);
+    if (likePulseTimer.current) {
+      window.clearTimeout(likePulseTimer.current);
+    }
+    likePulseTimer.current = window.setTimeout(() => setLikePulse(false), 460);
+  };
+
+  const triggerSharePulse = () => {
+    setSharePulse(true);
+    if (sharePulseTimer.current) {
+      window.clearTimeout(sharePulseTimer.current);
+    }
+    sharePulseTimer.current = window.setTimeout(() => setSharePulse(false), 560);
+  };
+
+  useEffect(() => {
+    if (item?.id) {
+      writeRecentViewedEditorialId(item.id);
+    }
+  }, [item?.id]);
 
   if (detailQuery.isPending) {
     return (
@@ -161,9 +200,9 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   };
 
   return (
-    <MobileShell activeMode={activeMode} activeTab="relations" className="bg-background">
+    <MobileShell activeMode={activeMode} activeTab="relations" className="screen-detail bg-background">
       <article className="bg-background">
-        <div className="relative aspect-[1.18] overflow-hidden rounded-b-[30px] shadow-soft">
+        <div className="detail-reveal relative aspect-[1.18] overflow-hidden rounded-b-[30px] shadow-soft">
           {isVideo ? (
             <video
               ref={videoRef}
@@ -206,7 +245,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               alt={item.title}
               fill
               sizes="(max-width: 768px) 100vw, 430px"
-              className="object-cover"
+              className="interactive-media object-cover"
             />
           )}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -214,7 +253,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <button
               type="button"
               onClick={togglePrimaryPlayback}
-              className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-blue shadow-blue"
+              className="interactive-action absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-blue shadow-blue"
               aria-label={isPlaying ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
             >
               <MediaStateIcon
@@ -236,7 +275,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
         </div>
 
         <div className="space-y-5 px-5 py-5">
-          <div className="flex items-start gap-4">
+          <div className="detail-reveal detail-reveal-delay-1 flex items-start gap-4">
             <div className="flex flex-1 items-start gap-3">
               <div className="mt-1 rounded-2xl bg-blueSoft p-3 text-blue shadow-sm ring-1 ring-blue/10">
                 {typeIcon(item.type)}
@@ -253,22 +292,27 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </div>
             <button
               type="button"
-              onClick={() => likeMutation.mutate(editorialId)}
-              className="rounded-full bg-elevated p-2.5 text-graphite shadow-soft ring-1 ring-borderSoft/10"
+              onClick={() => {
+                triggerLikePulse();
+                likeMutation.mutate(editorialId);
+              }}
+              className={`interactive-action rounded-full bg-elevated p-2.5 text-graphite shadow-soft ring-1 ring-borderSoft/10 ${
+                likePulse ? "like-pop" : ""
+              }`}
               aria-label="Aimer cette fiche"
             >
               <Heart
-                className={`h-7 w-7 ${item.is_liked ? "fill-plum text-plum" : "text-graphite"}`}
+                className={`h-7 w-7 ${item.is_liked ? "fill-plum text-plum" : "text-graphite"} ${likePulse ? "like-pop" : ""}`}
               />
             </button>
           </div>
 
-          <div className="space-y-4 rounded-card bg-elevated px-5 py-5 text-base leading-8 text-[#4A505B] shadow-card ring-1 ring-borderSoft/10">
+          <div className="detail-reveal detail-reveal-delay-2 space-y-4 rounded-card bg-elevated px-5 py-5 text-base leading-8 text-[#4A505B] shadow-card ring-1 ring-borderSoft/10">
             <p>{item.description}</p>
             <p>{item.narrative_text}</p>
           </div>
 
-          <div className="rounded-card bg-elevated px-4 py-4 text-sm text-graphite shadow-card ring-1 ring-borderSoft/10">
+          <div className="detail-reveal detail-reveal-delay-2 rounded-card bg-elevated px-4 py-4 text-sm text-graphite shadow-card ring-1 ring-borderSoft/10">
             <p className="font-semibold">Repere editorial</p>
             <div className="mt-2 flex flex-wrap gap-3">
               {item.metadata.date ? <span>{formatFrenchDateTime(item.metadata.date)}</span> : null}
@@ -277,18 +321,29 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="detail-reveal detail-reveal-delay-3 sticky top-[8.4rem] z-20 rounded-[24px] bg-background/86 p-2 backdrop-blur-md">
+            <div className="grid grid-cols-3 gap-3">
             <Button
               variant="secondary"
               className="rounded-3xl shadow-none"
-              onClick={() => likeMutation.mutate(editorialId)}
+              onClick={() => {
+                triggerLikePulse();
+                likeMutation.mutate(editorialId);
+              }}
             >
-              <Heart className={`mr-2 h-4 w-4 ${item.is_liked ? "fill-plum text-plum" : ""}`} />
+              <Heart className={`mr-2 h-4 w-4 ${item.is_liked ? "fill-plum text-plum" : ""} ${likePulse ? "like-pop" : ""}`} />
               {item.like_count}
             </Button>
             <ShareSheet editorialId={item.id} editorialTitle={item.title}>
               {({ open }) => (
-                <Button variant="secondary" className="rounded-3xl shadow-none" onClick={open}>
+                <Button
+                  variant="secondary"
+                  className={`rounded-3xl shadow-none ${sharePulse ? "share-pulse" : ""}`}
+                  onClick={() => {
+                    triggerSharePulse();
+                    open();
+                  }}
+                >
                   <ShareIcon className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Share
                 </Button>
@@ -296,15 +351,16 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </ShareSheet>
             <Link
               href={mapHref}
-              className="relative z-10 inline-flex items-center justify-center rounded-full bg-elevated px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10 transition hover:bg-mist"
+              className="interactive-action relative z-10 inline-flex items-center justify-center rounded-full bg-elevated px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10 transition hover:bg-mist"
               aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPinned className="mr-2 h-4 w-4" />
               Map
             </Link>
           </div>
+          </div>
 
-          <div className="flex items-center justify-between rounded-[26px] border border-borderSoft/10 bg-elevated px-4 py-4 text-sm text-graphite shadow-card">
+          <div className="detail-reveal detail-reveal-delay-3 flex items-center justify-between rounded-[26px] border border-borderSoft/10 bg-elevated px-4 py-4 text-sm text-graphite shadow-card">
             <button
               type="button"
               onClick={() =>
@@ -330,12 +386,12 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </CardFilterSheet>
           </div>
 
-          <div className="space-y-4">
+          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {visibleRelated.length ? visibleRelated.map((relatedItem) => (
               <Link
                 key={relatedItem.id}
                 href={`/editorial/${relatedItem.id}`}
-                className="group block overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10"
+                className="card-enter group block min-w-[88%] snap-start overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10"
               >
                 <div className="relative aspect-[1.05]">
                   {relatedItem.media_kind === "audio" ? (
@@ -355,9 +411,10 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                       type="button"
                       onClick={(event) => {
                         event.preventDefault();
+                        triggerLikePulse();
                         likeMutation.mutate(relatedItem.id);
                       }}
-                      className="rounded-full bg-white/18 p-2 backdrop-blur"
+                      className={`interactive-action rounded-full bg-white/18 p-2 backdrop-blur ${likePulse ? "like-pop" : ""}`}
                       aria-label="Aimer cette carte"
                     >
                       <Heart
@@ -370,9 +427,10 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                           type="button"
                           onClick={(event) => {
                             event.preventDefault();
+                            triggerSharePulse();
                             open();
                           }}
-                          className="rounded-full bg-white/18 p-2 backdrop-blur"
+                          className={`interactive-action rounded-full bg-white/18 p-2 backdrop-blur ${sharePulse ? "share-pulse" : ""}`}
                           aria-label="Partager cette carte"
                         >
                           <ShareIcon className="h-5 w-5 text-white" strokeWidth={2.2} />

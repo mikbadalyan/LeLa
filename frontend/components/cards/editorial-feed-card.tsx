@@ -27,6 +27,9 @@ interface EditorialFeedCardProps {
   onLike?: (id: string) => void;
   onToggleCloud?: (item: EditorialCard) => void;
   cloudActive?: boolean;
+  featured?: boolean;
+  entryDelayMs?: number;
+  highlighted?: boolean;
 }
 
 function typeIcon(type: EditorialCard["type"]) {
@@ -57,6 +60,9 @@ export function EditorialFeedCard({
   onLike,
   onToggleCloud,
   cloudActive = false,
+  featured = false,
+  entryDelayMs = 0,
+  highlighted = false,
 }: EditorialFeedCardProps) {
   const currentUserId = useAuthStore((state) => state.user?.id);
   const autoplayPreviews = useShellStore((state) => state.autoplayPreviews);
@@ -64,8 +70,12 @@ export function EditorialFeedCard({
   const dataSaver = useShellStore((state) => state.dataSaver);
   const [flipped, setFlipped] = useState(false);
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+  const [likePulse, setLikePulse] = useState(false);
+  const [sharePulse, setSharePulse] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const likePulseTimer = useRef<number | null>(null);
+  const sharePulseTimer = useRef<number | null>(null);
   const canOpenMap = Boolean(
     item.metadata.address || item.metadata.city || item.type === "place" || item.type === "event"
   );
@@ -75,6 +85,7 @@ export function EditorialFeedCard({
     item.metadata.address || item.metadata.city || item.linked_entity?.title || item.subtitle;
   const profileHref = contributorHref(item.contributor.id, currentUserId);
   const mapHref = buildEditorialMapHref(item.id);
+  const frontRatioClass = featured ? "aspect-[0.9]" : "aspect-[0.82]";
 
   useEffect(() => {
     if (!isVideo || !videoRef.current) {
@@ -90,6 +101,34 @@ export function EditorialFeedCard({
     videoRef.current.pause();
     setIsPlayingPreview(false);
   }, [autoplayPreviews, dataSaver, isVideo]);
+
+  useEffect(
+    () => () => {
+      if (likePulseTimer.current) {
+        window.clearTimeout(likePulseTimer.current);
+      }
+      if (sharePulseTimer.current) {
+        window.clearTimeout(sharePulseTimer.current);
+      }
+    },
+    []
+  );
+
+  const triggerLikePulse = () => {
+    setLikePulse(true);
+    if (likePulseTimer.current) {
+      window.clearTimeout(likePulseTimer.current);
+    }
+    likePulseTimer.current = window.setTimeout(() => setLikePulse(false), 460);
+  };
+
+  const triggerSharePulse = () => {
+    setSharePulse(true);
+    if (sharePulseTimer.current) {
+      window.clearTimeout(sharePulseTimer.current);
+    }
+    sharePulseTimer.current = window.setTimeout(() => setSharePulse(false), 560);
+  };
 
   const toggleMediaPlayback = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -118,7 +157,14 @@ export function EditorialFeedCard({
   };
 
   const frontFace = (
-    <div className="relative aspect-[0.82] overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10">
+    <div
+      className={cn(
+        "card-flip-soft interactive-surface relative overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10",
+        frontRatioClass,
+        featured ? "shadow-[0_24px_56px_rgba(35,37,43,0.18)]" : "",
+        highlighted ? "ring-2 ring-blue/36 shadow-[0_26px_58px_rgba(51,101,200,0.3)]" : ""
+      )}
+    >
       {isVideo ? (
         <video
           ref={videoRef}
@@ -129,7 +175,7 @@ export function EditorialFeedCard({
           playsInline
           preload="metadata"
           className={cn(
-            "absolute inset-0 h-full w-full object-cover",
+            "interactive-media absolute inset-0 h-full w-full object-cover",
             reduceMotion ? "" : "transition duration-500"
           )}
           onPause={() => setIsPlayingPreview(false)}
@@ -163,7 +209,10 @@ export function EditorialFeedCard({
           alt={item.title}
           fill
           sizes="(max-width: 768px) 100vw, 390px"
-          className={cn("object-cover", reduceMotion ? "" : "transition duration-500")}
+          className={cn(
+            "interactive-media object-cover",
+            reduceMotion ? "" : "transition duration-500"
+          )}
           quality={dataSaver ? 62 : 82}
           priority={false}
         />
@@ -200,12 +249,22 @@ export function EditorialFeedCard({
           onPointerDown={stopCardAction}
           onClick={(event) => {
             stopCardAction(event);
+            triggerLikePulse();
             onLike?.(item.id);
           }}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
+          className={cn(
+            "interactive-action flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34",
+            likePulse ? "like-pop bg-black/36" : ""
+          )}
           aria-label={item.is_liked ? "Retirer des aimes" : "Aimer cette carte"}
         >
-          <Heart className={`h-[17px] w-[17px] ${item.is_liked ? "fill-white text-white" : "text-white"}`} />
+          <Heart
+            className={cn(
+              "h-[17px] w-[17px]",
+              item.is_liked ? "fill-white text-white" : "text-white",
+              likePulse ? "like-pop" : ""
+            )}
+          />
         </button>
 
         <ShareSheet editorialId={item.id} editorialTitle={item.title}>
@@ -215,9 +274,13 @@ export function EditorialFeedCard({
               onPointerDown={stopCardAction}
               onClick={(event) => {
                 stopCardAction(event);
+                triggerSharePulse();
                 open();
               }}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
+              className={cn(
+                "interactive-action flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34",
+                sharePulse ? "share-pulse bg-black/34" : ""
+              )}
               aria-label="Partager cette carte"
             >
               <ShareIcon className="h-[17px] w-[17px] text-white" strokeWidth={2.25} />
@@ -232,7 +295,7 @@ export function EditorialFeedCard({
             setFlipped((current) => !current);
           }}
           onPointerDown={stopCardAction}
-          className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
+          className="interactive-action flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
           aria-label="Voir le dos de la carte"
           aria-pressed={flipped}
         >
@@ -260,7 +323,7 @@ export function EditorialFeedCard({
               type="button"
               onClick={toggleMediaPlayback}
               onPointerDown={stopCardAction}
-              className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
+              className="interactive-action flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
               aria-label={isPlayingPreview ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
             >
             <MediaStateIcon
@@ -275,7 +338,7 @@ export function EditorialFeedCard({
         <div className="absolute bottom-5 right-4 z-10">
           <Link
             href={`/editorial/${item.id}`}
-            className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
+            className="interactive-action flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
             aria-label="Lire la fiche"
           >
             <MediaStateIcon kind="read" className="h-6 w-6 text-white" strokeWidth={2.3} />
@@ -295,7 +358,12 @@ export function EditorialFeedCard({
   );
 
   const backFace = (
-    <div className="rounded-card bg-elevated text-ink shadow-card ring-1 ring-borderSoft/10">
+    <div
+      className={cn(
+        "card-flip-soft rounded-card bg-elevated text-ink shadow-card ring-1 ring-borderSoft/10",
+        highlighted ? "ring-2 ring-blue/30 shadow-[0_24px_56px_rgba(51,101,200,0.22)]" : ""
+      )}
+    >
       <div className="relative bg-plum px-5 pb-8 pt-6 text-white">
         <button
           type="button"
@@ -416,20 +484,24 @@ export function EditorialFeedCard({
 
           <button
             type="button"
-            onClick={() => onLike?.(item.id)}
-            className={`flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition ${
+            className={cn(
+              "interactive-action flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition",
               item.is_liked
                 ? "bg-blue text-white shadow-blue"
                 : "bg-surface text-ink ring-1 ring-borderSoft/10"
-            }`}
+            )}
+            onClick={() => {
+              triggerLikePulse();
+              onLike?.(item.id);
+            }}
           >
-            <Heart className={`h-4 w-4 ${item.is_liked ? "fill-current" : ""}`} />
+            <Heart className={cn("h-4 w-4", item.is_liked ? "fill-current" : "", likePulse ? "like-pop" : "")} />
             {item.is_liked ? "Aime" : "Aimer"}
           </button>
 
           <Link
             href={`/editorial/${item.id}`}
-            className="flex items-center justify-center gap-2 rounded-full bg-plum px-4 py-3 text-sm font-semibold text-white shadow-float"
+            className="interactive-action flex items-center justify-center gap-2 rounded-full bg-plum px-4 py-3 text-sm font-semibold text-white shadow-float"
           >
             <MediaStateIcon kind="read" className="h-4 w-4 text-white" strokeWidth={2.3} />
             Ouvrir la fiche
@@ -438,7 +510,7 @@ export function EditorialFeedCard({
           {canOpenMap ? (
             <Link
               href={mapHref}
-              className="flex items-center justify-center gap-2 rounded-full bg-elevated px-4 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10 transition hover:bg-mist"
+              className="interactive-action flex items-center justify-center gap-2 rounded-full bg-elevated px-4 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10 transition hover:bg-mist"
               aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPin className="h-4 w-4" />
@@ -464,5 +536,9 @@ export function EditorialFeedCard({
     </div>
   );
 
-  return <article>{flipped ? backFace : frontFace}</article>;
+  return (
+    <article className="card-enter" style={{ animationDelay: `${entryDelayMs}ms` }}>
+      {flipped ? backFace : frontFace}
+    </article>
+  );
 }

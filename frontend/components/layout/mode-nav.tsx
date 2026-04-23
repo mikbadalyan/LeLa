@@ -68,9 +68,9 @@ export function ModeNav({ activeMode }: ModeNavProps) {
                 href={href}
                 onClick={handleClick}
                 className={cn(
-                  "flex min-w-[48px] flex-col items-center rounded-t-[18px] px-2 pb-1 transition",
+                  "relative flex min-w-[48px] flex-col items-center overflow-hidden rounded-t-[18px] px-2 pb-1 transition before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top,rgba(51,101,200,0.18),transparent_70%)] before:opacity-0 before:transition before:duration-300",
                   compactMode ? "gap-1.5" : "gap-2",
-                  isActive ? "bg-blueSoft/70" : "hover:bg-white/45"
+                  isActive ? "bg-blueSoft/70 before:opacity-100" : "hover:bg-white/45"
                 )}
                 aria-label={translatedLabel || label}
               >
@@ -78,7 +78,7 @@ export function ModeNav({ activeMode }: ModeNavProps) {
                   mode={key}
                   className={cn(
                     compactMode ? "h-[22px] w-[22px] transition" : "h-6 w-6 transition",
-                    isActive ? "text-blue" : "text-[#525764]"
+                    isActive ? "scale-[1.06] text-blue" : "text-[#525764]"
                   )}
                 />
                 <span

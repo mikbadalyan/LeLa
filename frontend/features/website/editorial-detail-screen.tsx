@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import { useToggleLike } from "@/features/feed/hooks";
 import { useI18n } from "@/features/shell/i18n";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
 import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
+import { writeRecentViewedEditorialId } from "@/lib/utils/discovery";
 import { formatPrice } from "@/lib/utils/format";
 
 export function WebsiteEditorialDetailScreen({
@@ -26,6 +28,10 @@ export function WebsiteEditorialDetailScreen({
   const viewerId = currentUserId ?? "guest";
   const queryClient = useQueryClient();
   const { t, formatDateTime } = useI18n();
+  const [likePulse, setLikePulse] = useState(false);
+  const [sharePulse, setSharePulse] = useState(false);
+  const likePulseTimer = useRef<number | null>(null);
+  const sharePulseTimer = useRef<number | null>(null);
 
   const detailQuery = useQuery({
     queryKey: ["website-editorial", editorialId, viewerId],
@@ -49,6 +55,40 @@ export function WebsiteEditorialDetailScreen({
 
   const cardLikeMutation = useToggleLike(token);
   const item = detailQuery.data;
+
+  useEffect(
+    () => () => {
+      if (likePulseTimer.current) {
+        window.clearTimeout(likePulseTimer.current);
+      }
+      if (sharePulseTimer.current) {
+        window.clearTimeout(sharePulseTimer.current);
+      }
+    },
+    []
+  );
+
+  const triggerLikePulse = () => {
+    setLikePulse(true);
+    if (likePulseTimer.current) {
+      window.clearTimeout(likePulseTimer.current);
+    }
+    likePulseTimer.current = window.setTimeout(() => setLikePulse(false), 460);
+  };
+
+  const triggerSharePulse = () => {
+    setSharePulse(true);
+    if (sharePulseTimer.current) {
+      window.clearTimeout(sharePulseTimer.current);
+    }
+    sharePulseTimer.current = window.setTimeout(() => setSharePulse(false), 560);
+  };
+
+  useEffect(() => {
+    if (item?.id) {
+      writeRecentViewedEditorialId(item.id);
+    }
+  }, [item?.id]);
 
   if (detailQuery.isPending) {
     return (
@@ -120,9 +160,9 @@ export function WebsiteEditorialDetailScreen({
   const showAddressLine = shouldRenderEditorialAddress(item.metadata.address, item.subtitle);
 
   return (
-    <div className="mx-auto w-full max-w-[1380px] space-y-10 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
+    <div className="screen-detail mx-auto w-full max-w-[1380px] space-y-10 px-5 py-8 lg:px-8 lg:py-12">
+      <section className="detail-reveal grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
+        <div className="interactive-surface overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
           <div className="relative aspect-[1.08]">
             {item.media_kind === "audio" ? (
               <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
@@ -132,7 +172,7 @@ export function WebsiteEditorialDetailScreen({
                 alt={item.title}
                 fill
                 sizes="(max-width: 1280px) 100vw, 780px"
-                className="object-cover"
+                className="interactive-media object-cover"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-black/10 to-transparent" />
@@ -145,7 +185,7 @@ export function WebsiteEditorialDetailScreen({
           </div>
         </div>
 
-        <div className="space-y-6 rounded-card bg-elevated px-7 py-7 shadow-card ring-1 ring-borderSoft/10">
+        <div className="detail-reveal detail-reveal-delay-1 space-y-6 rounded-card bg-elevated px-7 py-7 shadow-card ring-1 ring-borderSoft/10">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue">
@@ -155,10 +195,15 @@ export function WebsiteEditorialDetailScreen({
             </div>
             <button
               type="button"
-              onClick={() => likeMutation.mutate(item.id)}
-              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blueSoft text-blue ring-1 ring-blue/15 transition hover:bg-blue hover:text-white"
+              onClick={() => {
+                triggerLikePulse();
+                likeMutation.mutate(item.id);
+              }}
+              className={`interactive-action inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blueSoft text-blue ring-1 ring-blue/15 transition hover:bg-blue hover:text-white ${
+                likePulse ? "like-pop" : ""
+              }`}
             >
-              <Heart className={`h-5 w-5 ${item.is_liked ? "fill-current" : ""}`} />
+              <Heart className={`h-5 w-5 ${item.is_liked ? "fill-current" : ""} ${likePulse ? "like-pop" : ""}`} />
             </button>
           </div>
 
@@ -196,7 +241,7 @@ export function WebsiteEditorialDetailScreen({
           <div className="flex flex-wrap gap-3">
             <Link
               href={contributorHref}
-              className="rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink"
+              className="interactive-action rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink"
             >
               {item.contributor.display_name}
             </Link>
@@ -204,8 +249,13 @@ export function WebsiteEditorialDetailScreen({
               {({ open }) => (
                 <button
                   type="button"
-                  onClick={open}
-                  className="inline-flex items-center rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink"
+                  onClick={() => {
+                    triggerSharePulse();
+                    open();
+                  }}
+                  className={`interactive-action inline-flex items-center rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink ${
+                    sharePulse ? "share-pulse" : ""
+                  }`}
                 >
                   <ShareIcon className="mr-2 h-4 w-4" strokeWidth={2.2} />
                   Share
@@ -214,7 +264,7 @@ export function WebsiteEditorialDetailScreen({
             </ShareSheet>
             <Link
               href={mapHref}
-              className="inline-flex items-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white"
+              className="interactive-action inline-flex items-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white"
               aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPinned className="mr-2 h-4 w-4" />
@@ -222,7 +272,7 @@ export function WebsiteEditorialDetailScreen({
             </Link>
             <Link
               href={`/website/editorial/${item.id}`}
-              className="inline-flex items-center rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink"
+              className="interactive-action inline-flex items-center rounded-full bg-mist px-5 py-3 text-sm font-semibold text-ink"
             >
               <MediaStateIcon kind={item.media_kind === "audio" ? "audio" : item.media_kind === "video" ? "video" : "read"} className="mr-2 h-4 w-4" strokeWidth={2.2} />
               Lire
@@ -231,7 +281,7 @@ export function WebsiteEditorialDetailScreen({
         </div>
       </section>
 
-      <section className="space-y-5">
+      <section className="detail-reveal detail-reveal-delay-2 space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">
@@ -253,6 +303,7 @@ export function WebsiteEditorialDetailScreen({
                 key={relatedItem.id}
                 item={relatedItem}
                 onLike={(id) => cardLikeMutation.mutate(id)}
+                entryDelayMs={110}
               />
             ))
           ) : (
