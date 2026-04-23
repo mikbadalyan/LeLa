@@ -77,12 +77,12 @@ export function ConversationThreadScreen({
   const messages = messagesQuery.data ?? [];
 
   return (
-    <MobileShell activeMode="feed" activeTab="conversations" className="overflow-hidden bg-[#F6F1EB] p-0">
+    <MobileShell activeMode="feed" activeTab="conversations" className="overflow-hidden bg-background p-0">
       <div className="flex h-full min-h-0 flex-col">
-        <div className="flex items-center gap-3 border-b border-borderSoft bg-white px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-borderSoft/10 bg-elevated px-4 py-3 shadow-soft">
           <Link
             href="/conversations"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-mist text-ink"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface text-ink ring-1 ring-borderSoft/10"
             aria-label={t("conversations.direct")}
           >
             <ArrowLeft className="h-5 w-5" />
@@ -110,7 +110,7 @@ export function ConversationThreadScreen({
 
         <div className="flex-1 overflow-y-auto px-3 py-3">
           {messagesQuery.isLoading ? (
-            <div className="flex h-full items-center justify-center text-plum">
+            <div className="flex h-full items-center justify-center text-blue">
               <LoaderCircle className="h-5 w-5 animate-spin" />
             </div>
           ) : (
@@ -124,7 +124,7 @@ export function ConversationThreadScreen({
                     className={`max-w-[83%] rounded-[24px] px-4 py-3 shadow-sm ${
                       message.is_mine
                         ? "bg-plum text-white"
-                        : "bg-white text-ink ring-1 ring-borderSoft"
+                        : "bg-elevated text-ink ring-1 ring-borderSoft/10"
                     }`}
                   >
                     {message.editorial ? (
@@ -136,7 +136,7 @@ export function ConversationThreadScreen({
                       >
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-shell">
                           {message.editorial.media_kind === "audio" ? (
-                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
                           ) : (
                             <Image
                               src={
@@ -184,9 +184,9 @@ export function ConversationThreadScreen({
 
         <form
           onSubmit={handleSubmit}
-          className="border-t border-borderSoft bg-white px-3 py-3"
+          className="border-t border-borderSoft/10 bg-background/96 px-3 py-3 backdrop-blur-md"
         >
-          <div className="flex items-center gap-2 rounded-full bg-[#F7F1EA] px-3 py-2">
+          <div className="flex items-center gap-2 rounded-full bg-elevated px-3 py-2 shadow-card ring-1 ring-borderSoft/10">
             <Input
               value={draftMessage}
               onChange={(event) => setDraftMessage(event.target.value)}

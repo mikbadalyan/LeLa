@@ -10,8 +10,8 @@ export default function HomePage() {
   const { t } = useI18n();
 
   return (
-    <main className="relative min-h-dvh overflow-hidden bg-[radial-gradient(circle_at_top,#f7efe8_0%,#efe3d8_42%,#e7dbd0_100%)] text-ink">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(106,43,232,0.12),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(255,184,79,0.14),transparent_24%)]" />
+    <main className="relative min-h-dvh overflow-hidden bg-background text-ink">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(51,101,200,0.10),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(118,67,166,0.12),transparent_26%)]" />
       <div className="relative mx-auto flex min-h-dvh w-full max-w-[1280px] flex-col px-5 py-8 lg:px-8 lg:py-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -23,7 +23,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/login"
-            className="rounded-full border border-borderSoft bg-white/88 px-4 py-2 text-sm font-medium text-ink backdrop-blur-md"
+            className="rounded-full border border-borderSoft/10 bg-elevated/88 px-4 py-2 text-sm font-medium text-ink shadow-soft backdrop-blur-md"
           >
             {t("website.login")}
           </Link>
@@ -45,10 +45,10 @@ export default function HomePage() {
           <div className="grid gap-5 xl:grid-cols-2">
             <Link
               href="/website"
-              className="group overflow-hidden rounded-[36px] bg-white p-6 shadow-[0_28px_80px_rgba(30,22,18,0.1)] ring-1 ring-black/5 transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-[36px] bg-elevated p-6 shadow-card ring-1 ring-borderSoft/10 transition hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
-                <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F4ECFF] text-plum">
+                <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blueSoft text-blue">
                   <MonitorSmartphone className="h-7 w-7" />
                 </span>
                 <ArrowRight className="h-5 w-5 text-graphite/50 transition group-hover:translate-x-1" />
@@ -63,7 +63,7 @@ export default function HomePage() {
 
             <Link
               href="/feed"
-              className="group overflow-hidden rounded-[36px] bg-[linear-gradient(155deg,#231E2C_0%,#6A2BE8_100%)] p-6 text-white shadow-[0_28px_80px_rgba(30,22,18,0.16)] transition hover:-translate-y-1"
+              className="group overflow-hidden rounded-[36px] bg-[linear-gradient(155deg,#231E2C_0%,#7643A6_58%,#3365C8_100%)] p-6 text-white shadow-card transition hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/14 text-white">

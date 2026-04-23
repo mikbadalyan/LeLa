@@ -53,13 +53,13 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className="min-h-dvh text-ink"
+      className="min-h-dvh bg-background text-ink"
       style={{
         backgroundImage:
-          "linear-gradient(180deg, rgb(var(--mist-rgb)) 0%, rgb(var(--shell-rgb)) 36%, rgb(var(--paper-rgb)) 100%)",
+          "radial-gradient(circle at 50% -10%, rgba(255,255,255,0.62), rgba(255,255,255,0) 34%), linear-gradient(180deg, rgb(var(--background-rgb)) 0%, rgb(var(--background-rgb)) 100%)",
       }}
     >
-      <header className="sticky top-0 z-50 border-b border-black/5 bg-white/78 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-borderSoft/10 bg-elevated/84 shadow-soft backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-[1380px] items-center gap-6 px-5 py-4 lg:px-8">
           <Link href="/website" className="flex items-center gap-3">
             <LogoMark />
@@ -78,7 +78,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
                   "rounded-full px-4 py-2 text-sm font-medium transition",
                   (pathname === item.href ||
                     (item.href === "/website/feed" && pathname.startsWith("/website/editorial")))
-                    ? "bg-plum text-white shadow-float"
+                    ? "bg-blue text-white shadow-blue"
                     : "text-graphite hover:bg-mist"
                 )}
               >
@@ -91,7 +91,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
             <select
               value={city}
               onChange={(event) => setCity(event.target.value)}
-              className="rounded-full border border-borderSoft bg-white px-4 py-2 text-sm text-ink outline-none"
+              className="rounded-full border border-borderSoft/12 bg-elevated px-4 py-2 text-sm text-ink outline-none transition focus:border-blue focus:ring-4 focus:ring-blue/12"
             >
               {citySuggestions.map((suggestion) => (
                 <option key={suggestion} value={suggestion}>
@@ -104,13 +104,13 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
               type="date"
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
-              className="rounded-full border border-borderSoft bg-white px-4 py-2 text-sm text-ink outline-none"
+              className="rounded-full border border-borderSoft/12 bg-elevated px-4 py-2 text-sm text-ink outline-none transition focus:border-blue focus:ring-4 focus:ring-blue/12"
             />
 
             <select
               value={language}
               onChange={(event) => setLanguage(event.target.value as typeof language)}
-              className="rounded-full border border-borderSoft bg-white px-4 py-2 text-sm text-ink outline-none"
+              className="rounded-full border border-borderSoft/12 bg-elevated px-4 py-2 text-sm text-ink outline-none transition focus:border-blue focus:ring-4 focus:ring-blue/12"
             >
               {languageOptions.map((option) => (
                 <option key={option.code} value={option.code}>
@@ -127,7 +127,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={cn(
                   "hidden rounded-full px-4 py-2 text-sm font-medium transition lg:inline-flex",
-                  item.active ? "bg-plum text-white shadow-float" : "bg-white text-ink hover:bg-mist"
+                  item.active ? "bg-plum text-white shadow-float" : "bg-elevated text-ink ring-1 ring-borderSoft/8 hover:bg-mist"
                 )}
               >
                 {item.label}
@@ -135,17 +135,17 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
             ))}
             <Link
               href="/feed"
-              className="hidden h-11 w-11 items-center justify-center rounded-full border border-borderSoft bg-[#F8F0FF] text-plum transition hover:bg-[#f0e4ff] lg:inline-flex"
+              className="hidden h-11 w-11 items-center justify-center rounded-full border border-blue/20 bg-blueSoft text-blue transition hover:bg-blue hover:text-white lg:inline-flex"
               title={t("website.openApp")}
               aria-label={t("website.openAppAria")}
             >
-              <Smartphone className="h-4.5 w-4.5" />
+              <Smartphone className="h-[18px] w-[18px]" />
             </Link>
             <Link
               href={accountHref}
               className={cn(
-                "rounded-full border border-borderSoft px-4 py-2 text-sm font-medium transition",
-                accountActive ? "bg-plum text-white" : "bg-white text-ink hover:bg-mist"
+                "rounded-full border border-borderSoft/12 px-4 py-2 text-sm font-medium transition",
+                accountActive ? "bg-plum text-white shadow-float" : "bg-elevated text-ink hover:bg-mist"
               )}
             >
               {token && user ? t("website.account") : t("website.login")}
@@ -156,7 +156,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
 
       <main>{children}</main>
 
-      <footer className="border-t border-black/5 bg-white/72 backdrop-blur-md">
+      <footer className="border-t border-borderSoft/10 bg-elevated/72 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[1380px] flex-col gap-4 px-5 py-8 text-sm text-graphite/80 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <p className="max-w-2xl">{t("website.footerLine")}</p>
           <div className="flex flex-wrap items-center gap-4">

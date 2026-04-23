@@ -150,7 +150,7 @@ function ContributionSurface({
   className?: string;
 }) {
   return (
-    <div className={cn("rounded-[28px] bg-white px-4 py-4 shadow-card", className)}>
+    <div className={cn("rounded-card bg-elevated px-4 py-4 shadow-card ring-1 ring-borderSoft/10", className)}>
       {children}
     </div>
   );
@@ -193,7 +193,7 @@ function StepDots({
           className={cn(
             "h-2.5 rounded-full transition-all",
             index === activeIndex ? "w-10 bg-plum" : "w-2.5",
-            index < activeIndex ? "bg-plum/55" : index === activeIndex ? "" : "bg-borderSoft"
+            index < activeIndex ? "bg-blue/45" : index === activeIndex ? "" : "bg-borderSoft/16"
           )}
           aria-label={entry.label}
         />
@@ -222,14 +222,14 @@ function TypeCard({
       className={cn(
         "flex min-h-[178px] flex-col justify-between rounded-[24px] border px-4 py-4 text-left transition",
         active
-          ? "border-plum bg-[linear-gradient(160deg,#6A2BE8_0%,#8F61F5_100%)] text-white shadow-float"
-          : "border-borderSoft bg-[#FCFAF8] text-ink"
+          ? "border-blue bg-[linear-gradient(160deg,#7643A6_0%,#3365C8_100%)] text-white shadow-blue"
+          : "border-borderSoft/10 bg-surface text-ink"
       )}
     >
       <div
         className={cn(
           "w-fit rounded-2xl p-3",
-          active ? "bg-white/15 text-white" : "bg-plum/10 text-plum"
+          active ? "bg-white/15 text-white" : "bg-blueSoft text-blue"
         )}
       >
         <Icon className="h-5 w-5" />
@@ -266,7 +266,7 @@ function MediaPreview({
 
   if (kind === "audio" && previewUrl) {
     return (
-      <div className="overflow-hidden rounded-[28px] bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)] px-5 py-8 text-white shadow-card">
+      <div className="overflow-hidden rounded-card bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)] px-5 py-8 text-white shadow-card">
         <div className="flex aspect-[4/5] flex-col justify-between">
           <div className="rounded-full bg-white/15 p-3 w-fit">
             <Mic2 className="h-6 w-6" />
@@ -299,7 +299,7 @@ function MediaPreview({
   }
 
   return (
-    <div className="flex aspect-[4/5] items-center justify-center rounded-[28px] bg-[linear-gradient(180deg,#FBF6F1_0%,#EFE5DA_100%)] text-center ring-1 ring-borderSoft">
+    <div className="flex aspect-[4/5] items-center justify-center rounded-card bg-[linear-gradient(180deg,rgb(var(--surface-rgb))_0%,rgb(var(--mist-rgb))_100%)] text-center ring-1 ring-borderSoft/10">
       <div className="max-w-[16rem] space-y-3 px-6 text-graphite">
         {kind === "video" ? (
           <Film className="mx-auto h-10 w-10 text-plum" />
@@ -338,7 +338,7 @@ function MediaPicker({
   onRemove: () => void;
 }) {
   return (
-    <div className="rounded-[22px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+    <div className="rounded-[22px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-ink">{label}</p>
@@ -350,7 +350,7 @@ function MediaPicker({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-full bg-white p-2 text-graphite ring-1 ring-borderSoft"
+            className="rounded-full bg-elevated p-2 text-graphite ring-1 ring-borderSoft/10"
           >
             <X className="h-4 w-4" />
           </button>
@@ -363,7 +363,7 @@ function MediaPicker({
             {kind === "video" ? (
               <video src={previewUrl} className="aspect-[16/10] w-full object-cover" muted playsInline />
             ) : kind === "audio" ? (
-              <div className="flex aspect-[16/10] items-center justify-center bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)] text-white">
+              <div className="flex aspect-[16/10] items-center justify-center bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)] text-white">
                 <Mic2 className="h-8 w-8" />
               </div>
             ) : (
@@ -385,27 +385,29 @@ function ContributionPreviewCard({
   form,
   previewUrl,
   contributor,
+  fallbackTitle,
 }: {
   form: ContributionPayload;
   previewUrl?: string | null;
   contributor: { name: string; avatarUrl?: string | null };
+  fallbackTitle: string;
 }) {
   const locationText = form.address || form.city || form.linked_place_name || form.subtitle;
 
   return (
-    <div className="relative aspect-[0.82] overflow-hidden rounded-[28px] bg-editorial text-white shadow-card ring-1 ring-black/5">
+    <div className="relative aspect-[0.82] overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10">
       {form.primary_media_kind === "text" ? (
-        <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
       ) : previewUrl ? (
         form.primary_media_kind === "video" ? (
           <video src={previewUrl} className="absolute inset-0 h-full w-full object-cover" muted playsInline />
         ) : form.primary_media_kind === "audio" ? (
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
         ) : (
           <img src={previewUrl} alt={form.title} className="absolute inset-0 h-full w-full object-cover" />
         )
       ) : (
-        <div className="absolute inset-0 bg-[linear-gradient(160deg,#6A2BE8_0%,#1D2230_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(160deg,#7643A6_0%,#1D2230_72%,#3365C8_100%)]" />
       )}
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" />
@@ -433,14 +435,14 @@ function ContributionPreviewCard({
         {["heart", "share", "rotate"].map((key) => (
           <span
             key={key}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 shadow-sm ring-1 ring-white/20 backdrop-blur-md"
           />
         ))}
       </div>
 
       <div className="absolute inset-x-4 bottom-4 z-10">
         <h2 className="max-w-[14ch] text-[1.72rem] font-semibold leading-[0.96] tracking-[-0.035em]">
-          {form.title || t("contribute.fallback.title")}
+          {form.title || fallbackTitle}
         </h2>
         {locationText ? (
           <span className="mt-3 inline-flex max-w-[92%] items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
@@ -780,7 +782,7 @@ export function ContributionForm() {
                   : t("contribute.reviewTitle")}
             </h2>
           </div>
-          <div className="rounded-full bg-[#F8F0FF] px-3 py-2 text-xs font-semibold text-plum">
+          <div className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue">
             {activeStepIndex + 1}/{steps.length}
           </div>
         </div>
@@ -873,7 +875,7 @@ export function ContributionForm() {
                 fallbackLabel={t("contribute.previewPlaceholder")}
               />
 
-              <ContributionSurface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+              <ContributionSurface className="space-y-4 bg-surface shadow-none">
                 <FieldBlock
                   label={t("contribute.field.title")}
                   hint={t("contribute.field.title_hint")}
@@ -910,7 +912,7 @@ export function ContributionForm() {
               </ContributionSurface>
             </div>
 
-            <ContributionSurface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+            <ContributionSurface className="space-y-4 bg-surface shadow-none">
               <div>
                 <p className="text-base font-semibold text-ink">{t("contribute.mediaSection")}</p>
                 <p className="mt-1 text-sm text-graphite/75">{t("contribute.mediaSectionHint")}</p>
@@ -976,7 +978,7 @@ export function ContributionForm() {
                           "rounded-full px-4 py-3 text-sm font-semibold transition",
                           primaryKind === kind
                             ? "bg-plum text-white"
-                            : "bg-white text-ink ring-1 ring-borderSoft"
+                            : "bg-elevated text-ink ring-1 ring-borderSoft/10"
                         )}
                       >
                         {t(`contribute.media.${kind}` as never)}
@@ -1036,7 +1038,7 @@ export function ContributionForm() {
               )}
             </ContributionSurface>
 
-            <ContributionSurface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
+            <ContributionSurface className="space-y-4 bg-surface shadow-none">
               <div>
                 <p className="text-base font-semibold text-ink">{t("contribute.contextSection")}</p>
                 <p className="mt-1 text-sm text-graphite/75">{t("contribute.contextSectionHint")}</p>
@@ -1130,10 +1132,11 @@ export function ContributionForm() {
                 name: user?.display_name ?? user?.username ?? t("contribute.fallback.you"),
                 avatarUrl: user?.avatar_url ?? null,
               }}
+              fallbackTitle={t("contribute.fallback.title")}
             />
 
-            <ContributionSurface className="space-y-4 bg-[#FCFAF8] shadow-none ring-1 ring-borderSoft">
-              <div className="rounded-[22px] bg-white px-4 py-4 ring-1 ring-borderSoft">
+            <ContributionSurface className="space-y-4 bg-surface shadow-none">
+              <div className="rounded-[22px] bg-elevated px-4 py-4 ring-1 ring-borderSoft/10">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
                   {t("contribute.reviewCaption")}
                 </p>
@@ -1143,7 +1146,7 @@ export function ContributionForm() {
               </div>
 
               {form.text_content?.trim() ? (
-                <div className="rounded-[22px] bg-white px-4 py-4 ring-1 ring-borderSoft">
+                <div className="rounded-[22px] bg-elevated px-4 py-4 ring-1 ring-borderSoft/10">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
                     {t("contribute.field.textContent")}
                   </p>
@@ -1155,7 +1158,7 @@ export function ContributionForm() {
                 {reviewRows.map((row) => (
                   <div
                     key={row.label}
-                    className="flex items-start justify-between gap-4 rounded-[20px] bg-white px-4 py-3 ring-1 ring-borderSoft"
+                    className="flex items-start justify-between gap-4 rounded-[20px] bg-elevated px-4 py-3 ring-1 ring-borderSoft/10"
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/65">
                       {row.label}
@@ -1165,7 +1168,7 @@ export function ContributionForm() {
                 ))}
               </div>
 
-              <div className="rounded-[22px] bg-[#F8F0FF] px-4 py-4 text-sm text-graphite">
+              <div className="rounded-[22px] bg-blueSoft px-4 py-4 text-sm text-graphite">
                 <p className="font-semibold text-plum">{t("contribute.reviewModerationTitle")}</p>
                 <p className="mt-2 leading-6">{t("contribute.reviewModerationHint")}</p>
               </div>
@@ -1173,8 +1176,8 @@ export function ContributionForm() {
           </div>
         ) : null}
 
-        <div className="sticky bottom-0 z-10 bg-[linear-gradient(180deg,rgba(246,241,235,0)_0%,rgba(246,241,235,0.92)_24%,rgba(246,241,235,1)_100%)] pt-6">
-          <div className="rounded-[26px] bg-white/96 px-4 py-4 shadow-card backdrop-blur-md">
+        <div className="sticky bottom-0 z-20 bg-[linear-gradient(180deg,rgba(233,233,233,0)_0%,rgba(233,233,233,0.92)_26%,rgba(233,233,233,1)_100%)] pt-6">
+          <div className="rounded-[26px] bg-elevated/96 px-4 py-4 shadow-card ring-1 ring-borderSoft/10 backdrop-blur-md">
             <div className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-2 text-xs text-graphite/70">
                 {step !== "type" ? (

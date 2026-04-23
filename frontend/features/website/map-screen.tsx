@@ -45,8 +45,8 @@ export function WebsiteMapScreen({
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="rounded-[36px] bg-white px-6 py-6 shadow-card">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">
+      <section className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue">
           {t("website.map")}
         </p>
         <h1 className="mt-2 text-[2.2rem] font-semibold tracking-[-0.05em] text-ink">{city}</h1>
@@ -57,11 +57,11 @@ export function WebsiteMapScreen({
 
       {markersQuery.isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <LoaderCircle className="h-8 w-8 animate-spin text-plum" />
+          <LoaderCircle className="h-8 w-8 animate-spin text-blue" />
         </div>
       ) : activeMarker ? (
         <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="overflow-hidden rounded-[36px] bg-white shadow-card ring-1 ring-black/5">
+          <div className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
             <iframe
               title="Carte OpenStreetMap"
               src={buildMapSrc(activeMarker.latitude, activeMarker.longitude)}
@@ -69,9 +69,9 @@ export function WebsiteMapScreen({
               loading="lazy"
             />
           </div>
-          <div className="rounded-[36px] bg-white px-5 py-5 shadow-card ring-1 ring-black/5">
-            <div className="space-y-2 border-b border-black/5 pb-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">
+          <div className="rounded-card bg-elevated px-5 py-5 shadow-card ring-1 ring-borderSoft/10">
+            <div className="space-y-2 border-b border-borderSoft/10 pb-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue">
                 Point actif
               </p>
               <h2 className="text-[1.9rem] font-semibold tracking-[-0.04em] text-ink">
@@ -89,22 +89,22 @@ export function WebsiteMapScreen({
                   href={`/website/map?editorial=${marker.editorial_id}`}
                   className={`flex items-center justify-between rounded-[24px] px-4 py-4 ring-1 transition ${
                     marker.editorial_id === activeMarker.editorial_id
-                      ? "bg-[#F8F0FF] ring-plum/20"
-                      : "bg-[#FAF5EF] ring-black/5 hover:bg-mist"
+                      ? "bg-blueSoft ring-blue/20"
+                      : "bg-surface ring-borderSoft/10 hover:bg-mist"
                   }`}
                 >
                   <div>
                     <p className="text-sm font-semibold text-ink">{marker.title}</p>
                     <p className="text-xs text-graphite/65">{marker.city}</p>
                   </div>
-                  <MapPinned className="h-4 w-4 text-plum" />
+                  <MapPinned className="h-4 w-4 text-blue" />
                 </Link>
               ))}
             </div>
           </div>
         </section>
       ) : (
-        <div className="rounded-[36px] bg-white px-6 py-8 text-sm text-graphite/70 shadow-card">
+        <div className="rounded-card bg-elevated px-6 py-8 text-sm text-graphite/70 shadow-card ring-1 ring-borderSoft/10">
           Aucune capsule geo-localisee ne correspond a ce contexte pour le moment.
         </div>
       )}

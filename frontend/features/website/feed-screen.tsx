@@ -36,7 +36,7 @@ export function WebsiteFeedScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="rounded-[36px] bg-white px-6 py-6 shadow-card">
+      <section className="rounded-[36px] bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">
@@ -54,8 +54,8 @@ export function WebsiteFeedScreen() {
                 onClick={() => setFilter(entry.value)}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                   filter === entry.value
-                    ? "bg-plum text-white shadow-float"
-                    : "bg-mist text-ink"
+                    ? "bg-blue text-white shadow-blue"
+                    : "bg-surface text-ink ring-1 ring-borderSoft/8 hover:bg-mist"
                 }`}
               >
                 {entry.label}
@@ -86,7 +86,7 @@ export function WebsiteFeedScreen() {
           <button
             type="button"
             onClick={() => feedQuery.fetchNextPage()}
-            className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink shadow-card ring-1 ring-black/5"
+            className="rounded-full bg-elevated px-6 py-3 text-sm font-semibold text-ink shadow-card ring-1 ring-borderSoft/10"
           >
             {feedQuery.isFetchingNextPage ? "Chargement..." : t("website.viewAll")}
           </button>

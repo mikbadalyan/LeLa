@@ -104,12 +104,12 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="space-y-4 px-3 py-4">
       {cloudFilterIds?.length ? (
-        <div className="flex items-center justify-between rounded-full bg-white px-4 py-3 text-sm text-ink shadow-sm ring-1 ring-borderSoft">
+        <div className="flex items-center justify-between rounded-full bg-elevated px-4 py-3 text-sm text-ink shadow-soft ring-1 ring-blue/15">
           <span>Nuage de cartes liees actif</span>
           <button
             type="button"
             onClick={() => setCloudFilterIds(null)}
-            className="inline-flex items-center gap-2 rounded-full bg-mist px-3 py-2 text-xs font-semibold text-graphite"
+            className="inline-flex items-center gap-2 rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue"
           >
             <X className="h-4 w-4" />
             Tout afficher
@@ -136,7 +136,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
           />
         ))
       ) : feedQuery.isLoading ? null : (
-        <div className="rounded-[28px] bg-white px-4 py-6 text-sm leading-6 text-graphite shadow-sm ring-1 ring-borderSoft">
+        <div className="rounded-[28px] bg-elevated px-4 py-6 text-sm leading-6 text-graphite shadow-soft ring-1 ring-borderSoft/10">
           {cloudFilterIds?.length
             ? "Aucune autre carte liee n'est encore chargee dans le fil."
             : "Aucune carte ne correspond a cette combinaison ville/date pour le moment."}
@@ -146,14 +146,14 @@ export function FeedScreen({ focus }: FeedScreenProps) {
       {/* Initial loading spinner */}
       {feedQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <LoaderCircle className="h-7 w-7 animate-spin text-plum" />
+          <LoaderCircle className="h-7 w-7 animate-spin text-blue" />
         </div>
       ) : null}
 
       {/* Infinite scroll sentinel + pagination state */}
       <div ref={sentinelRef} className="flex items-center justify-center py-5">
         {feedQuery.isFetchingNextPage ? (
-          <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+          <LoaderCircle className="h-6 w-6 animate-spin text-blue" />
         ) : feedQuery.hasNextPage ? (
           <span className="text-sm text-graphite/70">
             Chargement des cartes suivantes...

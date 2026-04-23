@@ -29,22 +29,6 @@ import type {
   ChatRouteSuggestion,
 } from "@/lib/api/types";
 
-const STARTER_QUESTIONS = [
-  "Quels musees faut-il absolument visiter a Strasbourg ?",
-  "Quels sont les magasins ouverts le dimanche apres 14h00 ?",
-  "Quels restaurants typiques faut-il absolument tester a Strasbourg ?",
-  "Quels evenements puis-je voir aujourd'hui sur LE_LA ?",
-];
-
-function formatConversationDate(value: string) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
 function RouteChips({ routes }: { routes: ChatRouteSuggestion[] }) {
   if (!routes.length) {
     return null;
@@ -56,7 +40,7 @@ function RouteChips({ routes }: { routes: ChatRouteSuggestion[] }) {
         <Link
           key={`${route.href}-${route.label}`}
           href={route.href}
-          className="rounded-full bg-[#F8F0FF] px-3 py-2 text-xs font-semibold text-plum ring-1 ring-plum/20"
+          className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/15"
         >
           {route.label}
         </Link>
@@ -76,11 +60,11 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
         <Link
           key={item.id}
           href={item.href}
-          className="flex items-center gap-3 rounded-[22px] bg-white/90 p-3 ring-1 ring-[#E7D8C8]"
+          className="flex items-center gap-3 rounded-[22px] bg-elevated/92 p-3 ring-1 ring-borderSoft/10"
         >
           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl">
             {item.media_kind === "audio" ? (
-              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
             ) : (
               <Image
                 src={item.media_kind === "video" ? item.poster_url || "/assets/icon-play.svg" : item.media_url}
@@ -92,7 +76,7 @@ function EditorialSuggestions({ items }: { items: ChatEditorialSuggestion[] }) {
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#B06A2C]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">
               {item.type}
             </p>
             <p className="truncate text-base font-semibold text-ink">{item.title}</p>
@@ -114,6 +98,10 @@ function HistoryPanel({
   onSelect,
   title,
   emptyLabel,
+  closeLabel,
+  emptyConversationLabel,
+  messagesLabel,
+  locale,
 }: {
   open: boolean;
   conversations: ChatConversation[];
@@ -122,14 +110,18 @@ function HistoryPanel({
   onSelect: (conversationId: string) => void;
   title: string;
   emptyLabel: string;
+  closeLabel: string;
+  emptyConversationLabel: string;
+  messagesLabel: string;
+  locale: string;
 }) {
   if (!open) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-start justify-center bg-black/35 px-4 pb-24 pt-24 backdrop-blur-[2px]">
-      <div className="w-full max-w-[360px] overflow-hidden rounded-[28px] bg-white px-5 py-5 shadow-card">
+    <div className="fixed inset-0 z-[70] flex items-start justify-center bg-black/35 px-4 pb-24 pt-24 backdrop-blur-[2px]">
+      <div className="w-full max-w-[360px] overflow-hidden rounded-card bg-elevated px-5 py-5 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-lg font-semibold text-ink">{title}</p>
@@ -138,7 +130,7 @@ function HistoryPanel({
             type="button"
             onClick={onClose}
             className="rounded-full p-2 text-graphite"
-            aria-label="Fermer l'historique"
+            aria-label={closeLabel}
           >
             <X className="h-5 w-5" />
           </button>
@@ -157,8 +149,8 @@ function HistoryPanel({
                   onClick={() => onSelect(conversation.id)}
                   className={`block w-full rounded-[24px] px-4 py-4 text-left ring-1 transition ${
                     isActive
-                      ? "bg-[#F8F0FF] ring-plum/25"
-                      : "bg-[#FFF9F1] ring-[#E7D8C8]"
+                      ? "bg-blueSoft ring-blue/20"
+                      : "bg-surface ring-borderSoft/10"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -166,20 +158,25 @@ function HistoryPanel({
                       {conversation.title}
                     </p>
                     <span className="shrink-0 text-xs text-graphite/65">
-                      {formatConversationDate(conversation.updatedAt)}
+                      {new Intl.DateTimeFormat(locale, {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(new Date(conversation.updatedAt))}
                     </span>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-graphite/80">
-                    {lastMessage?.content ?? "Discussion vide"}
+                    {lastMessage?.content ?? emptyConversationLabel}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-[#A9652B]">
-                    {conversation.messages.length} messages
+                  <p className="mt-2 text-xs font-medium text-blue">
+                    {conversation.messages.length} {messagesLabel}
                   </p>
                 </button>
               );
             })
           ) : (
-            <div className="rounded-[24px] bg-[#FFF9F1] px-4 py-5 text-sm text-graphite/80 ring-1 ring-[#E7D8C8]">
+            <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite/80 ring-1 ring-borderSoft/10">
               {emptyLabel}
             </div>
           )}
@@ -194,24 +191,26 @@ function MessageRating({
   message,
   onRate,
   isSaving,
+  label,
 }: {
   conversationId: string;
   message: ChatMessage;
   onRate: (rating: number) => void;
   isSaving: boolean;
+  label: string;
 }) {
   if (message.role !== "assistant") {
     return null;
   }
 
   return (
-    <div className="mt-4 rounded-[20px] bg-[#F9EFE3] px-3 py-3">
+    <div className="mt-4 rounded-[20px] bg-surface px-3 py-3 ring-1 ring-borderSoft/10">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-medium text-[#8C633A]">
-          Notez cette reponse
+        <p className="text-xs font-medium text-graphite">
+          {label}
         </p>
         {message.rating ? (
-          <span className="text-xs text-[#8C633A]">{message.rating}/5</span>
+          <span className="text-xs text-graphite">{message.rating}/5</span>
         ) : null}
       </div>
       <div className="mt-2 flex items-center gap-1">
@@ -221,14 +220,14 @@ function MessageRating({
             type="button"
             onClick={() => onRate(star)}
             disabled={isSaving}
-            className="rounded-full p-1 text-[#C4864B] transition hover:scale-105 disabled:opacity-60"
+            className="rounded-full p-1 text-warning transition hover:scale-105 disabled:opacity-60"
             aria-label={`Noter ${star} etoile${star > 1 ? "s" : ""}`}
           >
             <Star
               className={`h-5 w-5 ${
                 star <= (message.rating ?? 0)
-                  ? "fill-current text-[#F59A3D]"
-                  : "text-[#D3B08A]"
+                  ? "fill-current text-warning"
+                  : "text-graphite/35"
               }`}
             />
           </button>
@@ -239,7 +238,7 @@ function MessageRating({
 }
 
 export function ChatScreen() {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const token = useAuthStore((state) => state.token);
@@ -258,6 +257,16 @@ export function ChatScreen() {
   const currentPath = searchParams?.toString()
     ? `${pathname}?${searchParams.toString()}`
     : pathname;
+
+  const starterQuestions = useMemo(
+    () => [
+      t("chat.starter.museums"),
+      t("chat.starter.sundayShops"),
+      t("chat.starter.restaurants"),
+      t("chat.starter.eventsToday"),
+    ],
+    [t]
+  );
 
   const sortedConversations = useMemo(
     () =>
@@ -309,12 +318,9 @@ export function ChatScreen() {
     },
     onError: (error: Error) => {
       pushAssistantMessage({
-        message:
-          error.message ||
-          "LE_LA Chat est indisponible pour le moment. Verifiez la configuration du backend puis reessayez.",
+        message: error.message || t("chat.unavailable"),
         assistantMode: "fallback",
-        availabilityMessage:
-          "Mode secours actif: l'assistant IA ne repond pas, seules les suggestions editoriales locales sont disponibles.",
+        availabilityMessage: t("chat.fallbackBanner"),
       });
     },
   });
@@ -387,13 +393,17 @@ export function ChatScreen() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#F4E0C9]">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <HistoryPanel
         open={historyOpen}
         conversations={sortedConversations}
         activeConversationId={activeConversationId}
         title={t("chat.history")}
         emptyLabel={t("chat.emptyHistory")}
+        closeLabel={t("chat.closeHistory")}
+        emptyConversationLabel={t("chat.emptyConversation")}
+        messagesLabel={t("chat.messages")}
+        locale={locale}
         onClose={() => setHistoryOpen(false)}
         onSelect={(conversationId) => {
           setActiveConversation(conversationId);
@@ -401,15 +411,15 @@ export function ChatScreen() {
         }}
       />
 
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-[#E6D4C0] bg-[#F4E0C9]/96 px-4 py-3 backdrop-blur-md">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft/10 bg-elevated/92 px-4 py-3 shadow-soft backdrop-blur-md">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A9652B]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue">
             {t("chat.title")}
           </p>
           {activeConversation ? (
-            <p className="mt-1 text-sm font-medium text-[#7C5332]">{activeConversation.title}</p>
+            <p className="mt-1 text-sm font-medium text-graphite">{activeConversation.title}</p>
           ) : (
-            <p className="mt-1 text-sm font-medium text-[#7C5332]">{t("chat.newDiscussion")}</p>
+            <p className="mt-1 text-sm font-medium text-graphite">{t("chat.newDiscussion")}</p>
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -434,16 +444,16 @@ export function ChatScreen() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="space-y-4 pb-20">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+        <div className="space-y-4 pb-4">
         {!messages.length ? (
           <div className="space-y-3">
-              {STARTER_QUESTIONS.map((question) => (
+              {starterQuestions.map((question) => (
                 <button
                   key={question}
                   type="button"
                   onClick={() => submitMessage(question)}
-                  className="block w-full rounded-[22px] bg-[#FFF9F1] px-4 py-3 text-left text-sm font-medium text-[#A9652B] ring-1 ring-[#E7D8C8]"
+                  className="block w-full rounded-[22px] bg-elevated px-4 py-3 text-left text-sm font-medium text-blue shadow-soft ring-1 ring-borderSoft/10"
                 >
                   {question}
                 </button>
@@ -457,28 +467,29 @@ export function ChatScreen() {
                 className={`rounded-[28px] px-4 py-4 shadow-sm ring-1 ${
                   message.role === "user"
                     ? "ml-8 border-transparent bg-plum text-white"
-                    : "mr-3 border-[#E7D8C8] bg-[#FFF9F1] text-ink"
+                    : "mr-3 border-borderSoft/10 bg-elevated text-ink"
                 }`}
               >
                 <p className="whitespace-pre-wrap text-[15px] leading-7">{message.content}</p>
                 {message.role === "assistant" ? (
                   <>
-                    {message.assistantMode === "fallback" ? (
-                      <div className="mb-3 rounded-[18px] bg-[#FBE7D3] px-3 py-3 text-xs font-medium leading-5 text-[#8C633A]">
-                        {message.availabilityMessage ??
-                          "Mode secours actif: LE_LA Chat vous repond avec son index editorial local."}
-                      </div>
-                    ) : null}
+	                    {message.assistantMode === "fallback" ? (
+	                      <div className="mb-3 rounded-[18px] bg-blueSoft px-3 py-3 text-xs font-medium leading-5 text-blue">
+	                        {message.availabilityMessage ??
+	                          t("chat.fallbackBanner")}
+	                      </div>
+	                    ) : null}
                     <RouteChips routes={message.suggestedRoutes} />
                     <EditorialSuggestions items={message.suggestedEditorials} />
                     {activeConversationId ? (
                       <MessageRating
                         conversationId={activeConversationId}
                         message={message}
-                        onRate={(rating) =>
-                          handleRateMessage(activeConversationId, message, rating)
-                        }
-                        isSaving={
+	                        onRate={(rating) =>
+	                          handleRateMessage(activeConversationId, message, rating)
+	                        }
+	                        label={t("chat.rateResponse")}
+	                        isSaving={
                           feedbackMutation.isPending &&
                           feedbackMutation.variables?.messageId === message.id
                         }
@@ -491,7 +502,7 @@ export function ChatScreen() {
                             key={question}
                             type="button"
                             onClick={() => submitMessage(question)}
-                            className="rounded-full bg-[#FBE7D3] px-3 py-2 text-xs font-semibold text-[#A9652B]"
+                            className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue"
                           >
                             {question}
                           </button>
@@ -504,7 +515,7 @@ export function ChatScreen() {
             ))}
 
             {respondMutation.isPending ? (
-              <div className="mr-3 rounded-[28px] border border-[#E7D8C8] bg-[#FFF9F1] px-4 py-4 text-ink shadow-sm">
+              <div className="mr-3 rounded-[28px] border border-borderSoft/10 bg-elevated px-4 py-4 text-ink shadow-soft">
                 <p className="flex items-center gap-2 text-[15px]">
                   <LoaderCircle className="h-4 w-4 animate-spin text-plum" />
                   {t("chat.thinking")}
@@ -519,23 +530,23 @@ export function ChatScreen() {
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 border-t border-[#E6D4C0] bg-[#F4E0C9]/95 px-4 py-4 backdrop-blur-md"
+        className="sticky bottom-0 z-20 shrink-0 border-t border-borderSoft/10 bg-background/96 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.35rem)] backdrop-blur-md"
       >
-        <div className="rounded-[28px] bg-white px-3 py-3 shadow-sm">
-          <div className="rounded-[24px] border border-borderSoft bg-[#FCFAF8] p-4">
+        <div className="rounded-[28px] bg-elevated px-3 py-3 shadow-card ring-1 ring-borderSoft/10">
+          <div className="rounded-[24px] border border-borderSoft/10 bg-surface p-4">
             <textarea
               id="lela-chat-input"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleComposerKeyDown}
               placeholder={t("chat.placeholder")}
-              className="min-h-16 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-[#BFAF9E]"
+              className="min-h-16 w-full resize-none bg-transparent text-base text-ink outline-none placeholder:text-graphite/45"
             />
             <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3 text-xs text-[#9B7A5C]">
+              <div className="flex min-w-0 items-center gap-3 text-xs text-graphite/70">
                 <Image
                   src="/assets/icon-compose.svg"
-                  alt="Compose"
+                  alt={t("chat.newDiscussion")}
                   width={27}
                   height={27}
                   className="h-5 w-auto"
@@ -555,7 +566,7 @@ export function ChatScreen() {
                 ) : (
                   <Image
                     src="/assets/icon-chat-send.svg"
-                    alt="Envoyer"
+                    alt={t("conversations.send")}
                     width={26}
                     height={22}
                     className="h-5 w-auto"

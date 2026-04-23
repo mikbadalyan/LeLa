@@ -66,11 +66,11 @@ export function WebsiteConversationThreadScreen({ participantId }: { participant
 
   return (
     <div className="mx-auto w-full max-w-[1180px] px-5 py-8 lg:px-8 lg:py-12">
-      <section className="overflow-hidden rounded-[36px] bg-white shadow-card ring-1 ring-black/5">
-        <div className="flex items-center gap-3 border-b border-borderSoft px-5 py-4">
+      <section className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
+        <div className="flex items-center gap-3 border-b border-borderSoft/10 px-5 py-4">
           <Link
             href="/website/conversations"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-mist text-ink"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface text-ink ring-1 ring-borderSoft/10"
             aria-label={t("conversations.direct")}
           >
             <ArrowLeft className="h-5 w-5" />
@@ -100,9 +100,9 @@ export function WebsiteConversationThreadScreen({ participantId }: { participant
           )}
         </div>
 
-        <div className="h-[65vh] min-h-[520px] overflow-y-auto bg-[#FCFAF8] px-5 py-5">
+        <div className="h-[65vh] min-h-[520px] overflow-y-auto bg-surface px-5 py-5">
           {messagesQuery.isLoading ? (
-            <div className="flex h-full items-center justify-center text-plum">
+            <div className="flex h-full items-center justify-center text-blue">
               <LoaderCircle className="h-6 w-6 animate-spin" />
             </div>
           ) : (
@@ -111,7 +111,7 @@ export function WebsiteConversationThreadScreen({ participantId }: { participant
                 <div key={message.id} className={`flex ${message.is_mine ? "justify-end" : "justify-start"}`}>
                   <div
                     className={`max-w-[72%] rounded-[28px] px-4 py-4 shadow-sm ${
-                      message.is_mine ? "bg-plum text-white" : "bg-white text-ink ring-1 ring-borderSoft"
+                      message.is_mine ? "bg-plum text-white" : "bg-elevated text-ink ring-1 ring-borderSoft/10"
                     }`}
                   >
                     {message.editorial ? (
@@ -123,7 +123,7 @@ export function WebsiteConversationThreadScreen({ participantId }: { participant
                       >
                         <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-shell">
                           {message.editorial.media_kind === "audio" ? (
-                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
                           ) : (
                             <Image
                               src={
@@ -161,8 +161,8 @@ export function WebsiteConversationThreadScreen({ participantId }: { participant
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="border-t border-borderSoft bg-white px-5 py-4">
-          <div className="flex items-center gap-2 rounded-full bg-[#F7F1EA] px-3 py-2">
+        <form onSubmit={handleSubmit} className="border-t border-borderSoft/10 bg-elevated px-5 py-4">
+          <div className="flex items-center gap-2 rounded-full bg-surface px-3 py-2 ring-1 ring-borderSoft/10">
             <Input
               value={draftMessage}
               onChange={(event) => setDraftMessage(event.target.value)}

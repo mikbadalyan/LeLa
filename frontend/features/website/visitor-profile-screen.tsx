@@ -31,7 +31,7 @@ export function WebsiteVisitorProfileScreen({ profileId }: { profileId: string }
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
       <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[40px] bg-white px-6 py-6 shadow-card ring-1 ring-black/5">
+        <div className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
           <div className="flex items-center gap-4">
             <div className="relative h-20 w-20 overflow-hidden rounded-full bg-mist">
               {profile ? (
@@ -49,13 +49,13 @@ export function WebsiteVisitorProfileScreen({ profileId }: { profileId: string }
                 {profile?.display_name ?? "Chargement..."}
               </h1>
               <p className="mt-1 text-sm text-graphite">@{profile?.username ?? "..."}</p>
-              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue">
                 {isSelf ? "Votre profil" : "Profil visiteur"}
               </p>
             </div>
           </div>
 
-          <div className="mt-6 space-y-2 rounded-[24px] bg-[#FAF5EF] px-4 py-4 text-sm leading-7 text-graphite">
+          <div className="mt-6 space-y-2 rounded-[24px] bg-surface px-4 py-4 text-sm leading-7 text-graphite ring-1 ring-borderSoft/10">
             {profile?.city ? (
               <p className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
@@ -72,8 +72,8 @@ export function WebsiteVisitorProfileScreen({ profileId }: { profileId: string }
           </div>
         </div>
 
-        <div className="rounded-[40px] bg-white px-6 py-6 shadow-card ring-1 ring-black/5">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">Galerie</p>
+        <div className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue">Galerie</p>
           <h2 className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-ink">Publications</h2>
 
           {editorials.length ? (
@@ -86,7 +86,7 @@ export function WebsiteVisitorProfileScreen({ profileId }: { profileId: string }
                 >
                   <div className="relative aspect-square">
                     {item.media_kind === "audio" ? (
-                      <div className="absolute inset-0 bg-[linear-gradient(160deg,#6A2BE8_0%,#1D2230_100%)]" />
+                      <div className="absolute inset-0 bg-[linear-gradient(160deg,#7643A6_0%,#1D2230_72%,#3365C8_100%)]" />
                     ) : (
                       <Image
                         src={item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url}
@@ -105,7 +105,7 @@ export function WebsiteVisitorProfileScreen({ profileId }: { profileId: string }
               ))}
             </div>
           ) : (
-            <div className="mt-6 rounded-[28px] bg-[#FAF5EF] px-5 py-5 text-sm text-graphite">
+            <div className="mt-6 rounded-[28px] bg-surface px-5 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Aucune publication visible pour le moment.
             </div>
           )}

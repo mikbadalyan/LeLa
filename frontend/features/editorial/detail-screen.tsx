@@ -75,7 +75,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   if (detailQuery.isPending) {
     return (
       <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
-        <div className="rounded-[28px] bg-white px-5 py-6 shadow-sm">
+        <div className="rounded-[28px] bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
           Chargement de la fiche editoriale...
         </div>
       </MobileShell>
@@ -85,7 +85,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   if (detailQuery.isError) {
     return (
       <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
-        <div className="space-y-4 rounded-[28px] bg-white px-5 py-6 shadow-sm ring-1 ring-borderSoft">
+        <div className="space-y-4 rounded-[28px] bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
           <div>
             <p className="text-lg font-semibold text-ink">Cette fiche n&apos;a pas pu se charger.</p>
             <p className="mt-2 text-sm leading-6 text-graphite">
@@ -96,7 +96,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <Button onClick={() => detailQuery.refetch()}>Reessayer</Button>
             <Link
               href="/feed"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-white px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-surface px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10"
             >
               Retour au fil
             </Link>
@@ -109,7 +109,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   if (!item) {
     return (
       <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
-        <div className="space-y-4 rounded-[28px] bg-white px-5 py-6 shadow-sm ring-1 ring-borderSoft">
+        <div className="space-y-4 rounded-[28px] bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
           <div>
             <p className="text-lg font-semibold text-ink">Cette fiche est introuvable.</p>
             <p className="mt-2 text-sm leading-6 text-graphite">
@@ -161,9 +161,9 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   };
 
   return (
-    <MobileShell activeMode={activeMode} activeTab="relations" className="bg-[#F8F5F1]">
-      <article className="bg-[#F8F5F1]">
-        <div className="relative aspect-[1.18] overflow-hidden">
+    <MobileShell activeMode={activeMode} activeTab="relations" className="bg-background">
+      <article className="bg-background">
+        <div className="relative aspect-[1.18] overflow-hidden rounded-b-[30px] shadow-soft">
           {isVideo ? (
             <video
               ref={videoRef}
@@ -187,7 +187,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                 onPause={() => setIsPlaying(false)}
                 onPlay={() => setIsPlaying(true)}
               />
-              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
               <div className="absolute inset-x-0 top-[22%] flex justify-center opacity-25">
                 <div className="flex items-end gap-2">
                   {[34, 50, 28, 42, 56, 36, 44].map((height, index) => (
@@ -214,7 +214,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <button
               type="button"
               onClick={togglePrimaryPlayback}
-              className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-plum/92 shadow-float"
+              className="absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-blue shadow-blue"
               aria-label={isPlaying ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
             >
               <MediaStateIcon
@@ -238,7 +238,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
         <div className="space-y-5 px-5 py-5">
           <div className="flex items-start gap-4">
             <div className="flex flex-1 items-start gap-3">
-              <div className="mt-1 rounded-2xl bg-plum/12 p-3 text-plum shadow-sm ring-1 ring-plum/10">
+              <div className="mt-1 rounded-2xl bg-blueSoft p-3 text-blue shadow-sm ring-1 ring-blue/10">
                 {typeIcon(item.type)}
               </div>
               <div>
@@ -254,7 +254,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <button
               type="button"
               onClick={() => likeMutation.mutate(editorialId)}
-              className="rounded-full bg-white p-2.5 text-graphite shadow-sm ring-1 ring-borderSoft"
+              className="rounded-full bg-elevated p-2.5 text-graphite shadow-soft ring-1 ring-borderSoft/10"
               aria-label="Aimer cette fiche"
             >
               <Heart
@@ -263,12 +263,12 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </button>
           </div>
 
-          <div className="space-y-4 rounded-[28px] bg-white px-5 py-5 text-base leading-8 text-[#4A505B] shadow-card">
+          <div className="space-y-4 rounded-card bg-elevated px-5 py-5 text-base leading-8 text-[#4A505B] shadow-card ring-1 ring-borderSoft/10">
             <p>{item.description}</p>
             <p>{item.narrative_text}</p>
           </div>
 
-          <div className="rounded-[28px] bg-white px-4 py-4 text-sm text-graphite shadow-card">
+          <div className="rounded-card bg-elevated px-4 py-4 text-sm text-graphite shadow-card ring-1 ring-borderSoft/10">
             <p className="font-semibold">Repere editorial</p>
             <div className="mt-2 flex flex-wrap gap-3">
               {item.metadata.date ? <span>{formatFrenchDateTime(item.metadata.date)}</span> : null}
@@ -296,7 +296,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </ShareSheet>
             <Link
               href={mapHref}
-              className="relative z-10 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+              className="relative z-10 inline-flex items-center justify-center rounded-full bg-elevated px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10 transition hover:bg-mist"
               aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPinned className="mr-2 h-4 w-4" />
@@ -304,7 +304,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             </Link>
           </div>
 
-          <div className="flex items-center justify-between rounded-[26px] border border-borderSoft bg-white px-4 py-4 text-sm text-graphite shadow-card">
+          <div className="flex items-center justify-between rounded-[26px] border border-borderSoft/10 bg-elevated px-4 py-4 text-sm text-graphite shadow-card">
             <button
               type="button"
               onClick={() =>
@@ -335,11 +335,11 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               <Link
                 key={relatedItem.id}
                 href={`/editorial/${relatedItem.id}`}
-                className="group block overflow-hidden rounded-[28px] bg-editorial text-white shadow-card ring-1 ring-black/5"
+                className="group block overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10"
               >
                 <div className="relative aspect-[1.05]">
                   {relatedItem.media_kind === "audio" ? (
-                    <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
                   ) : (
                     <Image
                       src={relatedItem.media_kind === "video" ? relatedItem.poster_url || "/assets/icon-play.svg" : relatedItem.media_url}
@@ -405,7 +405,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                 </div>
               </Link>
             )) : (
-              <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-5 text-sm leading-6 text-graphite ring-1 ring-borderSoft">
+              <div className="rounded-[24px] bg-surface px-4 py-5 text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
                 Aucune autre carte reliee ne correspond au filtre actif pour le moment.
               </div>
             )}

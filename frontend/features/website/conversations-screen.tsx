@@ -57,22 +57,22 @@ export function WebsiteConversationsScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="rounded-[36px] bg-white px-6 py-6 shadow-card">
+      <section className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="relative max-w-xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
           <Input
             value={draftSearch}
             onChange={(event) => setDraftSearch(event.target.value)}
             placeholder={t("conversations.search")}
-            className="border-0 bg-[#F7F1EA] pl-11 shadow-none ring-0"
+            className="border-0 bg-surface pl-11 shadow-none ring-0"
           />
         </div>
       </section>
 
-      <section className="rounded-[36px] bg-white shadow-card ring-1 ring-black/5">
+      <section className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
         {isSearching ? (
           searchQuery.isLoading ? (
-            <div className="flex items-center justify-center px-4 py-12 text-plum">
+            <div className="flex items-center justify-center px-4 py-12 text-blue">
               <LoaderCircle className="h-6 w-6 animate-spin" />
             </div>
           ) : searchedUsers.length ? (
@@ -88,7 +88,7 @@ export function WebsiteConversationsScreen() {
                     <p className="truncate text-sm font-semibold text-ink">{entry.display_name}</p>
                     <p className="truncate text-xs text-graphite/70">@{entry.username}</p>
                   </div>
-                  <span className="text-xs font-semibold text-plum">{t("conversations.newMessage")}</span>
+                  <span className="text-xs font-semibold text-blue">{t("conversations.newMessage")}</span>
                 </Link>
               ))}
             </div>
@@ -98,7 +98,7 @@ export function WebsiteConversationsScreen() {
             </div>
           )
         ) : conversationsQuery.isLoading ? (
-          <div className="flex items-center justify-center px-4 py-12 text-plum">
+          <div className="flex items-center justify-center px-4 py-12 text-blue">
             <LoaderCircle className="h-6 w-6 animate-spin" />
           </div>
         ) : conversationsQuery.data?.length ? (
@@ -119,7 +119,7 @@ export function WebsiteConversationsScreen() {
                       {conversation.participant.display_name}
                     </p>
                     {conversation.unread_count ? (
-                      <span className="rounded-full bg-plum px-2 py-0.5 text-[10px] font-semibold text-white">
+                      <span className="rounded-full bg-blue px-2 py-0.5 text-[10px] font-semibold text-white">
                         {conversation.unread_count}
                       </span>
                     ) : null}

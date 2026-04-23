@@ -1,7 +1,6 @@
 import type { LucideProps } from "lucide-react";
 import {
   BookOpenText,
-  Bot,
   CalendarDays,
   Cloud,
   Headphones,
@@ -22,6 +21,17 @@ import type { EditorialCard } from "@/lib/api/types";
 
 type IconProps = Omit<LucideProps, "ref">;
 
+function RobotChatAsset({ className }: { className?: string }) {
+  return (
+    <img
+      src="/assets/icon-chat-good.svg"
+      alt=""
+      aria-hidden="true"
+      className={className}
+    />
+  );
+}
+
 export function ModeIcon({
   mode,
   ...props
@@ -34,7 +44,7 @@ export function ModeIcon({
     case "event":
       return <CalendarDays {...props} />;
     case "chat":
-      return <Bot {...props} />;
+      return <RobotChatAsset className={props.className} />;
   }
 }
 

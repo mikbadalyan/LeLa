@@ -4,19 +4,27 @@
 
 :root {
   color-scheme: light;
-  --shell-rgb: 236 232 228;
+  --background-rgb: 233 233 233;
+  --shell-rgb: 233 233 233;
   --ink-rgb: 40 48 60;
   --paper-rgb: 255 255 255;
-  --mist-rgb: 246 242 238;
-  --plum-rgb: 138 63 252;
-  --plum-soft-rgb: 165 109 255;
+  --surface-rgb: 248 248 247;
+  --elevated-rgb: 255 255 255;
+  --mist-rgb: 241 241 239;
+  --plum-rgb: 118 67 166;
+  --plum-soft-rgb: 145 96 190;
+  --blue-rgb: 51 101 200;
+  --blue-soft-rgb: 226 235 255;
   --graphite-rgb: 67 73 85;
   --editorial-rgb: 75 81 93;
   --apricot-rgb: 247 161 72;
   --sand-rgb: 245 228 207;
   --border-soft-rgb: 40 48 60;
-  --bg-start: #f3ede6;
-  --bg-end: #ebe2da;
+  --success-rgb: 34 148 104;
+  --warning-rgb: 202 130 35;
+  --danger-rgb: 182 65 56;
+  --bg-start: #e9e9e9;
+  --bg-end: #e9e9e9;
 }
 
 * {
@@ -28,17 +36,25 @@ html {
 }
 
 html[data-theme="dark"] {
+  --background-rgb: 18 20 24;
   --shell-rgb: 22 25 31;
   --ink-rgb: 239 236 230;
   --paper-rgb: 28 32 38;
+  --surface-rgb: 31 35 42;
+  --elevated-rgb: 36 40 48;
   --mist-rgb: 37 41 49;
-  --plum-rgb: 191 151 255;
-  --plum-soft-rgb: 214 187 255;
+  --plum-rgb: 178 139 216;
+  --plum-soft-rgb: 204 171 235;
+  --blue-rgb: 118 160 240;
+  --blue-soft-rgb: 28 45 78;
   --graphite-rgb: 192 198 209;
   --editorial-rgb: 171 178 190;
   --apricot-rgb: 255 188 112;
   --sand-rgb: 73 64 54;
   --border-soft-rgb: 225 228 235;
+  --success-rgb: 87 199 153;
+  --warning-rgb: 244 180 84;
+  --danger-rgb: 242 118 106;
   --bg-start: #111418;
   --bg-end: #1a1f25;
 }
@@ -58,8 +74,7 @@ html[data-text-scale="large"] {
 body {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0) 32%),
-    linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
+  background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
   color: rgb(var(--ink-rgb));
   font-family: Avenir Next, Trebuchet MS, ui-rounded, sans-serif;
   transition: background-color 180ms ease, color 180ms ease;
@@ -75,6 +90,19 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(var(--blue-rgb) / 0.42);
+  outline-offset: 3px;
 }
 
 ::-webkit-scrollbar {

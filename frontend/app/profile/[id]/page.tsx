@@ -33,8 +33,8 @@ export default function VisitorProfilePage() {
   const isSelf = currentUser?.id === profileId;
 
   return (
-    <MobileShell activeMode="feed" activeTab="profile" className="space-y-4 bg-[#F6F1EB] px-4 py-4">
-      <div className="space-y-4 rounded-[28px] bg-white px-4 py-5 shadow-card">
+    <MobileShell activeMode="feed" activeTab="profile" className="space-y-4 bg-background px-4 py-4">
+      <div className="space-y-4 rounded-card bg-elevated px-4 py-5 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-center gap-4">
           <div className="relative h-16 w-16 overflow-hidden rounded-full bg-mist">
             {profile ? (
@@ -52,13 +52,13 @@ export default function VisitorProfilePage() {
               {profile?.display_name ?? "Chargement..."}
             </h1>
             <p className="mt-1 text-sm text-graphite">@{profile?.username ?? "..."}</p>
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-plum">
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue">
               {isSelf ? "Votre profil" : "Profil visiteur"}
             </p>
           </div>
         </div>
 
-        <div className="space-y-2 rounded-[22px] bg-[#FCFAF8] px-4 py-4 text-sm leading-6 text-graphite ring-1 ring-borderSoft">
+        <div className="space-y-2 rounded-[22px] bg-surface px-4 py-4 text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
           {profile?.city ? (
             <p className="flex items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0" />
@@ -75,20 +75,20 @@ export default function VisitorProfilePage() {
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-center">
-          <div className="rounded-[22px] bg-mist px-3 py-4">
+          <div className="rounded-[22px] bg-surface px-3 py-4 ring-1 ring-borderSoft/10">
             <p className="text-lg font-semibold text-ink">{editorials.length}</p>
             <p className="text-xs text-graphite/70">Publications</p>
           </div>
-          <div className="rounded-[22px] bg-[#F8F0FF] px-3 py-4">
-            <p className="text-sm font-semibold text-plum">{profile?.role ?? "contributor"}</p>
-            <p className="text-xs text-plum/70">Role</p>
+          <div className="rounded-[22px] bg-blueSoft px-3 py-4 ring-1 ring-blue/15">
+            <p className="text-sm font-semibold text-blue">{profile?.role ?? "contributor"}</p>
+            <p className="text-xs text-blue/70">Role</p>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4 rounded-[28px] bg-white px-4 py-5 shadow-card">
+      <div className="space-y-4 rounded-card bg-elevated px-4 py-5 shadow-card ring-1 ring-borderSoft/10">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-plum">Galerie</p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-blue">Galerie</p>
           <h2 className="mt-2 text-[1.25rem] font-semibold text-ink">Publications</h2>
         </div>
 
@@ -106,7 +106,7 @@ export default function VisitorProfilePage() {
               >
                 <div className="relative aspect-square">
                   {item.media_kind === "audio" ? (
-                    <div className="absolute inset-0 bg-[linear-gradient(160deg,#6A2BE8_0%,#1D2230_100%)]" />
+                    <div className="absolute inset-0 bg-[linear-gradient(160deg,#7643A6_0%,#1D2230_72%,#3365C8_100%)]" />
                   ) : (
                     <Image
                       src={

@@ -62,29 +62,29 @@ export function WebsiteRelationsScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="rounded-[40px] bg-white px-6 py-6 shadow-card ring-1 ring-black/5">
+      <section className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="relative max-w-xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
           <Input
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
             placeholder="Rechercher un profil"
-            className="border-0 bg-[#F7F1EA] pl-11 shadow-none ring-0"
+            className="border-0 bg-surface pl-11 shadow-none ring-0"
           />
         </div>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-[40px] bg-white px-6 py-6 shadow-card ring-1 ring-black/5">
+        <div className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
           <h2 className="text-[1.8rem] font-semibold tracking-[-0.04em] text-ink">Vos amis</h2>
           {friendsQuery.isLoading ? (
-            <div className="mt-6 flex items-center justify-center py-8 text-plum">
+            <div className="mt-6 flex items-center justify-center py-8 text-blue">
               <LoaderCircle className="h-6 w-6 animate-spin" />
             </div>
           ) : (
             <div className="mt-6 space-y-3">
               {(friendsQuery.data ?? []).map((friend) => (
-                <div key={friend.id} className="flex items-center gap-3 rounded-[24px] bg-[#FAF5EF] px-4 py-4">
+                <div key={friend.id} className="flex items-center gap-3 rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
                   <Link
                     href={friend.id === currentUserId ? "/website/profile" : `/website/profile/${friend.id}`}
                     className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-mist"
@@ -101,14 +101,14 @@ export function WebsiteRelationsScreen() {
                   <button
                     type="button"
                     onClick={() => removeFriendMutation.mutate(friend.id)}
-                    className="rounded-full bg-mist px-3 py-2 text-xs font-semibold text-ink"
+                    className="rounded-full bg-elevated px-3 py-2 text-xs font-semibold text-ink ring-1 ring-borderSoft/10"
                   >
                     Ami
                   </button>
                 </div>
               ))}
               {!friendsQuery.data?.length ? (
-                <div className="rounded-[24px] bg-[#FAF5EF] px-4 py-5 text-sm text-graphite">
+                <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
                   Aucun ami pour le moment.
                 </div>
               ) : null}
@@ -116,16 +116,16 @@ export function WebsiteRelationsScreen() {
           )}
         </div>
 
-        <div className="rounded-[40px] bg-white px-6 py-6 shadow-card ring-1 ring-black/5">
+        <div className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
           <h2 className="text-[1.8rem] font-semibold tracking-[-0.04em] text-ink">Comptes suggeres</h2>
           {usersQuery.isLoading ? (
-            <div className="mt-6 flex items-center justify-center py-8 text-plum">
+            <div className="mt-6 flex items-center justify-center py-8 text-blue">
               <LoaderCircle className="h-6 w-6 animate-spin" />
             </div>
           ) : (
             <div className="mt-6 space-y-3">
               {suggestedAccounts.map((entry) => (
-                <div key={entry.id} className="flex items-center gap-3 rounded-[24px] bg-[#FAF5EF] px-4 py-4">
+                <div key={entry.id} className="flex items-center gap-3 rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
                   <Link
                     href={`/website/profile/${entry.id}`}
                     className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-mist"
@@ -146,7 +146,7 @@ export function WebsiteRelationsScreen() {
                 </div>
               ))}
               {!suggestedAccounts.length ? (
-                <div className="rounded-[24px] bg-[#FAF5EF] px-4 py-5 text-sm text-graphite">
+                <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
                   Aucun compte suggere.
                 </div>
               ) : null}

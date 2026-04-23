@@ -108,26 +108,26 @@ export function RelationsScreen() {
   }, [currentUserId, usersQuery.data]);
 
   return (
-    <MobileShell activeMode="feed" activeTab="relations" className="bg-[#F6F1EB] px-3 py-3">
+    <MobileShell activeMode="feed" activeTab="relations" className="bg-background px-3 py-3">
       <div className="space-y-3">
-        <div className="rounded-[24px] bg-white px-4 py-3 shadow-card">
+        <div className="rounded-[24px] bg-elevated px-4 py-3 shadow-card ring-1 ring-borderSoft/10">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
             <Input
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
               placeholder={t("relations.search")}
-              className="border-0 bg-[#F7F1EA] pl-10 shadow-none ring-0"
+              className="border-0 bg-surface pl-10 shadow-none ring-0"
             />
           </div>
         </div>
 
-        <div className="rounded-[28px] bg-white shadow-card">
-          <div className="border-b border-borderSoft/80 px-4 py-3">
+        <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+          <div className="border-b border-borderSoft/10 px-4 py-3">
             <p className="text-sm font-semibold text-ink">{t("relations.friends")}</p>
           </div>
           {friendsQuery.isLoading ? (
-            <div className="flex items-center justify-center px-4 py-8 text-plum">
+            <div className="flex items-center justify-center px-4 py-8 text-blue">
               <LoaderCircle className="h-5 w-5 animate-spin" />
             </div>
           ) : filteredFriends.length ? (
@@ -144,7 +144,7 @@ export function RelationsScreen() {
                     <button
                       type="button"
                       onClick={() => removeFriendMutation.mutate(friend.id)}
-                      className="rounded-full bg-mist px-3 py-2 text-xs font-semibold text-ink"
+                      className="rounded-full bg-surface px-3 py-2 text-xs font-semibold text-ink ring-1 ring-borderSoft/10"
                     >
                       {t("relations.friend")}
                     </button>
@@ -157,12 +157,12 @@ export function RelationsScreen() {
           )}
         </div>
 
-        <div className="rounded-[28px] bg-white shadow-card">
-          <div className="border-b border-borderSoft/80 px-4 py-3">
+        <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+          <div className="border-b border-borderSoft/10 px-4 py-3">
             <p className="text-sm font-semibold text-ink">{t("relations.suggested")}</p>
           </div>
           {usersQuery.isLoading ? (
-            <div className="flex items-center justify-center px-4 py-8 text-plum">
+            <div className="flex items-center justify-center px-4 py-8 text-blue">
               <LoaderCircle className="h-5 w-5 animate-spin" />
             </div>
           ) : suggestedAccounts.length ? (
@@ -179,7 +179,7 @@ export function RelationsScreen() {
                     <button
                       type="button"
                       onClick={() => addFriendMutation.mutate(user.id)}
-                      className="rounded-full bg-plum px-3 py-2 text-xs font-semibold text-white"
+                      className="rounded-full bg-plum px-3 py-2 text-xs font-semibold text-white shadow-float"
                     >
                       {t("relations.add")}
                     </button>

@@ -66,11 +66,11 @@ export function CardFilterSheet({ children }: CardFilterSheetProps) {
       {children({ open: openSheet })}
 
       {open ? (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/35 px-3 py-4">
-          <div className="w-full max-w-md rounded-[32px] bg-white p-5 shadow-card">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/35 px-3 py-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-card bg-elevated p-5 shadow-card ring-1 ring-borderSoft/10">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-plum">Filtre</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-blue">Filtre</p>
                 <h3 className="mt-2 text-xl font-semibold text-ink">Filtrer les cartes</h3>
                 <p className="mt-1 text-sm leading-6 text-graphite">
                   Affinez le feed par type, ville, date ou media.
@@ -79,7 +79,7 @@ export function CardFilterSheet({ children }: CardFilterSheetProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-full bg-mist p-2 text-graphite transition hover:bg-borderSoft"
+                className="rounded-full bg-surface p-2 text-graphite ring-1 ring-borderSoft/10 transition hover:bg-blueSoft hover:text-blue"
                 aria-label="Fermer"
               >
                 <X className="h-4 w-4" />
@@ -97,8 +97,8 @@ export function CardFilterSheet({ children }: CardFilterSheetProps) {
                       onClick={() => setDraftFilter(option.key)}
                       className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
                         draftFilter === option.key
-                          ? "bg-plum text-white"
-                          : "bg-mist text-graphite"
+                          ? "bg-blue text-white shadow-blue"
+                          : "bg-surface text-graphite ring-1 ring-borderSoft/10 hover:bg-blueSoft hover:text-blue"
                       }`}
                     >
                       {option.label}
@@ -138,8 +138,8 @@ export function CardFilterSheet({ children }: CardFilterSheetProps) {
                       onClick={() => setDraftMediaFilter(option.key as "all" | "video")}
                       className={`rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                         draftMediaFilter === option.key
-                          ? "bg-plum text-white"
-                          : "bg-mist text-graphite"
+                          ? "bg-blue text-white shadow-blue"
+                          : "bg-surface text-graphite ring-1 ring-borderSoft/10 hover:bg-blueSoft hover:text-blue"
                       }`}
                     >
                       {option.label}

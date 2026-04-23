@@ -97,11 +97,11 @@ function GalleryTile({
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,#6A2BE8_0%,#1D2230_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(160deg,#7643A6_0%,#1D2230_72%,#3365C8_100%)]" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
         {badge ? (
-          <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-plum">
+          <span className="absolute left-3 top-3 rounded-full bg-elevated/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue backdrop-blur">
             {badge}
           </span>
         ) : null}
@@ -261,10 +261,10 @@ export default function ProfilePage() {
 
   return (
     <MobileShell activeMode="feed" activeTab="profile" className="space-y-4 px-4 py-5">
-      <div className="space-y-5 rounded-[32px] bg-white px-5 py-6 shadow-card">
+      <div className="space-y-5 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#6A2BE8_0%,#9B6CF6_100%)] text-xl font-bold text-white shadow-float">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7643A6_0%,#3365C8_100%)] text-xl font-bold text-white shadow-float">
               {profileUser?.display_name.slice(0, 2).toUpperCase() ?? "LL"}
             </div>
             <div className="min-w-0">
@@ -281,7 +281,7 @@ export default function ProfilePage() {
               setShowEditor((current) => !current);
               setMessage(null);
             }}
-            className="rounded-full bg-mist p-3 text-plum transition hover:bg-plum hover:text-white"
+            className="rounded-full bg-blueSoft p-3 text-blue transition hover:bg-blue hover:text-white"
             aria-label="Modifier le profil"
           >
             {showEditor ? <X className="h-4 w-4" /> : <PenSquare className="h-4 w-4" />}
@@ -289,21 +289,21 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-[24px] bg-mist px-3 py-4">
+          <div className="rounded-[24px] bg-surface px-3 py-4 ring-1 ring-borderSoft/10">
             <p className="text-lg font-semibold text-ink">{approvedCount}</p>
             <p className="text-xs text-graphite/70">Vos publications</p>
           </div>
-          <div className="rounded-[24px] bg-mist px-3 py-4">
+          <div className="rounded-[24px] bg-surface px-3 py-4 ring-1 ring-borderSoft/10">
             <p className="text-lg font-semibold text-ink">{taggedCount}</p>
             <p className="text-xs text-graphite/70">Tagged</p>
           </div>
-          <div className="rounded-[24px] bg-[#F8F0FF] px-3 py-4">
-            <p className="text-lg font-semibold text-plum">{pendingItems.length}</p>
-            <p className="text-xs text-plum/70">En attente</p>
+          <div className="rounded-[24px] bg-blueSoft px-3 py-4 ring-1 ring-blue/15">
+            <p className="text-lg font-semibold text-blue">{pendingItems.length}</p>
+            <p className="text-xs text-blue/70">En attente</p>
           </div>
         </div>
 
-        <div className="space-y-2 rounded-[24px] bg-[#FCFAF8] px-4 py-4 text-sm leading-7 text-graphite ring-1 ring-borderSoft">
+        <div className="space-y-2 rounded-[24px] bg-surface px-4 py-4 text-sm leading-7 text-graphite ring-1 ring-borderSoft/10">
           {profileUser?.city ? (
             <p className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
@@ -326,7 +326,7 @@ export default function ProfilePage() {
         </div>
 
         {showEditor ? (
-          <div className="space-y-4 rounded-[28px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+          <div className="space-y-4 rounded-[28px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
             <div className="grid gap-3">
               <div>
                 <p className="mb-2 text-sm font-semibold text-ink">Pseudo</p>
@@ -383,7 +383,7 @@ export default function ProfilePage() {
         ) : null}
 
         {message ? (
-          <div className="rounded-[24px] bg-[#F8F0FF] px-4 py-3 text-sm text-plum">
+          <div className="rounded-[24px] bg-blueSoft px-4 py-3 text-sm text-blue ring-1 ring-blue/15">
             {message}
           </div>
         ) : null}
@@ -406,15 +406,15 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="space-y-4 rounded-[32px] bg-white px-5 py-6 shadow-card">
+      <div className="space-y-4 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-[0.18em] text-plum">Galerie</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-blue">Galerie</p>
             <h2 className="mt-2 text-xl font-semibold text-ink">Vos capsules</h2>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 rounded-[24px] bg-mist p-1.5">
+        <div className="grid grid-cols-3 gap-2 rounded-[24px] bg-surface p-1.5 ring-1 ring-borderSoft/10">
           {[
             { key: "published", label: "Vos publications" },
             { key: "tagged", label: "Tagged" },
@@ -426,7 +426,7 @@ export default function ProfilePage() {
               onClick={() => setGalleryTab(tab.key as GalleryTab)}
               className={`rounded-[20px] px-3 py-3 text-xs font-semibold transition ${
                 galleryTab === tab.key
-                  ? "bg-white text-ink shadow-sm"
+                  ? "bg-elevated text-ink shadow-sm"
                   : "text-graphite/70"
               }`}
             >
@@ -438,7 +438,7 @@ export default function ProfilePage() {
         {galleryTab === "published" ? (
           myEditorialsQuery.isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+              <LoaderCircle className="h-6 w-6 animate-spin text-blue" />
             </div>
           ) : myEditorialsQuery.data?.length ? (
             <div className="grid grid-cols-3 gap-3">
@@ -457,7 +457,7 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[24px] bg-mist px-4 py-5 text-sm text-graphite">
+            <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Aucune publication visible pour le moment.
             </div>
           )
@@ -466,7 +466,7 @@ export default function ProfilePage() {
         {galleryTab === "tagged" ? (
           taggedQuery.isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+              <LoaderCircle className="h-6 w-6 animate-spin text-blue" />
             </div>
           ) : taggedQuery.data?.length ? (
             <div className="grid grid-cols-3 gap-3">
@@ -486,7 +486,7 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[24px] bg-mist px-4 py-5 text-sm text-graphite">
+            <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Aucune carte partagee pour le moment.
             </div>
           )
@@ -495,14 +495,14 @@ export default function ProfilePage() {
         {galleryTab === "pending" ? (
           myContributionsQuery.isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
+              <LoaderCircle className="h-6 w-6 animate-spin text-blue" />
             </div>
           ) : pendingItems.length ? (
             <div className="space-y-3">
               {pendingItems.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[24px] bg-[#FAF5EF] px-4 py-4 ring-1 ring-black/5"
+                  className="rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-2">
@@ -518,7 +518,7 @@ export default function ProfilePage() {
                       <button
                         type="button"
                         onClick={() => resumeContribution(item)}
-                        className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-semibold text-plum ring-1 ring-borderSoft"
+                        className="inline-flex items-center gap-1 rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/15"
                       >
                         <RotateCcw className="h-3.5 w-3.5" />
                         Reprendre
@@ -526,7 +526,7 @@ export default function ProfilePage() {
                     ) : null}
                   </div>
                   {item.moderation_note ? (
-                    <div className="mt-3 rounded-[18px] bg-white px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft">
+                    <div className="mt-3 rounded-[18px] bg-elevated px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft/10">
                       <p className="font-semibold text-ink">Note de moderation</p>
                       <p className="mt-1">{item.moderation_note}</p>
                     </div>
@@ -548,7 +548,7 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[24px] bg-mist px-4 py-5 text-sm text-graphite">
+            <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Aucune proposition en attente.
             </div>
           )
@@ -556,10 +556,10 @@ export default function ProfilePage() {
       </div>
 
       {profileUser?.role === "moderator" ? (
-        <div className="space-y-4 rounded-[32px] bg-white px-5 py-6 shadow-card">
+        <div className="space-y-4 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-sm uppercase tracking-[0.22em] text-plum">Moderation</p>
+              <p className="text-sm uppercase tracking-[0.22em] text-blue">Moderation</p>
               <h2 className="mt-2 text-2xl font-semibold text-ink">
                 Contributions en attente
               </h2>
@@ -567,13 +567,13 @@ export default function ProfilePage() {
                 Revoyez les propositions, ajoutez une note si besoin, puis publiez, demandez des corrections ou refusez.
               </p>
             </div>
-            <div className="rounded-full bg-[#F8F0FF] px-3 py-2 text-sm font-semibold text-plum">
+            <div className="rounded-full bg-blueSoft px-3 py-2 text-sm font-semibold text-blue ring-1 ring-blue/15">
               {moderationQuery.data?.length ?? 0} en attente
             </div>
           </div>
 
           {moderationQuery.isLoading ? (
-            <div className="rounded-[28px] bg-mist px-4 py-5 text-sm text-graphite">
+            <div className="rounded-[28px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Chargement des contributions...
             </div>
           ) : moderationQuery.data?.length ? (
@@ -581,12 +581,12 @@ export default function ProfilePage() {
               {moderationQuery.data.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[28px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft"
+                  className="rounded-[28px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-plum">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue">
                           <ContributionStatusBadge status={item.status} />
                           <span>{item.type}</span>
                         </div>
@@ -604,9 +604,9 @@ export default function ProfilePage() {
                       {item.media_url ? (
                         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-mist">
                           {getContributionPreviewKind(item) === "audio" ? (
-                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
                           ) : getContributionPreviewKind(item) === "video" ? (
-                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#2E2D35_0%,#5D4AE4_100%)]" />
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#2E2D35_0%,#7643A6_58%,#3365C8_100%)]" />
                           ) : (
                             <Image
                               src={item.media_url}
@@ -683,7 +683,7 @@ export default function ProfilePage() {
                     </div>
 
                     {item.history.length ? (
-                      <div className="rounded-[20px] bg-white px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft">
+                      <div className="rounded-[20px] bg-elevated px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft/10">
                         <p className="font-semibold text-ink">Historique</p>
                         <div className="mt-2 space-y-2">
                           {item.history.slice(0, 3).map((event) => (
@@ -703,7 +703,7 @@ export default function ProfilePage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[28px] bg-mist px-4 py-5 text-sm text-graphite">
+            <div className="rounded-[28px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
               Aucune contribution en attente pour le moment.
             </div>
           )}

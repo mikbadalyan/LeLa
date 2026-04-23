@@ -145,15 +145,15 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       {/* Full-screen backdrop (below header, above content but below panels) */}
       {openPanel ? (
         <div
-          className="fixed inset-0 z-10 bg-black/10 backdrop-blur-[1px]"
+          className="fixed inset-0 z-30 bg-black/12 backdrop-blur-[1px]"
           onClick={() => setOpenPanel(null)}
         />
       ) : null}
 
       <header
         className={cn(
-          "relative z-20 border-b border-borderSoft/90 bg-white/92 px-4 backdrop-blur-md",
-          compactMode ? "py-2.5" : "py-3"
+          "relative z-40 border-b border-borderSoft/10 bg-elevated/92 px-4 shadow-soft backdrop-blur-xl",
+          compactMode ? "py-2.5" : "py-3.5"
         )}
       >
         <div className="flex items-center justify-between gap-2 text-sm text-graphite">
@@ -161,10 +161,10 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
           <button
             type="button"
             onClick={() => toggle("city")}
-            className={`flex min-w-0 items-center gap-2 rounded-full border px-3 py-1.5 font-medium transition ${
+            className={`flex min-w-0 items-center gap-2 rounded-full border px-3 py-2 font-semibold transition ${
               openPanel === "city"
-                ? "border-plum/20 bg-[#F8F0FF] text-plum"
-                : "border-transparent bg-mist/70 hover:bg-mist"
+                ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
+                : "border-borderSoft/10 bg-mist/80 hover:bg-white"
             }`}
           >
             <Map className="h-4 w-4 shrink-0" />
@@ -175,10 +175,10 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
           <button
             type="button"
             onClick={() => toggle("date")}
-            className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 font-medium transition ${
+            className={`flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 font-semibold transition ${
               openPanel === "date"
-                ? "border-plum/20 bg-[#F8F0FF] text-plum"
-                : "border-transparent bg-mist/70 hover:bg-mist"
+                ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
+                : "border-borderSoft/10 bg-mist/80 hover:bg-white"
             }`}
           >
             <CalendarDays className="h-4 w-4 shrink-0" />
@@ -193,8 +193,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
               onClick={() => toggle("menu")}
               className={`rounded-full border p-2 transition ${
                 openPanel === "menu"
-                  ? "border-plum/20 bg-[#F8F0FF] text-plum"
-                  : "border-transparent bg-mist/70 hover:bg-mist"
+                  ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
+                  : "border-borderSoft/10 bg-mist/80 hover:bg-white"
               }`}
               aria-label={t("header.menu")}
             >
@@ -211,7 +211,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         <div ref={panelRef}>
           {/* City panel */}
           {openPanel === "city" ? (
-            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[26px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute inset-x-4 top-full z-50 mt-2 rounded-[26px] bg-elevated p-4 shadow-card ring-1 ring-borderSoft/12">
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{t("header.changeCity")}</p>
@@ -241,7 +241,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                       className={`rounded-full px-3 py-2 text-xs font-semibold transition ${
                         city === suggestion
                           ? "bg-plum text-white"
-                          : "bg-mist text-graphite hover:bg-plum hover:text-white"
+                          : "bg-mist text-graphite hover:bg-blueSoft hover:text-blue"
                       }`}
                     >
                       {suggestion}
@@ -272,7 +272,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
           {/* Date panel */}
           {openPanel === "date" ? (
-            <div className="absolute inset-x-4 top-full z-30 mt-2 rounded-[26px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute inset-x-4 top-full z-50 mt-2 rounded-[26px] bg-elevated p-4 shadow-card ring-1 ring-borderSoft/12">
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{t("header.chooseDate")}</p>
@@ -307,7 +307,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
           {/* Menu panel */}
           {openPanel === "menu" ? (
-            <div className="absolute right-4 top-full z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] rounded-[30px] bg-white p-4 shadow-card ring-1 ring-borderSoft">
+            <div className="absolute right-4 top-full z-50 mt-2 w-[min(21rem,calc(100vw-2rem))] rounded-[30px] bg-elevated p-4 shadow-card ring-1 ring-borderSoft/12">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -340,7 +340,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                         onClick={link.action}
                         className="flex w-full items-start gap-3 rounded-[24px] px-3 py-3 text-left transition hover:bg-mist active:bg-plum/10"
                       >
-                        <div className="rounded-2xl bg-plum/10 p-2 text-plum">
+                        <div className="rounded-2xl bg-blueSoft p-2 text-blue">
                           <Icon className="h-4 w-4" />
                         </div>
                         <div>
@@ -354,7 +354,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                   })}
                 </div>
 
-                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+                <div className="rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
                     {t("menu.activeLanguage")}
                   </p>
@@ -370,8 +370,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                         className={cn(
                           "rounded-full px-3 py-2 text-xs font-semibold transition",
                           language === option.code
-                            ? "bg-plum text-white"
-                            : "bg-white text-ink ring-1 ring-borderSoft"
+                            ? "bg-blue text-white shadow-blue"
+                            : "bg-elevated text-ink ring-1 ring-borderSoft/12"
                         )}
                         aria-label={`${t("menu.language")}: ${option.label}`}
                       >
@@ -381,7 +381,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                   </div>
                 </div>
 
-                <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
+                <div className="rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
                     {t("menu.contextTitle")}
                   </p>
@@ -408,15 +408,15 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                         setOpenPanel(null);
                         logout();
                       }}
-                    className="flex w-full items-center justify-between rounded-[24px] bg-[#FFF3F1] px-4 py-4 text-left ring-1 ring-[#F0D5CF] transition hover:bg-[#ffe9e5]"
+                    className="flex w-full items-center justify-between rounded-[24px] bg-danger/10 px-4 py-4 text-left ring-1 ring-danger/15 transition hover:bg-danger/15"
                     >
                       <div>
-                      <p className="text-sm font-semibold text-[#A04132]">{t("menu.logout")}</p>
-                      <p className="mt-1 text-xs text-[#A04132]/75">
+                      <p className="text-sm font-semibold text-danger">{t("menu.logout")}</p>
+                      <p className="mt-1 text-xs text-danger/75">
                         {t("menu.logoutDescription")}
                       </p>
                     </div>
-                    <LogOut className="h-4 w-4 shrink-0 text-[#A04132]" />
+                    <LogOut className="h-4 w-4 shrink-0 text-danger" />
                   </button>
                 ) : null}
               </div>

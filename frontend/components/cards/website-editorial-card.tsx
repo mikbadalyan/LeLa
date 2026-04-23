@@ -26,10 +26,10 @@ export function WebsiteEditorialCard({
     item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url;
 
   return (
-    <article className="group overflow-hidden rounded-[28px] bg-white shadow-[0_20px_50px_rgba(48,33,18,0.08)] ring-1 ring-black/5">
+    <article className="group overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_26px_64px_rgba(35,37,43,0.14)]">
       <div className="relative aspect-[1.02] overflow-hidden">
         {item.media_kind === "audio" ? (
-          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_56%,#3365C8_100%)]" />
         ) : (
           <Image
             src={mediaSrc}
@@ -43,7 +43,7 @@ export function WebsiteEditorialCard({
         <div className="absolute left-4 top-4 right-4 flex items-start justify-between gap-3">
           <Link
             href={profileHref}
-            className="inline-flex items-center gap-2 rounded-full bg-black/25 px-3 py-2 text-xs text-white/92 backdrop-blur-md"
+            className="inline-flex items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-xs font-medium text-white/92 shadow-sm ring-1 ring-white/12 backdrop-blur-md"
           >
             <Image
               src={item.contributor.avatar_url}
@@ -58,7 +58,7 @@ export function WebsiteEditorialCard({
             <button
               type="button"
               onClick={() => onLike?.(item.id)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/18 text-white backdrop-blur-md"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
               aria-label={item.is_liked ? "Retirer des aimes" : "Aimer"}
             >
               <Heart className={`h-[18px] w-[18px] ${item.is_liked ? "fill-white text-white" : ""}`} />
@@ -68,7 +68,7 @@ export function WebsiteEditorialCard({
                 <button
                   type="button"
                   onClick={open}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/24 backdrop-blur-md shadow-sm ring-1 ring-white/12 transition hover:bg-black/34"
                   aria-label="Partager"
                 >
                   <ShareIcon className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
@@ -85,7 +85,7 @@ export function WebsiteEditorialCard({
             </h3>
             {(item.metadata.address || item.metadata.city || item.linked_entity?.title) ? (
               <span className="inline-flex max-w-[92%] items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
-                <MapPin className="h-4 w-4 shrink-0" />
+                <MapPin className="h-4 w-4 shrink-0 text-blueSoft" />
                 <span className="truncate">
                   {item.metadata.address || item.metadata.city || item.linked_entity?.title}
                 </span>
@@ -97,7 +97,7 @@ export function WebsiteEditorialCard({
         <div className="absolute bottom-4 right-4">
           <Link
             href={`/website/editorial/${item.id}`}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-blue shadow-blue"
             aria-label={item.media_kind === "audio" ? "Ecouter" : item.media_kind === "video" ? "Lire la video" : "Lire"}
           >
             <MediaStateIcon

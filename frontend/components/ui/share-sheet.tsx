@@ -58,11 +58,11 @@ export function ShareSheet({
       })}
 
       {open ? (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/35 px-3 py-4">
-          <div className="w-full max-w-md rounded-[32px] bg-white p-5 shadow-card">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/35 px-3 py-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-md rounded-[32px] bg-elevated p-5 shadow-card ring-1 ring-borderSoft/10">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-plum">Partager</p>
+                <p className="text-xs uppercase tracking-[0.18em] text-blue">Partager</p>
                 <h3 className="mt-2 text-xl font-semibold text-ink">{editorialTitle}</h3>
                 <p className="mt-1 text-sm leading-6 text-graphite">
                   Envoyez cette carte a un ami, comme dans un partage Instagram.
@@ -97,7 +97,7 @@ export function ShareSheet({
                     type="button"
                     onClick={() => shareMutation.mutate(friend.id)}
                     disabled={shareMutation.isPending}
-                    className="flex w-full items-center justify-between rounded-[24px] bg-[#FCFAF8] px-4 py-4 text-left ring-1 ring-borderSoft transition hover:bg-mist"
+                    className="flex w-full items-center justify-between rounded-[24px] bg-surface px-4 py-4 text-left ring-1 ring-borderSoft/10 transition hover:bg-mist"
                   >
                     <div>
                       <p className="text-sm font-semibold text-ink">{friend.display_name}</p>
@@ -105,7 +105,7 @@ export function ShareSheet({
                         @{friend.username} {friend.city ? `· ${friend.city}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-full bg-plum/10 p-2 text-plum">
+                    <span className="rounded-full bg-blueSoft p-2 text-blue">
                       <SendHorizonal className="h-4 w-4" />
                     </span>
                   </button>
@@ -122,7 +122,7 @@ export function ShareSheet({
             )}
 
             {statusMessage ? (
-              <div className="mt-4 rounded-[24px] bg-[#F8F0FF] px-4 py-3 text-sm text-plum">
+              <div className="mt-4 rounded-[24px] bg-blueSoft px-4 py-3 text-sm text-blue">
                 {statusMessage}
               </div>
             ) : null}

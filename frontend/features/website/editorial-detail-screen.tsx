@@ -53,7 +53,7 @@ export function WebsiteEditorialDetailScreen({
   if (detailQuery.isPending) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-[1380px] items-center justify-center px-5 py-20 lg:px-8">
-        <LoaderCircle className="h-8 w-8 animate-spin text-plum" />
+        <LoaderCircle className="h-8 w-8 animate-spin text-blue" />
       </div>
     );
   }
@@ -61,8 +61,8 @@ export function WebsiteEditorialDetailScreen({
   if (detailQuery.isError) {
     return (
       <div className="mx-auto max-w-[980px] px-5 py-16 lg:px-8">
-        <div className="rounded-[36px] bg-white px-6 py-8 shadow-card ring-1 ring-borderSoft/60">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
+        <div className="rounded-card bg-elevated px-6 py-8 shadow-card ring-1 ring-borderSoft/10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue">
             Fiche indisponible
           </p>
           <h1 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-ink">
@@ -75,7 +75,7 @@ export function WebsiteEditorialDetailScreen({
             <Button onClick={() => detailQuery.refetch()}>Reessayer</Button>
             <Link
               href="/website/feed"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-white px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-surface px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10"
             >
               Retour a l&apos;exploration
             </Link>
@@ -88,8 +88,8 @@ export function WebsiteEditorialDetailScreen({
   if (!item) {
     return (
       <div className="mx-auto max-w-[980px] px-5 py-16 lg:px-8">
-        <div className="rounded-[36px] bg-white px-6 py-8 shadow-card ring-1 ring-borderSoft/60">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
+        <div className="rounded-card bg-elevated px-6 py-8 shadow-card ring-1 ring-borderSoft/10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue">
             Carte introuvable
           </p>
           <h1 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-ink">
@@ -122,10 +122,10 @@ export function WebsiteEditorialDetailScreen({
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-10 px-5 py-8 lg:px-8 lg:py-12">
       <section className="grid gap-8 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="overflow-hidden rounded-[40px] bg-white shadow-card ring-1 ring-black/5">
+        <div className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
           <div className="relative aspect-[1.08]">
             {item.media_kind === "audio" ? (
-              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
             ) : (
               <Image
                 src={mediaSrc}
@@ -145,10 +145,10 @@ export function WebsiteEditorialDetailScreen({
           </div>
         </div>
 
-        <div className="space-y-6 rounded-[40px] bg-white px-7 py-7 shadow-card ring-1 ring-black/5">
+        <div className="space-y-6 rounded-card bg-elevated px-7 py-7 shadow-card ring-1 ring-borderSoft/10">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-plum">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue">
                 {t("website.featured")}
               </p>
               <p className="mt-2 text-base leading-8 text-graphite">{item.description}</p>
@@ -156,38 +156,38 @@ export function WebsiteEditorialDetailScreen({
             <button
               type="button"
               onClick={() => likeMutation.mutate(item.id)}
-              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#F8F0FF] text-plum"
+              className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blueSoft text-blue ring-1 ring-blue/15 transition hover:bg-blue hover:text-white"
             >
               <Heart className={`h-5 w-5 ${item.is_liked ? "fill-current" : ""}`} />
             </button>
           </div>
 
-          <div className="rounded-[28px] bg-[#FAF5EF] px-5 py-5 text-sm leading-7 text-graphite">
+          <div className="rounded-[28px] bg-surface px-5 py-5 text-sm leading-7 text-graphite ring-1 ring-borderSoft/10">
             {item.narrative_text}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             {item.metadata.city ? (
               <div className="rounded-[24px] bg-mist px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-graphite/60">Ville</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-blue">Ville</p>
                 <p className="mt-1 font-semibold text-ink">{item.metadata.city}</p>
               </div>
             ) : null}
             {item.metadata.date ? (
               <div className="rounded-[24px] bg-mist px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-graphite/60">Date</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-blue">Date</p>
                 <p className="mt-1 font-semibold text-ink">{formatDateTime(item.metadata.date)}</p>
               </div>
             ) : null}
             {item.metadata.price !== undefined ? (
               <div className="rounded-[24px] bg-mist px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-graphite/60">Prix</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-blue">Prix</p>
                 <p className="mt-1 font-semibold text-ink">{formatPrice(item.metadata.price)}</p>
               </div>
             ) : null}
             {showAddressLine ? (
               <div className="rounded-[24px] bg-mist px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.14em] text-graphite/60">Adresse</p>
+                <p className="text-xs uppercase tracking-[0.14em] text-blue">Adresse</p>
                 <p className="mt-1 font-semibold text-ink">{item.metadata.address}</p>
               </div>
             ) : null}
@@ -241,7 +241,7 @@ export function WebsiteEditorialDetailScreen({
               {item.linked_entity?.title || item.title}
             </h2>
           </div>
-          <Link href="/website/feed" className="text-sm font-semibold text-plum">
+          <Link href="/website/feed" className="text-sm font-semibold text-blue">
             {t("website.viewAll")}
           </Link>
         </div>
@@ -256,7 +256,7 @@ export function WebsiteEditorialDetailScreen({
               />
             ))
           ) : (
-            <div className="rounded-[28px] bg-white px-5 py-6 text-sm leading-7 text-graphite shadow-card ring-1 ring-borderSoft/60 md:col-span-2 xl:col-span-3">
+            <div className="rounded-[28px] bg-elevated px-5 py-6 text-sm leading-7 text-graphite shadow-card ring-1 ring-borderSoft/10 md:col-span-2 xl:col-span-3">
               Cette carte n&apos;a pas encore de prolongement visible dans le graphe editorial.
             </div>
           )}

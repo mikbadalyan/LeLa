@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
 import { useLogout } from "@/features/auth/use-logout";
-import { languageOptions } from "@/features/shell/i18n";
+import { languageOptions, useI18n } from "@/features/shell/i18n";
 import { shellDefaults, useShellStore } from "@/features/shell/store";
 import {
   changePassword,
@@ -162,7 +162,7 @@ function SettingsCard({
   className?: string;
 }) {
   return (
-    <section className={cn("rounded-[28px] bg-white px-4 py-4 shadow-card ring-1 ring-borderSoft/60", className)}>
+    <section className={cn("rounded-card bg-elevated px-4 py-4 shadow-card ring-1 ring-borderSoft/10", className)}>
       <div className="mb-3">
         <p className="text-sm font-semibold text-ink">{title}</p>
         {hint ? <p className="mt-1 text-xs leading-5 text-graphite/72">{hint}</p> : null}
@@ -187,7 +187,7 @@ function SettingsToggle({
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-4 rounded-[22px] bg-mist px-4 py-4 text-left ring-1 ring-borderSoft/70 transition hover:bg-paper"
+      className="flex w-full items-center justify-between gap-4 rounded-[22px] bg-surface px-4 py-4 text-left ring-1 ring-borderSoft/10 transition hover:bg-mist"
     >
       <div>
         <p className="text-sm font-semibold text-ink">{label}</p>
@@ -196,7 +196,7 @@ function SettingsToggle({
       <span
         className={cn(
           "relative inline-flex h-7 w-12 shrink-0 rounded-full transition",
-          checked ? "bg-plum" : "bg-[#D9D5CF]"
+          checked ? "bg-plum" : "bg-borderSoft/60"
         )}
       >
         <span
@@ -227,7 +227,7 @@ function ChoicePill({
       onClick={onClick}
       className={cn(
         "flex items-center justify-center gap-2 rounded-[20px] px-4 py-3 text-sm font-semibold transition",
-        active ? "bg-plum text-white shadow-float" : "bg-mist text-ink ring-1 ring-borderSoft"
+        active ? "bg-blue text-white shadow-blue" : "bg-surface text-ink ring-1 ring-borderSoft/10"
       )}
     >
       {Icon ? <Icon className="h-4 w-4" /> : null}
@@ -247,9 +247,9 @@ function AccountRequired({
 }) {
   return (
     <SettingsCard title={title} hint={description}>
-      <div className="rounded-[22px] bg-[#F8F0FF] px-4 py-4 text-sm text-plum">
+      <div className="rounded-[22px] bg-blueSoft px-4 py-4 text-sm text-blue ring-1 ring-blue/15">
         <p className="font-semibold">Cette section devient complete apres connexion.</p>
-        <p className="mt-1 text-plum/80">Les reglages prives, de securite et les notifications sont lies au compte.</p>
+        <p className="mt-1 text-blue/80">Les reglages prives, de securite et les notifications sont lies au compte.</p>
         <Link
           href={href}
           className="mt-3 inline-flex items-center gap-2 rounded-full bg-plum px-4 py-2 text-white shadow-float"
@@ -271,6 +271,7 @@ export function SettingsScreen({
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
@@ -512,7 +513,7 @@ export function SettingsScreen({
     });
   };
 
-  const saveButtonLabel = token ? "Enregistrer" : "Appliquer";
+  const saveButtonLabel = token ? t("settings.save") : t("settings.apply");
   const loading = updateSettingsMutation.isPending || settingsQuery.isLoading;
   const passwordChangedLabel = formatLastPasswordChange(
     draftSettings.last_password_changed_at,
@@ -524,22 +525,22 @@ export function SettingsScreen({
     <div className={cn("space-y-4", variant === "website" ? "mx-auto w-full max-w-[1240px] px-5 py-8 lg:px-8 lg:py-10" : "px-3 py-3")}>
       <section
         className={cn(
-          "overflow-hidden rounded-[32px] bg-white shadow-card ring-1 ring-borderSoft/60",
+          "overflow-hidden rounded-[32px] bg-elevated shadow-card ring-1 ring-borderSoft/10",
           variant === "website" ? "px-6 py-6 lg:px-8 lg:py-7" : "px-4 py-4"
         )}
       >
         <div className={cn("flex gap-4", variant === "website" ? "items-center justify-between" : "items-start")}>
           <div className="flex items-start gap-3">
-            <div className="rounded-[20px] bg-[#F8F0FF] p-3 text-plum">
+            <div className="rounded-[20px] bg-blueSoft p-3 text-blue">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">Parametres</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue">{t("settings.title")}</p>
               <h1 className="mt-2 text-[1.45rem] font-semibold tracking-[-0.04em] text-ink">
-                Reglages du compte et de l&apos;experience
+                {t("settings.title")}
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-graphite/74">
-                Apparence, confidentialite, securite, notifications, langue et raccourcis utiles.
+                {t("settings.description")}
               </p>
             </div>
           </div>
@@ -547,13 +548,13 @@ export function SettingsScreen({
           {variant === "website" ? (
             <div className="hidden items-center gap-2 lg:flex">
               <Link href={accountHref} className="rounded-full bg-mist px-4 py-2 text-sm font-semibold text-ink">
-                Compte
+                {t("settings.account")}
               </Link>
               <Link
                 href={oppositeExperienceHref}
-                className="rounded-full bg-[#F8F0FF] px-4 py-2 text-sm font-semibold text-plum"
+                className="rounded-full bg-blueSoft px-4 py-2 text-sm font-semibold text-blue"
               >
-                {variant === "website" ? "Ouvrir la PWA" : "Ouvrir le website"}
+                {variant === "website" ? t("settings.openPwa") : t("settings.openWebsite")}
               </Link>
             </div>
           ) : null}
@@ -571,18 +572,18 @@ export function SettingsScreen({
               onClick={() => router.replace(`${basePath}?tab=${tab.key}`)}
               className={cn(
                 "flex shrink-0 items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition",
-                active ? "bg-plum text-white shadow-float" : "bg-white text-ink shadow-card ring-1 ring-borderSoft/60"
+                active ? "bg-blue text-white shadow-blue" : "bg-elevated text-ink shadow-soft ring-1 ring-borderSoft/10"
               )}
             >
               <Icon className="h-4 w-4" />
-              <span>{tab.label}</span>
+              <span>{t(`settings.tab.${tab.key}` as never) || tab.label}</span>
             </button>
           );
         })}
       </section>
 
       {statusMessage ? (
-        <div className="rounded-[24px] bg-[#F8F0FF] px-4 py-3 text-sm text-plum">{statusMessage}</div>
+        <div className="rounded-[24px] bg-blueSoft px-4 py-3 text-sm text-blue">{statusMessage}</div>
       ) : null}
 
       {activeTab === "appearance" ? (
@@ -876,7 +877,7 @@ export function SettingsScreen({
                   </Button>
                 </form>
                 {passwordMessage ? (
-                  <div className="mt-3 rounded-[20px] bg-[#F8F0FF] px-4 py-3 text-sm text-plum">
+                  <div className="mt-3 rounded-[20px] bg-blueSoft px-4 py-3 text-sm text-blue ring-1 ring-blue/15">
                     {passwordMessage}
                   </div>
                 ) : null}
@@ -1143,15 +1144,15 @@ export function SettingsScreen({
             <button
               type="button"
               onClick={logout}
-              className="flex items-center justify-between rounded-[22px] bg-[#FFF3F1] px-4 py-4 text-left ring-1 ring-[#F0D5CF] transition hover:bg-[#ffe9e5]"
+              className="flex items-center justify-between rounded-[22px] bg-danger/10 px-4 py-4 text-left ring-1 ring-danger/15 transition hover:bg-danger/15"
             >
               <div>
-                <p className="text-sm font-semibold text-[#A04132]">Se deconnecter</p>
-                <p className="mt-1 text-xs text-[#A04132]/75">
+                <p className="text-sm font-semibold text-danger">Se deconnecter</p>
+                <p className="mt-1 text-xs text-danger/75">
                   Effacer la session locale et revenir a l&apos;ecran de connexion.
                 </p>
               </div>
-              <LogOut className="h-5 w-5 shrink-0 text-[#A04132]" />
+              <LogOut className="h-5 w-5 shrink-0 text-danger" />
             </button>
           </div>
         </SettingsCard>

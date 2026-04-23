@@ -39,8 +39,8 @@ export function WebsiteHomeScreen() {
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-12 px-5 py-8 lg:px-8 lg:py-12">
       <section className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr]">
-        <div className="relative overflow-hidden rounded-[40px] bg-[#201B27] text-white shadow-[0_28px_80px_rgba(30,22,18,0.16)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_26%),linear-gradient(140deg,#221D2C_0%,#6A2BE8_100%)]" />
+        <div className="relative overflow-hidden rounded-[40px] bg-[#201B27] text-white shadow-card ring-1 ring-borderSoft/10">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_28%),linear-gradient(140deg,#201B27_0%,#7643A6_62%,#3365C8_100%)]" />
           <div className="relative grid min-h-[500px] items-end gap-8 px-7 py-8 sm:px-10 sm:py-10">
             <div className="max-w-xl space-y-5">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
@@ -79,10 +79,10 @@ export function WebsiteHomeScreen() {
         </div>
 
         {featured ? (
-          <div className="overflow-hidden rounded-[40px] bg-white shadow-[0_28px_80px_rgba(30,22,18,0.1)] ring-1 ring-black/5">
+          <div className="overflow-hidden rounded-[40px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
             <div className="relative aspect-[1.2]">
               {featured.media_kind === "audio" ? (
-                <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_56%,#3365C8_100%)]" />
               ) : (
                 <Image
                   src={featured.media_kind === "video" ? featured.poster_url || featured.media_url : featured.media_url}
@@ -127,7 +127,7 @@ export function WebsiteHomeScreen() {
           { title: t("modes.people"), items: personItems },
           { title: t("modes.events"), items: eventItems },
         ].map((section) => (
-          <div key={section.title} className="rounded-[34px] bg-white px-5 py-5 shadow-card">
+          <div key={section.title} className="rounded-[34px] bg-elevated px-5 py-5 shadow-card ring-1 ring-borderSoft/10">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-xl font-semibold text-ink">{section.title}</h3>
               <Link href="/website/feed" className="text-sm font-semibold text-plum">
@@ -139,11 +139,11 @@ export function WebsiteHomeScreen() {
                 <Link
                   key={item.id}
                   href={`/website/editorial/${item.id}`}
-                  className="flex items-center gap-3 rounded-[24px] bg-[#FAF5EF] p-3 ring-1 ring-black/5 transition hover:bg-mist"
+                  className="flex items-center gap-3 rounded-[24px] bg-surface p-3 ring-1 ring-borderSoft/8 transition hover:bg-mist"
                 >
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[22px]">
                     {item.media_kind === "audio" ? (
-                      <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                      <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_56%,#3365C8_100%)]" />
                     ) : (
                       <Image
                         src={item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url}
@@ -193,8 +193,8 @@ export function WebsiteHomeScreen() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[38px] bg-white shadow-card ring-1 ring-black/5">
-          <div className="border-b border-black/5 px-6 py-5">
+        <div className="overflow-hidden rounded-[38px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+          <div className="border-b border-borderSoft/10 px-6 py-5">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">
               {t("website.map")}
             </p>
@@ -226,13 +226,13 @@ export function WebsiteHomeScreen() {
                   <Link
                     key={marker.editorial_id}
                     href={`/website/editorial/${marker.editorial_id}`}
-                    className="flex items-center justify-between rounded-[22px] bg-[#FAF5EF] px-4 py-4 ring-1 ring-black/5 transition hover:bg-mist"
+                    className="flex items-center justify-between rounded-[22px] bg-surface px-4 py-4 ring-1 ring-borderSoft/8 transition hover:bg-mist"
                   >
                     <div>
                       <p className="text-sm font-semibold text-ink">{marker.title}</p>
                       <p className="text-xs text-graphite/65">{marker.city}</p>
                     </div>
-                    <MapPinned className="h-4 w-4 text-plum" />
+                    <MapPinned className="h-4 w-4 text-blue" />
                   </Link>
                 ))}
               </div>

@@ -34,9 +34,9 @@ export function LikesScreen() {
 
   return (
     <MobileShell activeMode="feed" activeTab="likes" className="space-y-4 px-3 py-4">
-      <div className="rounded-[28px] bg-white px-4 py-5 shadow-sm ring-1 ring-borderSoft">
+      <div className="rounded-[28px] bg-elevated px-4 py-5 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-[#F8F0FF] p-3 text-plum">
+          <div className="rounded-2xl bg-blueSoft p-3 text-blue">
             <Heart className="h-5 w-5 fill-current" />
           </div>
           <div>
@@ -50,7 +50,7 @@ export function LikesScreen() {
 
       {likedQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <LoaderCircle className="h-7 w-7 animate-spin text-plum" />
+          <LoaderCircle className="h-7 w-7 animate-spin text-blue" />
         </div>
       ) : likedQuery.data?.length ? (
         likedQuery.data.map((item) => (
@@ -61,7 +61,7 @@ export function LikesScreen() {
           />
         ))
       ) : (
-        <div className="rounded-[28px] bg-white px-4 py-6 text-sm leading-6 text-graphite shadow-sm ring-1 ring-borderSoft">
+        <div className="rounded-[28px] bg-elevated px-4 py-6 text-sm leading-6 text-graphite shadow-card ring-1 ring-borderSoft/10">
           Il n&apos;y a aucune carte aimee pour le moment.
         </div>
       )}

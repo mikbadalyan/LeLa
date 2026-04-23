@@ -52,9 +52,9 @@ export function MapScreen({ editorialId }: MapScreenProps) {
 
   return (
     <MobileShell activeMode="place" activeTab="relations" className="space-y-4 px-4 py-5">
-      <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
+      <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="flex items-start gap-4">
-          <div className="rounded-2xl bg-[#F8F0FF] p-3 text-plum">
+          <div className="rounded-2xl bg-blueSoft p-3 text-blue">
             <MapPinned className="h-5 w-5" />
           </div>
           <div>
@@ -68,11 +68,11 @@ export function MapScreen({ editorialId }: MapScreenProps) {
 
       {markersQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <LoaderCircle className="h-7 w-7 animate-spin text-plum" />
+          <LoaderCircle className="h-7 w-7 animate-spin text-blue" />
         </div>
       ) : activeMarker ? (
         <>
-          <div className="overflow-hidden rounded-[32px] bg-white shadow-card ring-1 ring-borderSoft">
+          <div className="overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10">
             <iframe
               title="Carte OpenStreetMap"
               src={buildMapSrc(activeMarker.latitude, activeMarker.longitude)}
@@ -81,8 +81,8 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             />
           </div>
 
-          <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
-            <p className="text-xs uppercase tracking-[0.18em] text-plum">Point actif</p>
+          <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
+            <p className="text-xs uppercase tracking-[0.18em] text-blue">Point actif</p>
             <h2 className="mt-2 text-xl font-semibold text-ink">{activeMarker.title}</h2>
             {activeMarker.subtitle ? (
               <p className="mt-1 text-sm text-graphite">{activeMarker.subtitle}</p>
@@ -102,7 +102,7 @@ export function MapScreen({ editorialId }: MapScreenProps) {
                 href={`https://www.openstreetmap.org/?mlat=${activeMarker.latitude}&mlon=${activeMarker.longitude}#map=15/${activeMarker.latitude}/${activeMarker.longitude}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft"
+                className="inline-flex items-center rounded-full bg-surface px-5 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Ouvrir dans OSM
@@ -110,8 +110,8 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             </div>
           </div>
 
-          <div className="rounded-[32px] bg-white px-5 py-6 shadow-card">
-            <p className="text-xs uppercase tracking-[0.18em] text-plum">Capsules localisees</p>
+          <div className="rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
+            <p className="text-xs uppercase tracking-[0.18em] text-blue">Capsules localisees</p>
             <div className="mt-4 space-y-3">
               {markersQuery.data?.map((marker) => (
                 <Link
@@ -119,8 +119,8 @@ export function MapScreen({ editorialId }: MapScreenProps) {
                   href={`/map?editorial=${marker.editorial_id}`}
                   className={`flex items-center justify-between gap-3 rounded-[24px] px-4 py-4 ring-1 transition ${
                     activeMarker.editorial_id === marker.editorial_id
-                      ? "bg-[#F8F0FF] ring-plum/20"
-                      : "bg-[#FCFAF8] ring-borderSoft"
+                      ? "bg-blueSoft ring-blue/20"
+                      : "bg-surface ring-borderSoft/10 hover:bg-mist"
                   }`}
                 >
                   <div>
@@ -129,7 +129,7 @@ export function MapScreen({ editorialId }: MapScreenProps) {
                       {marker.city ?? "Sans ville"} {marker.date ? `· ${formatFrenchDateTime(marker.date)}` : ""}
                     </p>
                   </div>
-                  <span className="rounded-full bg-white p-2 text-plum shadow-sm">
+                  <span className="rounded-full bg-elevated p-2 text-blue shadow-sm ring-1 ring-borderSoft/10">
                     <MapPinned className="h-4 w-4" />
                   </span>
                 </Link>
@@ -138,7 +138,7 @@ export function MapScreen({ editorialId }: MapScreenProps) {
           </div>
         </>
       ) : (
-        <div className="rounded-[32px] bg-white px-5 py-6 text-sm leading-6 text-graphite shadow-card">
+        <div className="rounded-card bg-elevated px-5 py-6 text-sm leading-6 text-graphite shadow-card ring-1 ring-borderSoft/10">
           Aucune capsule geo-localisee ne correspond a cette ville/date.
         </div>
       )}

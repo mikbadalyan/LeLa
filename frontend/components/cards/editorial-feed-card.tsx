@@ -118,7 +118,7 @@ export function EditorialFeedCard({
   };
 
   const frontFace = (
-    <div className="relative aspect-[0.82] overflow-hidden rounded-[28px] bg-editorial text-white shadow-card ring-1 ring-black/5">
+    <div className="relative aspect-[0.82] overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10">
       {isVideo ? (
         <video
           ref={videoRef}
@@ -144,7 +144,7 @@ export function EditorialFeedCard({
             onPause={() => setIsPlayingPreview(false)}
             onPlay={() => setIsPlayingPreview(true)}
           />
-        <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
           <div className="absolute inset-x-0 top-[18%] flex justify-center opacity-25">
             <div className="flex items-end gap-2">
               {[28, 44, 34, 52, 24, 46, 38].map((height, index) => (
@@ -175,13 +175,13 @@ export function EditorialFeedCard({
         aria-label={item.title}
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/78 via-black/22 to-black/0" />
 
       <div className="absolute left-4 top-4 z-10 max-w-[70%]">
         <Link
           href={profileHref}
           onPointerDown={stopCardAction}
-          className="flex items-center gap-2 rounded-full bg-black/28 px-2.5 py-1.5 text-xs text-white/92 backdrop-blur-md"
+          className="flex items-center gap-2 rounded-full bg-black/30 px-2.5 py-1.5 text-xs font-medium text-white/92 shadow-sm ring-1 ring-white/12 backdrop-blur-md"
         >
           <Image
             src={item.contributor.avatar_url}
@@ -202,7 +202,7 @@ export function EditorialFeedCard({
             stopCardAction(event);
             onLike?.(item.id);
           }}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
           aria-label={item.is_liked ? "Retirer des aimes" : "Aimer cette carte"}
         >
           <Heart className={`h-[17px] w-[17px] ${item.is_liked ? "fill-white text-white" : "text-white"}`} />
@@ -217,7 +217,7 @@ export function EditorialFeedCard({
                 stopCardAction(event);
                 open();
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
               aria-label="Partager cette carte"
             >
               <ShareIcon className="h-[17px] w-[17px] text-white" strokeWidth={2.25} />
@@ -232,7 +232,7 @@ export function EditorialFeedCard({
             setFlipped((current) => !current);
           }}
           onPointerDown={stopCardAction}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34"
           aria-label="Voir le dos de la carte"
           aria-pressed={flipped}
         >
@@ -247,7 +247,7 @@ export function EditorialFeedCard({
           </h2>
           {locationText ? (
             <span className="mt-3 inline-flex max-w-[92%] items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
-              <MapPin className="h-4 w-4 shrink-0" />
+              <MapPin className="h-4 w-4 shrink-0 text-blueSoft" />
               <span className="truncate">{locationText}</span>
             </span>
           ) : null}
@@ -260,7 +260,7 @@ export function EditorialFeedCard({
               type="button"
               onClick={toggleMediaPlayback}
               onPointerDown={stopCardAction}
-              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+              className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
               aria-label={isPlayingPreview ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
             >
             <MediaStateIcon
@@ -275,7 +275,7 @@ export function EditorialFeedCard({
         <div className="absolute bottom-5 right-4 z-10">
           <Link
             href={`/editorial/${item.id}`}
-            className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+            className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-blue shadow-blue"
             aria-label="Lire la fiche"
           >
             <MediaStateIcon kind="read" className="h-6 w-6 text-white" strokeWidth={2.3} />
@@ -284,7 +284,7 @@ export function EditorialFeedCard({
       )}
 
       {isAudio ? (
-        <div className="absolute left-4 bottom-24 z-10 rounded-full bg-white/16 px-3 py-2 text-xs font-semibold text-white backdrop-blur-md">
+        <div className="absolute left-4 bottom-24 z-10 rounded-full bg-black/24 px-3 py-2 text-xs font-semibold text-white ring-1 ring-white/12 backdrop-blur-md">
           <span className="inline-flex items-center gap-2">
             <Volume2 className="h-4 w-4" />
             Capsule audio
@@ -295,7 +295,7 @@ export function EditorialFeedCard({
   );
 
   const backFace = (
-    <div className="rounded-[28px] bg-white text-ink shadow-card ring-1 ring-black/5">
+    <div className="rounded-card bg-elevated text-ink shadow-card ring-1 ring-borderSoft/10">
       <div className="relative bg-plum px-5 pb-8 pt-6 text-white">
         <button
           type="button"
@@ -309,7 +309,7 @@ export function EditorialFeedCard({
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-white/15 p-3">{typeIcon(item.type)}</div>
+          <div className="rounded-2xl bg-white/15 p-3 shadow-sm ring-1 ring-white/12">{typeIcon(item.type)}</div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
               {typeLabel(item.type)}
@@ -322,34 +322,34 @@ export function EditorialFeedCard({
 
       <div className="space-y-4 px-5 py-5">
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-[20px] bg-mist px-4 py-3">
+          <div className="rounded-[20px] bg-surface px-4 py-3 ring-1 ring-borderSoft/8">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Aimes</p>
             <p className="mt-1 text-2xl font-semibold text-ink">{item.like_count}</p>
           </div>
 
           {item.metadata.price !== undefined && item.metadata.price !== null ? (
-            <div className="rounded-[20px] bg-mist px-4 py-3">
+            <div className="rounded-[20px] bg-surface px-4 py-3 ring-1 ring-borderSoft/8">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Tarif</p>
               <p className="mt-1 text-lg font-semibold text-ink">{formatPrice(item.metadata.price)}</p>
             </div>
           ) : null}
 
           {item.metadata.city ? (
-            <div className="rounded-[20px] bg-mist px-4 py-3">
+            <div className="rounded-[20px] bg-surface px-4 py-3 ring-1 ring-borderSoft/8">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Ville</p>
               <p className="mt-1 text-sm font-semibold text-ink">{item.metadata.city}</p>
             </div>
           ) : null}
 
           {item.metadata.opening_hours ? (
-            <div className="rounded-[20px] bg-mist px-4 py-3">
+            <div className="rounded-[20px] bg-surface px-4 py-3 ring-1 ring-borderSoft/8">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Horaires</p>
               <p className="mt-1 text-sm font-semibold text-ink">{item.metadata.opening_hours}</p>
             </div>
           ) : null}
 
           {item.metadata.role ? (
-            <div className="col-span-2 rounded-[20px] bg-mist px-4 py-3">
+            <div className="col-span-2 rounded-[20px] bg-surface px-4 py-3 ring-1 ring-borderSoft/8">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Role</p>
               <p className="mt-1 text-sm font-semibold text-ink">{item.metadata.role}</p>
             </div>
@@ -357,15 +357,15 @@ export function EditorialFeedCard({
         </div>
 
         {(item.metadata.address || item.metadata.date) ? (
-          <div className="rounded-[20px] bg-[#F8F0FF] px-4 py-4">
+          <div className="rounded-[20px] bg-blueSoft px-4 py-4">
             {item.metadata.date ? (
-              <div className="flex items-center gap-2 text-sm text-plum">
+              <div className="flex items-center gap-2 text-sm text-blue">
                 <CalendarClock className="h-4 w-4 shrink-0" />
                 <span>{formatFrenchDateTime(item.metadata.date)}</span>
               </div>
             ) : null}
             {item.metadata.address ? (
-              <div className="mt-2 flex items-start gap-2 text-sm text-plum">
+              <div className="mt-2 flex items-start gap-2 text-sm text-blue">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{item.metadata.address}</span>
               </div>
@@ -373,7 +373,7 @@ export function EditorialFeedCard({
           </div>
         ) : null}
 
-        <div className="rounded-[20px] bg-mist px-4 py-4">
+        <div className="rounded-[20px] bg-surface px-4 py-4 ring-1 ring-borderSoft/8">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">A propos</p>
           <p className="mt-2 text-sm leading-7 text-graphite">{item.description}</p>
         </div>
@@ -381,9 +381,9 @@ export function EditorialFeedCard({
         {item.linked_entity ? (
           <Link
             href={`/editorial/${item.linked_entity.id}`}
-            className="flex items-center gap-3 rounded-[20px] bg-mist px-4 py-4 transition hover:bg-plum/5"
+            className="flex items-center gap-3 rounded-[20px] bg-surface px-4 py-4 ring-1 ring-borderSoft/8 transition hover:bg-blueSoft/60"
           >
-            <div className="rounded-xl bg-plum/10 p-2 text-plum">{typeIcon(item.linked_entity.type)}</div>
+            <div className="rounded-xl bg-blueSoft p-2 text-blue">{typeIcon(item.linked_entity.type)}</div>
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-graphite/60">Carte liee</p>
               <p className="truncate text-sm font-semibold text-ink">{item.linked_entity.title}</p>
@@ -398,7 +398,7 @@ export function EditorialFeedCard({
           <Button
             variant={cloudActive ? "primary" : "secondary"}
             type="button"
-            className={cloudActive ? "bg-plum text-white shadow-none" : "shadow-none"}
+            className={cloudActive ? "bg-blue text-white shadow-none" : "shadow-none"}
             onClick={() => onToggleCloud?.(item)}
           >
             <CloudIcon className="mr-2 h-4 w-4" strokeWidth={2.15} />
@@ -419,8 +419,8 @@ export function EditorialFeedCard({
             onClick={() => onLike?.(item.id)}
             className={`flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-semibold transition ${
               item.is_liked
-                ? "bg-plum text-white shadow-float"
-                : "bg-mist text-ink ring-1 ring-borderSoft"
+                ? "bg-blue text-white shadow-blue"
+                : "bg-surface text-ink ring-1 ring-borderSoft/10"
             }`}
           >
             <Heart className={`h-4 w-4 ${item.is_liked ? "fill-current" : ""}`} />
@@ -438,7 +438,7 @@ export function EditorialFeedCard({
           {canOpenMap ? (
             <Link
               href={mapHref}
-              className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft transition hover:bg-mist"
+              className="flex items-center justify-center gap-2 rounded-full bg-elevated px-4 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft/10 transition hover:bg-mist"
               aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPin className="h-4 w-4" />
@@ -447,7 +447,7 @@ export function EditorialFeedCard({
           ) : null}
         </div>
 
-        <Link href={profileHref} className="flex items-center gap-3 border-t border-borderSoft pt-4">
+        <Link href={profileHref} className="flex items-center gap-3 border-t border-borderSoft/10 pt-4">
           <Image
             src={item.contributor.avatar_url}
             alt={item.contributor.display_name}

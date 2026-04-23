@@ -11,10 +11,10 @@ const statusCopy: Record<ContributionStatus, string> = {
 
 const statusStyles: Record<ContributionStatus, string> = {
   draft: "bg-slate-100 text-slate-700",
-  pending: "bg-[#F8F0FF] text-plum",
-  approved: "bg-emerald-100 text-emerald-700",
-  changes_requested: "bg-amber-100 text-amber-800",
-  rejected: "bg-rose-100 text-rose-700",
+  pending: "bg-blueSoft text-blue",
+  approved: "bg-success/12 text-success",
+  changes_requested: "bg-warning/14 text-warning",
+  rejected: "bg-danger/12 text-danger",
 };
 
 export function ContributionStatusBadge({

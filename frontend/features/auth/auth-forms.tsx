@@ -156,7 +156,7 @@ export function AuthForms({
                   onClick={() =>
                     setRegisterForm((current) => ({ ...current, role: role.key }))
                   }
-                  className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${registerForm.role === role.key ? "bg-plum text-white shadow-float" : "bg-white text-graphite ring-1 ring-borderSoft"}`}
+                  className={`rounded-3xl px-4 py-3 text-sm font-semibold transition ${registerForm.role === role.key ? "bg-plum text-white shadow-float" : "bg-elevated text-graphite ring-1 ring-borderSoft/10"}`}
                 >
                   {role.label}
                 </button>
@@ -170,7 +170,7 @@ export function AuthForms({
       )}
 
       {error ? (
-        <p className="rounded-3xl bg-[#FDE7E1] px-4 py-3 text-sm text-[#A33F27]">{error}</p>
+        <p className="rounded-3xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/15">{error}</p>
       ) : null}
     </div>
   );

@@ -31,24 +31,20 @@ export function MobileShell({
   return (
     <div
       className={cn(
-        "flex min-h-dvh items-stretch justify-center text-ink md:px-3",
+        "flex min-h-dvh items-stretch justify-center bg-background text-ink md:px-3",
         compactMode ? "md:py-3" : "md:py-5"
       )}
-      style={{
-        backgroundImage:
-          "radial-gradient(circle at top, rgba(255,255,255,0.16), rgba(255,255,255,0) 32%), linear-gradient(180deg, rgb(var(--mist-rgb)) 0%, rgb(var(--shell-rgb)) 100%)",
-      }}
     >
       <div className="relative w-full max-w-[430px]">
         <div
           className={cn(
-            "relative mx-auto flex min-h-dvh w-full flex-col overflow-hidden bg-shell shadow-none",
+            "relative mx-auto flex min-h-dvh w-full flex-col overflow-hidden bg-shell shadow-none ring-0",
             compactMode
-              ? "md:min-h-[calc(100dvh-1.5rem)] md:max-h-[900px] md:rounded-[28px] md:shadow-[0_16px_40px_rgba(48,33,18,0.16)]"
-              : "md:min-h-[calc(100dvh-3rem)] md:max-h-[920px] md:rounded-[34px] md:shadow-[0_18px_48px_rgba(48,33,18,0.18)]"
+              ? "md:min-h-[calc(100dvh-1.5rem)] md:max-h-[900px] md:rounded-[30px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
+              : "md:min-h-[calc(100dvh-3rem)] md:max-h-[920px] md:rounded-[34px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
           )}
         >
-          <div className="sticky top-0 z-40">
+          <div className="sticky top-0 z-50 shrink-0">
             <TopHeader rightContent={headerRight} />
             {showModeNav ? <ModeNav activeMode={activeMode} /> : null}
           </div>
@@ -61,10 +57,9 @@ export function MobileShell({
           <main
             id="lela-scroll-container"
             className={cn(
-              "flex-1 overflow-y-auto overscroll-contain scroll-smooth",
-              showBottomBar ? "pb-28" : "",
+              "min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth",
+              showBottomBar ? "pb-[calc(6.75rem+env(safe-area-inset-bottom))]" : "",
               "isolate",
-              compactMode ? "pb-24" : "",
               className
             )}
           >

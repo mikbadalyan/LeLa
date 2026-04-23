@@ -100,7 +100,7 @@ export function contributionPayloadFromModeration(
   contribution: ModerationContribution
 ): ContributionPayload {
   const payload = contribution.payload ?? {};
-  const mediaItems = Array.isArray(payload.media_items)
+  const mediaItems: ContributionMediaItem[] = Array.isArray(payload.media_items)
     ? payload.media_items.filter(
         (entry): entry is ContributionMediaItem =>
           Boolean(
@@ -121,7 +121,7 @@ export function contributionPayloadFromModeration(
                 ? payload.legacy_media_kind
                 : "image",
             name: contribution.media_name,
-          },
+          } satisfies ContributionMediaItem,
         ]
       : [];
 

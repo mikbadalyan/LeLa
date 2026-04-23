@@ -40,8 +40,8 @@ export function BottomTabBar({ activeTab }: BottomTabBarProps) {
   return (
     <nav
       className={cn(
-        "sticky bottom-0 z-40 grid shrink-0 grid-cols-5 gap-2 border-t border-white/10 bg-plum/95 px-2 text-white backdrop-blur-md",
-        compactMode ? "pb-[max(env(safe-area-inset-bottom),0.7rem)] pt-2.5" : "pb-[max(env(safe-area-inset-bottom),0.95rem)] pt-3.5"
+        "sticky bottom-0 z-50 grid shrink-0 grid-cols-5 gap-1.5 border-t border-white/12 bg-plum px-2 text-white shadow-[0_-18px_38px_rgba(35,25,48,0.18)] backdrop-blur-md",
+        compactMode ? "pb-[max(env(safe-area-inset-bottom),0.8rem)] pt-2.5" : "pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
       )}
     >
       {items.map(({ key, href, label }) => {
@@ -52,9 +52,9 @@ export function BottomTabBar({ activeTab }: BottomTabBarProps) {
             key={key}
             href={href}
             className={cn(
-              "flex flex-col items-center justify-center rounded-[18px] px-1 text-center text-[10.5px] font-medium transition",
-              compactMode ? "min-h-[60px] gap-1 py-2" : "min-h-[68px] gap-1.5 py-2.5",
-              isActive ? "bg-white/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)]" : "opacity-90 hover:bg-white/7"
+              "flex flex-col items-center justify-center rounded-[18px] px-1 text-center text-[10.5px] font-semibold transition focus-visible:outline-white/40",
+              compactMode ? "min-h-[58px] gap-1 py-2" : "min-h-[66px] gap-1.5 py-2.5",
+              isActive ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "opacity-88 hover:bg-white/8"
             )}
           >
             <TabIcon
