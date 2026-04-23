@@ -13,9 +13,10 @@ export function useFeed(
   media?: "all" | "video" | null
 ) {
   const token = useAuthStore((state) => state.token);
+  const viewerId = useAuthStore((state) => state.user?.id ?? "guest");
 
   return useInfiniteQuery({
-    queryKey: ["feed", filter, city ?? "", date ?? "", media ?? "all", Boolean(token)],
+    queryKey: ["feed", filter, city ?? "", date ?? "", media ?? "all", viewerId],
     queryFn: ({ pageParam }) =>
       getFeed({
         type: filter === "all" ? undefined : filter,

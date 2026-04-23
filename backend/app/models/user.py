@@ -64,7 +64,11 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
 
     editorial_objects = relationship("EditorialObject", back_populates="contributor")
-    contributions = relationship("Contribution", back_populates="user")
+    contributions = relationship(
+        "Contribution",
+        foreign_keys="Contribution.user_id",
+        back_populates="user",
+    )
     likes = relationship("Like", back_populates="user")
     chat_feedback = relationship("ChatFeedback", back_populates="user")
     sent_friendships = relationship(

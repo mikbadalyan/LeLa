@@ -1,7 +1,13 @@
 from __future__ import annotations
 
 from app.models.chat_feedback import ChatFeedback
-from app.models.contribution import Contribution, ContributionStatus, ContributionType
+from app.models.contribution import (
+    Contribution,
+    ContributionModerationAction,
+    ContributionModerationEvent,
+    ContributionStatus,
+    ContributionType,
+)
 from app.models.direct_message import DirectMessage
 from app.models.editorial import (
     EditorialObject,
@@ -20,6 +26,8 @@ from app.models.user import User, UserRole
 __all__ = [
     "ChatFeedback",
     "Contribution",
+    "ContributionModerationAction",
+    "ContributionModerationEvent",
     "ContributionStatus",
     "ContributionType",
     "DirectMessage",

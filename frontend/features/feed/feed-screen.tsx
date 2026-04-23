@@ -12,6 +12,7 @@ import { useFeedUiStore } from "@/features/feed/store";
 import { useShellStore } from "@/features/shell/store";
 import { useFeedScrollRestoration } from "@/lib/hooks/use-feed-scroll";
 import type { EditorialCard } from "@/lib/api/types";
+import { resolveFeedFilterFromFocus } from "@/lib/utils/editorial";
 
 type Focus = "feed" | "place" | "person" | "event" | "chat";
 
@@ -37,6 +38,10 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
   const likeMutation = useToggleLike(token);
+  const effectiveFilter = useMemo(
+    () => resolveFeedFilterFromFocus(focus, filter),
+    [focus, filter]
+  );
 
   useFeedScrollRestoration();
 
@@ -51,7 +56,11 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   }, [focus, setFilter]);
 
   const activeMode = focus === "feed" ? "feed" : focus;
-  const feedQuery = useFeed(filter, city, selectedDate);
+  const feedQuery = useFeed(effectiveFilter, city, selectedDate);
+
+  useEffect(() => {
+    setCloudFilterIds(null);
+  }, [effectiveFilter, city, selectedDate]);
 
   // Infinite scroll sentinel
   useEffect(() => {

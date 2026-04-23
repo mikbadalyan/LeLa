@@ -11,24 +11,32 @@ import {
   Mail,
   MapPin,
   PenSquare,
-  Sparkles,
+  RotateCcw,
   Save,
   X,
+  AlertTriangle,
+  CircleSlash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
+import { ContributionStatusBadge } from "@/components/ui/contribution-status-badge";
 import { Input, Textarea } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
 import {
-  approveContribution,
+  clearContributionDraft,
+  contributionPayloadFromModeration,
+  saveContributionDraft,
+} from "@/features/contribution/draft";
+import {
   getConversationMessages,
   getConversations,
   getCurrentUser,
   getMyContributions,
   getMyEditorials,
   getPendingContributions,
+  moderateContribution,
   updateCurrentUser,
 } from "@/lib/api/endpoints";
 import type { ModerationContribution } from "@/lib/api/types";
@@ -49,6 +57,16 @@ function formatContributionMeta(item: ModerationContribution) {
   }
 
   return item.payload.linked_place_name || item.payload.linked_event_name || "Capsule editoriale";
+}
+
+function getContributionPreviewKind(item: ModerationContribution) {
+  const payload = item.payload ?? {};
+  return (
+    payload.primary_media_kind ??
+    payload.media_items?.[0]?.kind ??
+    payload.legacy_media_kind ??
+    "image"
+  );
 }
 
 function GalleryTile({
@@ -114,6 +132,7 @@ export default function ProfilePage() {
     bio: "",
   });
   const [message, setMessage] = useState<string | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user || !token) {
@@ -194,13 +213,33 @@ export default function ProfilePage() {
     },
   });
 
-  const approveMutation = useMutation({
-    mutationFn: (contributionId: string) => approveContribution(contributionId, token!),
+  const moderationMutation = useMutation({
+    mutationFn: ({
+      contributionId,
+      action,
+      note,
+    }: {
+      contributionId: string;
+      action: "approved" | "changes_requested" | "rejected";
+      note?: string;
+    }) =>
+      moderateContribution(
+        contributionId,
+        {
+          action,
+          note,
+        },
+        token!
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-contributions"] });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["my-editorials"] });
       queryClient.invalidateQueries({ queryKey: ["my-contributions"] });
+      setReviewNotes({});
+    },
+    onError: (error: Error) => {
+      setMessage(error.message);
     },
   });
 
@@ -208,6 +247,17 @@ export default function ProfilePage() {
   const pendingItems =
     myContributionsQuery.data?.filter((item) => item.status !== "approved") ?? [];
   const taggedCount = taggedQuery.data?.length ?? 0;
+
+  const resumeContribution = (item: ModerationContribution) => {
+    clearContributionDraft();
+    saveContributionDraft({
+      form: contributionPayloadFromModeration(item),
+      step: "content",
+      lastSavedAt: new Date().toISOString(),
+      sourceContributionId: item.id,
+    });
+    router.push("/contribute");
+  };
 
   return (
     <MobileShell activeMode="feed" activeTab="profile" className="space-y-4 px-4 py-5">
@@ -448,23 +498,51 @@ export default function ProfilePage() {
               <LoaderCircle className="h-6 w-6 animate-spin text-plum" />
             </div>
           ) : pendingItems.length ? (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-3">
               {pendingItems.map((item) => (
                 <div
                   key={item.id}
-                  className="relative aspect-square overflow-hidden rounded-[22px] bg-[linear-gradient(160deg,#2A2F3B_0%,#7340D8_100%)] shadow-card"
+                  className="rounded-[24px] bg-[#FAF5EF] px-4 py-4 ring-1 ring-black/5"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-plum">
-                    En attente
-                  </span>
-                  <div className="absolute inset-x-3 bottom-3">
-                    <p className="line-clamp-2 text-sm font-semibold leading-5 text-white">
-                      {item.title}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-2">
+                      <ContributionStatusBadge status={item.status} />
+                      <p className="text-sm font-semibold leading-5 text-ink">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-graphite/72">
+                        {formatContributionMeta(item)}
+                      </p>
+                    </div>
+                    {(item.status === "changes_requested" || item.status === "rejected") ? (
+                      <button
+                        type="button"
+                        onClick={() => resumeContribution(item)}
+                        className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-2 text-xs font-semibold text-plum ring-1 ring-borderSoft"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        Reprendre
+                      </button>
+                    ) : null}
+                  </div>
+                  {item.moderation_note ? (
+                    <div className="mt-3 rounded-[18px] bg-white px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft">
+                      <p className="font-semibold text-ink">Note de moderation</p>
+                      <p className="mt-1">{item.moderation_note}</p>
+                    </div>
+                  ) : null}
+                  {item.reviewed_at ? (
+                    <p className="mt-3 text-[11px] text-graphite/60">
+                      Derniere mise a jour: {new Date(item.reviewed_at).toLocaleString("fr-FR")}
                     </p>
-                    <p className="mt-1 line-clamp-2 text-xs text-white/75">
-                      {formatContributionMeta(item)}
+                  ) : null}
+                  <div className="mt-3 text-xs text-graphite/70">
+                    <p>
+                      Soumis le {new Date(item.created_at).toLocaleDateString("fr-FR")}
                     </p>
+                    {item.media_name ? (
+                      <p className="mt-1">Media: {item.media_name}</p>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -486,7 +564,7 @@ export default function ProfilePage() {
                 Contributions en attente
               </h2>
               <p className="mt-2 text-sm leading-6 text-graphite">
-                Acceptez une proposition pour la publier directement dans le feed.
+                Revoyez les propositions, ajoutez une note si besoin, puis publiez, demandez des corrections ou refusez.
               </p>
             </div>
             <div className="rounded-full bg-[#F8F0FF] px-3 py-2 text-sm font-semibold text-plum">
@@ -505,32 +583,121 @@ export default function ProfilePage() {
                   key={item.id}
                   className="rounded-[28px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-plum">
-                        <Sparkles className="h-4 w-4" />
-                        <span>{item.type}</span>
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-plum">
+                          <ContributionStatusBadge status={item.status} />
+                          <span>{item.type}</span>
+                        </div>
+                        <h3 className="text-xl font-semibold text-ink">{item.title}</h3>
+                        {item.subtitle ? (
+                          <p className="text-sm text-graphite">{item.subtitle}</p>
+                        ) : null}
+                        <p className="text-sm leading-7 text-graphite/90">{item.description}</p>
+                        <div className="flex flex-wrap gap-2 text-xs text-graphite/70">
+                          <span>Par {item.submitter.display_name}</span>
+                          <span>{formatContributionMeta(item)}</span>
+                          {item.media_name ? <span>Media: {item.media_name}</span> : null}
+                        </div>
                       </div>
-                      <h3 className="text-xl font-semibold text-ink">{item.title}</h3>
-                      {item.subtitle ? (
-                        <p className="text-sm text-graphite">{item.subtitle}</p>
+                      {item.media_url ? (
+                        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[20px] bg-mist">
+                          {getContributionPreviewKind(item) === "audio" ? (
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#6A2BE8_100%)]" />
+                          ) : getContributionPreviewKind(item) === "video" ? (
+                            <div className="absolute inset-0 bg-[linear-gradient(160deg,#2E2D35_0%,#5D4AE4_100%)]" />
+                          ) : (
+                            <Image
+                              src={item.media_url}
+                              alt={item.title}
+                              fill
+                              sizes="96px"
+                              className="object-cover"
+                            />
+                          )}
+                        </div>
                       ) : null}
-                      <p className="text-sm leading-7 text-graphite/90">{item.description}</p>
-                      <div className="flex flex-wrap gap-2 text-xs text-graphite/70">
-                        <span>Par {item.submitter.display_name}</span>
-                        <span>{formatContributionMeta(item)}</span>
-                        {item.media_name ? <span>Media: {item.media_name}</span> : null}
-                      </div>
                     </div>
-                    <Button
-                      type="button"
-                      onClick={() => approveMutation.mutate(item.id)}
-                      disabled={approveMutation.isPending}
-                      className="shrink-0"
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Accepter
-                    </Button>
+
+                    <Textarea
+                      value={reviewNotes[item.id] ?? item.moderation_note ?? ""}
+                      onChange={(event) =>
+                        setReviewNotes((current) => ({
+                          ...current,
+                          [item.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Ajoutez une note pour expliquer la decision de moderation."
+                      className="min-h-28"
+                    />
+
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          moderationMutation.mutate({
+                            contributionId: item.id,
+                            action: "approved",
+                            note: reviewNotes[item.id],
+                          })
+                        }
+                        disabled={moderationMutation.isPending}
+                        className="min-w-0"
+                      >
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Publier
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          moderationMutation.mutate({
+                            contributionId: item.id,
+                            action: "changes_requested",
+                            note: reviewNotes[item.id],
+                          })
+                        }
+                        disabled={moderationMutation.isPending}
+                        className="min-w-0"
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        A revoir
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          moderationMutation.mutate({
+                            contributionId: item.id,
+                            action: "rejected",
+                            note: reviewNotes[item.id],
+                          })
+                        }
+                        disabled={moderationMutation.isPending}
+                        className="min-w-0"
+                      >
+                        <CircleSlash2 className="mr-2 h-4 w-4" />
+                        Refuser
+                      </Button>
+                    </div>
+
+                    {item.history.length ? (
+                      <div className="rounded-[20px] bg-white px-3 py-3 text-xs leading-6 text-graphite ring-1 ring-borderSoft">
+                        <p className="font-semibold text-ink">Historique</p>
+                        <div className="mt-2 space-y-2">
+                          {item.history.slice(0, 3).map((event) => (
+                            <div key={event.id}>
+                              <p className="font-medium text-ink">
+                                {event.moderator.display_name} · {new Date(event.created_at).toLocaleString("fr-FR")}
+                              </p>
+                              <p>{event.action.replaceAll("_", " ")}</p>
+                              {event.note ? <p className="text-graphite/75">{event.note}</p> : null}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}

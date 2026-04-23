@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type MouseEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CalendarClock, Heart, MapPin, RotateCcw, Volume2 } from "lucide-react";
@@ -19,6 +19,7 @@ import { useAuthStore } from "@/features/auth/store";
 import { useShellStore } from "@/features/shell/store";
 import type { EditorialCard } from "@/lib/api/types";
 import { cn } from "@/lib/utils/cn";
+import { buildEditorialMapHref } from "@/lib/utils/editorial";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
 
 interface EditorialFeedCardProps {
@@ -46,6 +47,11 @@ function contributorHref(contributorId: string, currentUserId?: string) {
   return contributorId === currentUserId ? "/profile" : `/profile/${contributorId}`;
 }
 
+function stopCardAction(event: MouseEvent<HTMLElement> | PointerEvent<HTMLElement>) {
+  event.preventDefault();
+  event.stopPropagation();
+}
+
 export function EditorialFeedCard({
   item,
   onLike,
@@ -68,6 +74,7 @@ export function EditorialFeedCard({
   const locationText =
     item.metadata.address || item.metadata.city || item.linked_entity?.title || item.subtitle;
   const profileHref = contributorHref(item.contributor.id, currentUserId);
+  const mapHref = buildEditorialMapHref(item.id);
 
   useEffect(() => {
     if (!isVideo || !videoRef.current) {
@@ -173,6 +180,7 @@ export function EditorialFeedCard({
       <div className="absolute left-4 top-4 z-10 max-w-[70%]">
         <Link
           href={profileHref}
+          onPointerDown={stopCardAction}
           className="flex items-center gap-2 rounded-full bg-black/28 px-2.5 py-1.5 text-xs text-white/92 backdrop-blur-md"
         >
           <Image
@@ -189,7 +197,11 @@ export function EditorialFeedCard({
       <div className="absolute right-4 top-4 z-10 flex flex-col gap-2.5">
         <button
           type="button"
-          onClick={() => onLike?.(item.id)}
+          onPointerDown={stopCardAction}
+          onClick={(event) => {
+            stopCardAction(event);
+            onLike?.(item.id);
+          }}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
           aria-label={item.is_liked ? "Retirer des aimes" : "Aimer cette carte"}
         >
@@ -200,7 +212,11 @@ export function EditorialFeedCard({
           {({ open }) => (
             <button
               type="button"
-              onClick={open}
+              onPointerDown={stopCardAction}
+              onClick={(event) => {
+                stopCardAction(event);
+                open();
+              }}
               className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
               aria-label="Partager cette carte"
             >
@@ -212,12 +228,13 @@ export function EditorialFeedCard({
         <button
           type="button"
           onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setFlipped(true);
+            stopCardAction(event);
+            setFlipped((current) => !current);
           }}
+          onPointerDown={stopCardAction}
           className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 backdrop-blur-md transition hover:bg-white/28"
           aria-label="Voir le dos de la carte"
+          aria-pressed={flipped}
         >
           <RotateCcw className="h-[17px] w-[17px] text-white" />
         </button>
@@ -239,12 +256,13 @@ export function EditorialFeedCard({
 
       {(isVideo || isAudio) ? (
         <div className="absolute bottom-5 right-4 z-10">
-          <button
-            type="button"
-            onClick={toggleMediaPlayback}
-            className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
-            aria-label={isPlayingPreview ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
-          >
+            <button
+              type="button"
+              onClick={toggleMediaPlayback}
+              onPointerDown={stopCardAction}
+              className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-plum shadow-[0_12px_32px_rgba(106,43,232,0.42)]"
+              aria-label={isPlayingPreview ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
+            >
             <MediaStateIcon
               kind={isAudio ? "audio" : "video"}
               isPlaying={isPlayingPreview}
@@ -282,8 +300,10 @@ export function EditorialFeedCard({
         <button
           type="button"
           onClick={() => setFlipped(false)}
+          onPointerDown={stopCardAction}
           className="absolute right-4 top-4 rounded-full bg-white/15 p-2 backdrop-blur transition hover:bg-white/25"
           aria-label="Retourner la carte"
+          aria-pressed={!flipped}
         >
           <RotateCcw className="h-[18px] w-[18px] text-white" />
         </button>
@@ -417,8 +437,9 @@ export function EditorialFeedCard({
 
           {canOpenMap ? (
             <Link
-              href={`/map?editorial=${item.id}`}
+              href={mapHref}
               className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-ink ring-1 ring-borderSoft transition hover:bg-mist"
+              aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPin className="h-4 w-4" />
               Sur la carte

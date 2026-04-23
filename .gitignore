@@ -13,5 +13,6 @@ venv
 .env.local
 backend/.mypy_cache
 backend/.ruff_cache
+backend/*.db
 frontend/.turbo
 *.tsbuildinfo

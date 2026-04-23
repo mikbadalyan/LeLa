@@ -425,11 +425,18 @@ def respond_to_chat(
     conversation = _conversation_messages(
         payload, current_user, related_editorials, catalog_context
     )
+    assistant_mode: str = "assistant"
+    availability_message: Optional[str] = None
     try:
         message, response_id = _request_provider_completion(settings, conversation)
     except RuntimeError:
         message = _fallback_message(related_editorials, suggested_routes)
         response_id = None
+        assistant_mode = "fallback"
+        availability_message = (
+            "Mode secours actif: le modele IA est indisponible pour le moment, "
+            "mais LE_LA Chat continue avec son index editorial local."
+        )
 
     if not message:
         message = (
@@ -439,6 +446,8 @@ def respond_to_chat(
     return ChatResponse(
         message=message,
         response_id=response_id,
+        mode=assistant_mode,
+        availability_message=availability_message,
         suggested_routes=suggested_routes,
         suggested_editorials=related_editorials,
         follow_up_questions=_follow_up_questions(related_editorials),

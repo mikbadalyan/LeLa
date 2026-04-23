@@ -13,6 +13,8 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  assistantMode: "assistant" | "fallback";
+  availabilityMessage: string | null;
   suggestedRoutes: ChatRouteSuggestion[];
   suggestedEditorials: ChatEditorialSuggestion[];
   followUpQuestions: string[];
@@ -38,6 +40,8 @@ interface ChatState {
   pushUserMessage: (content: string) => { conversationId: string; messageId: string };
   pushAssistantMessage: (payload: {
     message: string;
+    assistantMode?: "assistant" | "fallback";
+    availabilityMessage?: string | null;
     suggestedRoutes?: ChatRouteSuggestion[];
     suggestedEditorials?: ChatEditorialSuggestion[];
     followUpQuestions?: string[];
@@ -116,6 +120,8 @@ export const useChatStore = create<ChatState>()(
             role: "user",
             content,
             createdAt: timestamp,
+            assistantMode: "assistant",
+            availabilityMessage: null,
             suggestedRoutes: [],
             suggestedEditorials: [],
             followUpQuestions: [],
@@ -155,6 +161,8 @@ export const useChatStore = create<ChatState>()(
             role: "assistant",
             content: payload.message,
             createdAt: timestamp,
+            assistantMode: payload.assistantMode ?? "assistant",
+            availabilityMessage: payload.availabilityMessage ?? null,
             suggestedRoutes: payload.suggestedRoutes ?? [],
             suggestedEditorials: payload.suggestedEditorials ?? [],
             followUpQuestions: payload.followUpQuestions ?? [],
@@ -201,7 +209,7 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: "lela-chat",
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
         const state = persistedState as {
           draft?: string;
@@ -231,6 +239,8 @@ export const useChatStore = create<ChatState>()(
               state.messages[state.messages.length - 1]?.createdAt ?? conversation.updatedAt,
             messages: state.messages.map((message) => ({
               ...message,
+              assistantMode: message.assistantMode ?? "assistant",
+              availabilityMessage: message.availabilityMessage ?? null,
               rating: message.rating ?? null,
               feedbackId: message.feedbackId ?? null,
             })),
@@ -250,6 +260,8 @@ export const useChatStore = create<ChatState>()(
               ...conversation,
               messages: conversation.messages.map((message) => ({
                 ...message,
+                assistantMode: message.assistantMode ?? "assistant",
+                availabilityMessage: message.availabilityMessage ?? null,
                 rating: message.rating ?? null,
                 feedbackId: message.feedbackId ?? null,
               })),

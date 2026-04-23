@@ -17,6 +17,7 @@ import type {
   MapMarker,
   MessagePayload,
   MessageRecord,
+  ModerateContributionPayload,
   ModerationContribution,
   PasswordChangePayload,
   PasswordChangeResponse,
@@ -182,6 +183,18 @@ export function getPendingContributions(token: string) {
 export function approveContribution(id: string, token: string) {
   return apiRequest<ContributionRecord>(`/api/contributions/${id}/approve`, {
     method: "POST",
+    token
+  });
+}
+
+export function moderateContribution(
+  id: string,
+  payload: ModerateContributionPayload,
+  token: string
+) {
+  return apiRequest<ContributionRecord>(`/api/contributions/${id}/moderate`, {
+    method: "POST",
+    body: payload,
     token
   });
 }

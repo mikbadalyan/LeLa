@@ -2,6 +2,24 @@ export type EditorialType = "magazine" | "place" | "person" | "event";
 export type UserRole = "contributor" | "moderator";
 export type ThemePreference = "system" | "light" | "dark";
 export type InterfaceLanguage = "fr" | "hy" | "en" | "de";
+export type ContributionMediaKind = "image" | "video" | "audio";
+export type ContributionPrimaryKind = ContributionMediaKind | "text";
+export type ComposerContributionType = "multi_media" | "single_media" | "event";
+export type ContributionType =
+  | ComposerContributionType
+  | "magazine"
+  | "place"
+  | "person";
+export type ContributionStatus =
+  | "draft"
+  | "pending"
+  | "approved"
+  | "changes_requested"
+  | "rejected";
+export type ContributionModerationAction =
+  | "approved"
+  | "changes_requested"
+  | "rejected";
 
 export type RelationType =
   | "located_at"
@@ -175,46 +193,90 @@ export interface AuthResponse {
   user: Contributor;
 }
 
+export interface ContributionMediaItem {
+  kind: ContributionMediaKind;
+  name: string;
+}
+
+export interface ContributionStoredPayload {
+  city?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  opening_hours?: string | null;
+  role?: string | null;
+  event_date?: string | null;
+  end_date?: string | null;
+  price?: string | null;
+  external_url?: string | null;
+  linked_place_name?: string | null;
+  linked_person_name?: string | null;
+  linked_event_name?: string | null;
+  primary_media_kind?: ContributionPrimaryKind | null;
+  media_items?: ContributionMediaItem[];
+  text_content?: string | null;
+  legacy_media_kind?: "image" | "video" | "audio" | null;
+}
+
 export interface ContributionPayload {
-  type: "magazine" | "place" | "person" | "event";
+  type: ComposerContributionType;
   title: string;
   subtitle?: string;
   description: string;
   city?: string;
   address?: string;
-  neighborhood?: string;
-  opening_hours?: string;
-  role?: string;
   event_date?: string;
   end_date?: string;
   price?: string;
-  media_name?: string;
-  media_kind?: "image" | "video" | "audio";
   external_url?: string;
   linked_place_name?: string;
   linked_person_name?: string;
   linked_event_name?: string;
+  primary_media_kind?: ContributionPrimaryKind;
+  media_items: ContributionMediaItem[];
+  text_content?: string;
 }
 
 export interface ContributionRecord {
   id: string;
-  status: "pending" | "approved";
+  status: ContributionStatus;
   created_at: string;
-  type: ContributionPayload["type"];
+  type: ContributionType;
   title: string;
+  moderation_note?: string | null;
+  reviewed_at?: string | null;
+}
+
+export interface ModerationHistoryEvent {
+  id: string;
+  action: ContributionModerationAction;
+  note?: string | null;
+  created_at: string;
+  moderator: Contributor;
 }
 
 export interface ModerationContribution {
   id: string;
-  status: "pending" | "approved";
+  status: ContributionStatus;
   created_at: string;
-  type: ContributionPayload["type"];
+  updated_at: string;
+  submitted_at?: string | null;
+  type: ContributionType;
   title: string;
   subtitle?: string | null;
   description: string;
   media_name?: string | null;
-  payload: Record<string, string | null | undefined>;
+  media_url?: string | null;
+  payload: ContributionStoredPayload;
   submitter: Contributor;
+  moderation_note?: string | null;
+  reviewed_at?: string | null;
+  reviewed_by?: Contributor | null;
+  history: ModerationHistoryEvent[];
+}
+
+export interface ModerateContributionPayload {
+  action: ContributionModerationAction;
+  note?: string;
 }
 
 export interface FriendRecord extends Contributor {
@@ -316,6 +378,8 @@ export interface ChatEditorialSuggestion {
 export interface ChatResponse {
   message: string;
   response_id: string | null;
+  mode: "assistant" | "fallback";
+  availability_message?: string | null;
   suggested_routes: ChatRouteSuggestion[];
   suggested_editorials: ChatEditorialSuggestion[];
   follow_up_questions: string[];

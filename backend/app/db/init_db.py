@@ -53,7 +53,58 @@ def _ensure_users_columns() -> None:
                 conn.execute(text(ddl))
 
 
+def _ensure_contributions_columns() -> None:
+    inspector = inspect(engine)
+    if "contributions" not in inspector.get_table_names():
+        return
+
+    columns = {col["name"] for col in inspector.get_columns("contributions")}
+    definitions = {
+        "moderation_note": "ALTER TABLE contributions ADD COLUMN moderation_note TEXT",
+        "reviewed_by_user_id": "ALTER TABLE contributions ADD COLUMN reviewed_by_user_id VARCHAR(36)",
+        "reviewed_at": "ALTER TABLE contributions ADD COLUMN reviewed_at DATETIME",
+        "submitted_at": "ALTER TABLE contributions ADD COLUMN submitted_at DATETIME",
+        "updated_at": "ALTER TABLE contributions ADD COLUMN updated_at DATETIME",
+    }
+
+    with engine.begin() as conn:
+        for column_name, ddl in definitions.items():
+            if column_name not in columns:
+                conn.execute(text(ddl))
+
+        if "submitted_at" in definitions:
+            conn.execute(
+                text(
+                    "UPDATE contributions SET submitted_at = created_at "
+                    "WHERE submitted_at IS NULL"
+                )
+            )
+        if "updated_at" in definitions:
+            conn.execute(
+                text(
+                    "UPDATE contributions SET updated_at = created_at "
+                    "WHERE updated_at IS NULL"
+                )
+            )
+
+
+def _ensure_indexes() -> None:
+    statements = [
+        "CREATE INDEX IF NOT EXISTS ix_editorial_objects_created_at ON editorial_objects (created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_editorial_objects_type_created_at ON editorial_objects (type, created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_contributions_status_created_at ON contributions (status, created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_direct_messages_thread ON direct_messages (sender_id, recipient_id, created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_editorial_relations_source_target ON editorial_relations (source_id, target_id)",
+    ]
+
+    with engine.begin() as conn:
+        for statement in statements:
+            conn.execute(text(statement))
+
+
 def init_db(session: Session) -> None:
     Base.metadata.create_all(bind=engine)
     _ensure_users_columns()
+    _ensure_contributions_columns()
+    _ensure_indexes()
     seed_database(session)

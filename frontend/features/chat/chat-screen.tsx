@@ -300,6 +300,8 @@ export function ChatScreen() {
     onSuccess: (response) => {
       pushAssistantMessage({
         message: response.message,
+        assistantMode: response.mode,
+        availabilityMessage: response.availability_message ?? null,
         suggestedRoutes: response.suggested_routes,
         suggestedEditorials: response.suggested_editorials,
         followUpQuestions: response.follow_up_questions,
@@ -310,6 +312,9 @@ export function ChatScreen() {
         message:
           error.message ||
           "LE_LA Chat est indisponible pour le moment. Verifiez la configuration du backend puis reessayez.",
+        assistantMode: "fallback",
+        availabilityMessage:
+          "Mode secours actif: l'assistant IA ne repond pas, seules les suggestions editoriales locales sont disponibles.",
       });
     },
   });
@@ -458,6 +463,12 @@ export function ChatScreen() {
                 <p className="whitespace-pre-wrap text-[15px] leading-7">{message.content}</p>
                 {message.role === "assistant" ? (
                   <>
+                    {message.assistantMode === "fallback" ? (
+                      <div className="mb-3 rounded-[18px] bg-[#FBE7D3] px-3 py-3 text-xs font-medium leading-5 text-[#8C633A]">
+                        {message.availabilityMessage ??
+                          "Mode secours actif: LE_LA Chat vous repond avec son index editorial local."}
+                      </div>
+                    ) : null}
                     <RouteChips routes={message.suggestedRoutes} />
                     <EditorialSuggestions items={message.suggestedEditorials} />
                     {activeConversationId ? (

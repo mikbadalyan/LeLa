@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CircleHelp,
   Globe2,
+  LogOut,
   Menu,
   MonitorSmartphone,
   Map,
@@ -16,6 +17,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { languageOptions, useI18n } from "@/features/shell/i18n";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/features/auth/store";
+import { useLogout } from "@/features/auth/use-logout";
 import { useShellStore } from "@/features/shell/store";
 import { cn } from "@/lib/utils/cn";
 
@@ -31,6 +34,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { language, setLanguage, t, formatDate } = useI18n();
+  const token = useAuthStore((state) => state.token);
+  const logout = useLogout("/login");
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
   const setCity = useShellStore((state) => state.setCity);
@@ -87,8 +92,19 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
   const menuLinks = [
     {
-      label: "Parametres",
-      description: "Preferences de l'app, media et confort.",
+      label: token ? t("menu.account") : t("menu.login"),
+      description: token
+        ? t("menu.accountDescription")
+        : t("menu.loginDescription"),
+      icon: token ? MonitorSmartphone : Settings2,
+      action: () => {
+        router.push(token ? "/profile" : "/login");
+        setOpenPanel(null);
+      },
+    },
+    {
+      label: t("menu.settings"),
+      description: t("menu.settingsDescription"),
       icon: Settings2,
       action: () => {
         router.push("/settings");
@@ -96,8 +112,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Langue",
-      description: "Choisir la langue de l'interface.",
+      label: t("menu.language"),
+      description: t("menu.activeLanguage"),
       icon: Globe2,
       action: () => {
         router.push("/settings?tab=language");
@@ -105,8 +121,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Aide",
-      description: "Astuces rapides et usage de LE_LA.",
+      label: t("menu.help"),
+      description: t("menu.helpText"),
       icon: CircleHelp,
       action: () => {
         router.push("/settings?tab=help");
@@ -114,8 +130,8 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
       },
     },
     {
-      label: "Website",
-      description: "Ouvrir la version grand ecran.",
+      label: t("menu.website"),
+      description: t("menu.websiteDescription"),
       icon: MonitorSmartphone,
       action: () => {
         router.push("/website");
@@ -199,7 +215,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-semibold text-ink">{t("header.changeCity")}</p>
-                  <p className="text-xs leading-5 text-graphite/75">Applique ce contexte partout dans l&apos;app.</p>
+                  <p className="text-xs leading-5 text-graphite/75">{t("header.cityContextHint")}</p>
                 </div>
                 <Input
                   value={draftCity}
@@ -296,7 +312,7 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.18em] text-plum">
-                      Utilitaires
+                      {t("menu.utilities")}
                     </p>
                     <p className="mt-1 text-sm text-graphite">
                       {city} · {formatDate(selectedDate)}
@@ -340,17 +356,34 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
 
                 <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
-                    Langue active
+                    {t("menu.activeLanguage")}
                   </p>
-                  <p className="mt-3 text-sm text-graphite">
-                    {languageOptions.find((option) => option.code === language)?.flag}{" "}
-                    {languageOptions.find((option) => option.code === language)?.label}
-                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {languageOptions.map((option) => (
+                      <button
+                        key={option.code}
+                        type="button"
+                        onClick={() => {
+                          setLanguage(option.code);
+                          setOpenPanel(null);
+                        }}
+                        className={cn(
+                          "rounded-full px-3 py-2 text-xs font-semibold transition",
+                          language === option.code
+                            ? "bg-plum text-white"
+                            : "bg-white text-ink ring-1 ring-borderSoft"
+                        )}
+                        aria-label={`${t("menu.language")}: ${option.label}`}
+                      >
+                        {option.flag} {option.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-4 ring-1 ring-borderSoft">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">
-                    Contexte
+                    {t("menu.contextTitle")}
                   </p>
                   <div className="mt-3 flex items-center justify-between gap-3 text-sm text-graphite">
                     <span>{city} · {formatDate(selectedDate)}</span>
@@ -367,6 +400,25 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
                     </Button>
                   </div>
                 </div>
+
+                {token ? (
+                  <button
+                      type="button"
+                      onClick={() => {
+                        setOpenPanel(null);
+                        logout();
+                      }}
+                    className="flex w-full items-center justify-between rounded-[24px] bg-[#FFF3F1] px-4 py-4 text-left ring-1 ring-[#F0D5CF] transition hover:bg-[#ffe9e5]"
+                    >
+                      <div>
+                      <p className="text-sm font-semibold text-[#A04132]">{t("menu.logout")}</p>
+                      <p className="mt-1 text-xs text-[#A04132]/75">
+                        {t("menu.logoutDescription")}
+                      </p>
+                    </div>
+                    <LogOut className="h-4 w-4 shrink-0 text-[#A04132]" />
+                  </button>
+                ) : null}
               </div>
             </div>
           ) : null}

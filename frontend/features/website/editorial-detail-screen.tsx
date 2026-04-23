@@ -6,12 +6,14 @@ import Link from "next/link";
 import { Heart, LoaderCircle, MapPinned } from "lucide-react";
 
 import { WebsiteEditorialCard } from "@/components/cards/website-editorial-card";
+import { Button } from "@/components/ui/button";
 import { MediaStateIcon, ShareIcon } from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { useToggleLike } from "@/features/feed/hooks";
 import { useI18n } from "@/features/shell/i18n";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
+import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
 import { formatPrice } from "@/lib/utils/format";
 
 export function WebsiteEditorialDetailScreen({
@@ -20,11 +22,13 @@ export function WebsiteEditorialDetailScreen({
   editorialId: string;
 }) {
   const token = useAuthStore((state) => state.token);
+  const currentUserId = useAuthStore((state) => state.user?.id);
+  const viewerId = currentUserId ?? "guest";
   const queryClient = useQueryClient();
   const { t, formatDateTime } = useI18n();
 
   const detailQuery = useQuery({
-    queryKey: ["website-editorial", editorialId, Boolean(token)],
+    queryKey: ["website-editorial", editorialId, viewerId],
     queryFn: () => getEditorial(editorialId, token),
   });
 
@@ -46,7 +50,7 @@ export function WebsiteEditorialDetailScreen({
   const cardLikeMutation = useToggleLike(token);
   const item = detailQuery.data;
 
-  if (!item) {
+  if (detailQuery.isPending) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-[1380px] items-center justify-center px-5 py-20 lg:px-8">
         <LoaderCircle className="h-8 w-8 animate-spin text-plum" />
@@ -54,11 +58,66 @@ export function WebsiteEditorialDetailScreen({
     );
   }
 
+  if (detailQuery.isError) {
+    return (
+      <div className="mx-auto max-w-[980px] px-5 py-16 lg:px-8">
+        <div className="rounded-[36px] bg-white px-6 py-8 shadow-card ring-1 ring-borderSoft/60">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
+            Fiche indisponible
+          </p>
+          <h1 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-ink">
+            Le contenu n&apos;a pas pu se charger.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-graphite">
+            {detailQuery.error.message || "La requete editoriale a echoue. Reessayez ou revenez vers le flux d'exploration."}
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button onClick={() => detailQuery.refetch()}>Reessayer</Button>
+            <Link
+              href="/website/feed"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-white px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+            >
+              Retour a l&apos;exploration
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="mx-auto max-w-[980px] px-5 py-16 lg:px-8">
+        <div className="rounded-[36px] bg-white px-6 py-8 shadow-card ring-1 ring-borderSoft/60">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-plum">
+            Carte introuvable
+          </p>
+          <h1 className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-ink">
+            Cette capsule n&apos;existe plus dans LE_LA.
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-graphite">
+            L&apos;identifiant editorial semble invalide ou la carte a ete retiree du flux.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/website/feed"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-plum px-4 py-2.5 text-[13px] font-semibold text-white shadow-float"
+            >
+              Retour a l&apos;exploration
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const mediaSrc = item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url;
   const contributorHref =
-    item.contributor.id === useAuthStore.getState().user?.id
+    item.contributor.id === currentUserId
       ? "/website/profile"
       : `/website/profile/${item.contributor.id}`;
+  const mapHref = buildEditorialMapHref(item.id, "/website");
+  const showAddressLine = shouldRenderEditorialAddress(item.metadata.address, item.subtitle);
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-10 px-5 py-8 lg:px-8 lg:py-12">
@@ -126,7 +185,7 @@ export function WebsiteEditorialDetailScreen({
                 <p className="mt-1 font-semibold text-ink">{formatPrice(item.metadata.price)}</p>
               </div>
             ) : null}
-            {item.metadata.address ? (
+            {showAddressLine ? (
               <div className="rounded-[24px] bg-mist px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.14em] text-graphite/60">Adresse</p>
                 <p className="mt-1 font-semibold text-ink">{item.metadata.address}</p>
@@ -154,8 +213,9 @@ export function WebsiteEditorialDetailScreen({
               )}
             </ShareSheet>
             <Link
-              href={`/website/map?editorial=${item.id}`}
+              href={mapHref}
               className="inline-flex items-center rounded-full bg-plum px-5 py-3 text-sm font-semibold text-white"
+              aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPinned className="mr-2 h-4 w-4" />
               {t("website.map")}
@@ -187,13 +247,19 @@ export function WebsiteEditorialDetailScreen({
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {item.related.map((relatedItem) => (
-            <WebsiteEditorialCard
-              key={relatedItem.id}
-              item={relatedItem}
-              onLike={(id) => cardLikeMutation.mutate(id)}
-            />
-          ))}
+          {item.related.length ? (
+            item.related.map((relatedItem) => (
+              <WebsiteEditorialCard
+                key={relatedItem.id}
+                item={relatedItem}
+                onLike={(id) => cardLikeMutation.mutate(id)}
+              />
+            ))
+          ) : (
+            <div className="rounded-[28px] bg-white px-5 py-6 text-sm leading-7 text-graphite shadow-card ring-1 ring-borderSoft/60 md:col-span-2 xl:col-span-3">
+              Cette carte n&apos;a pas encore de prolongement visible dans le graphe editorial.
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -20,6 +20,7 @@ import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, toggleLike } from "@/lib/api/endpoints";
 import type { EditorialCard } from "@/lib/api/types";
+import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
 
 interface DetailScreenProps {
@@ -41,6 +42,7 @@ function isInCloud(item: EditorialCard, activeCloudIds: string[]) {
 
 export function DetailScreen({ editorialId }: DetailScreenProps) {
   const token = useAuthStore((state) => state.token);
+  const viewerId = useAuthStore((state) => state.user?.id ?? "guest");
   const queryClient = useQueryClient();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -48,7 +50,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
 
   const detailQuery = useQuery({
-    queryKey: ["editorial", editorialId, Boolean(token)],
+    queryKey: ["editorial", editorialId, viewerId],
     queryFn: () => getEditorial(editorialId, token)
   });
 
@@ -70,7 +72,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
 
   const item = detailQuery.data;
 
-  if (!item) {
+  if (detailQuery.isPending) {
     return (
       <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
         <div className="rounded-[28px] bg-white px-5 py-6 shadow-sm">
@@ -80,10 +82,57 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
     );
   }
 
+  if (detailQuery.isError) {
+    return (
+      <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
+        <div className="space-y-4 rounded-[28px] bg-white px-5 py-6 shadow-sm ring-1 ring-borderSoft">
+          <div>
+            <p className="text-lg font-semibold text-ink">Cette fiche n&apos;a pas pu se charger.</p>
+            <p className="mt-2 text-sm leading-6 text-graphite">
+              {detailQuery.error.message || "Le contenu editorial est indisponible pour le moment."}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button onClick={() => detailQuery.refetch()}>Reessayer</Button>
+            <Link
+              href="/feed"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-white px-4 py-2.5 text-[13px] font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+            >
+              Retour au fil
+            </Link>
+          </div>
+        </div>
+      </MobileShell>
+    );
+  }
+
+  if (!item) {
+    return (
+      <MobileShell activeMode="feed" activeTab="relations" className="px-5 py-8">
+        <div className="space-y-4 rounded-[28px] bg-white px-5 py-6 shadow-sm ring-1 ring-borderSoft">
+          <div>
+            <p className="text-lg font-semibold text-ink">Cette fiche est introuvable.</p>
+            <p className="mt-2 text-sm leading-6 text-graphite">
+              La carte a peut-etre ete retiree ou son identifiant n&apos;est plus valide.
+            </p>
+          </div>
+          <Link
+            href="/feed"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-[18px] bg-plum px-4 py-2.5 text-[13px] font-semibold text-white shadow-float"
+          >
+            Revenir au fil
+          </Link>
+        </div>
+      </MobileShell>
+    );
+  }
+
   const activeMode =
     item.type === "place" ? "place" : item.type === "person" ? "person" : item.type === "event" ? "event" : "feed";
   const isVideo = item.media_kind === "video";
   const isAudio = item.media_kind === "audio";
+  const mapHref = buildEditorialMapHref(item.id);
+  const showAddressLine = shouldRenderEditorialAddress(item.metadata.address, item.subtitle);
   const visibleRelated = cloudFilterIds?.length
     ? item.related.filter((relatedItem) => isInCloud(relatedItem, cloudFilterIds))
     : item.related;
@@ -197,7 +246,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                 {item.subtitle ? (
                   <p className="mt-1 text-lg text-graphite">{item.subtitle}</p>
                 ) : null}
-                {item.metadata.address ? (
+                {showAddressLine ? (
                   <p className="mt-1 text-sm italic text-graphite/75">{item.metadata.address}</p>
                 ) : null}
               </div>
@@ -246,8 +295,9 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
               )}
             </ShareSheet>
             <Link
-              href={`/map?editorial=${item.id}`}
-              className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+              href={mapHref}
+              className="relative z-10 inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft"
+              aria-label={`Ouvrir ${item.title} sur la carte`}
             >
               <MapPinned className="mr-2 h-4 w-4" />
               Map
@@ -281,7 +331,7 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
           </div>
 
           <div className="space-y-4">
-            {visibleRelated.map((relatedItem) => (
+            {visibleRelated.length ? visibleRelated.map((relatedItem) => (
               <Link
                 key={relatedItem.id}
                 href={`/editorial/${relatedItem.id}`}
@@ -354,7 +404,11 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                   </div>
                 </div>
               </Link>
-            ))}
+            )) : (
+              <div className="rounded-[24px] bg-[#FCFAF8] px-4 py-5 text-sm leading-6 text-graphite ring-1 ring-borderSoft">
+                Aucune autre carte reliee ne correspond au filtre actif pour le moment.
+              </div>
+            )}
           </div>
         </div>
       </article>

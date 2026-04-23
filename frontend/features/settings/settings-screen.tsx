@@ -10,6 +10,7 @@ import {
   Laptop2,
   LockKeyhole,
   LogIn,
+  LogOut,
   Mail,
   MonitorSmartphone,
   MoonStar,
@@ -27,6 +28,7 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
+import { useLogout } from "@/features/auth/use-logout";
 import { languageOptions } from "@/features/shell/i18n";
 import { shellDefaults, useShellStore } from "@/features/shell/store";
 import {
@@ -516,6 +518,7 @@ export function SettingsScreen({
     draftSettings.last_password_changed_at,
     draftSettings.interface_language
   );
+  const logout = useLogout(loginHref);
 
   const content = (
     <div className={cn("space-y-4", variant === "website" ? "mx-auto w-full max-w-[1240px] px-5 py-8 lg:px-8 lg:py-10" : "px-3 py-3")}>
@@ -1116,6 +1119,42 @@ export function SettingsScreen({
             </SettingsCard>
           </div>
         </div>
+      ) : null}
+
+      {token ? (
+        <SettingsCard
+          title="Session"
+          hint="Retrouvez rapidement votre espace compte et fermez la session si besoin."
+        >
+          <div className={cn("grid gap-3", variant === "website" ? "sm:grid-cols-2" : "")}>
+            <Link
+              href={accountHref}
+              className="flex items-center gap-3 rounded-[22px] bg-mist px-4 py-4 ring-1 ring-borderSoft/70"
+            >
+              <Mail className="h-5 w-5 text-plum" />
+              <div>
+                <p className="text-sm font-semibold text-ink">Ouvrir le compte</p>
+                <p className="mt-1 text-xs text-graphite/72">
+                  Profil, publications, moderation et relations.
+                </p>
+              </div>
+            </Link>
+
+            <button
+              type="button"
+              onClick={logout}
+              className="flex items-center justify-between rounded-[22px] bg-[#FFF3F1] px-4 py-4 text-left ring-1 ring-[#F0D5CF] transition hover:bg-[#ffe9e5]"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#A04132]">Se deconnecter</p>
+                <p className="mt-1 text-xs text-[#A04132]/75">
+                  Effacer la session locale et revenir a l&apos;ecran de connexion.
+                </p>
+              </div>
+              <LogOut className="h-5 w-5 shrink-0 text-[#A04132]" />
+            </button>
+          </div>
+        </SettingsCard>
       ) : null}
     </div>
   );

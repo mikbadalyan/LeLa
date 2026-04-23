@@ -10,6 +10,7 @@ from app.core.deps import get_current_user, get_moderator_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.contribution import (
+    ContributionModerationActionRequest,
     ContributionCreate,
     ContributionModerationRead,
     ContributionRead,
@@ -19,6 +20,7 @@ from app.services.contribution_service import (
     create_contribution,
     list_pending_contributions,
     list_user_contributions,
+    moderate_contribution,
 )
 
 router = APIRouter(prefix="/contributions", tags=["contributions"])
@@ -57,9 +59,28 @@ def read_my_contributions(
 def approve_pending_contribution(
     contribution_id: str,
     db: Annotated[Session, Depends(get_db)],
-    _: Annotated[User, Depends(get_moderator_user)],
+    moderator: Annotated[User, Depends(get_moderator_user)],
 ) -> ContributionRead:
     try:
-        return approve_contribution(db, contribution_id)
+        return approve_contribution(db, contribution_id, moderator)
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+
+
+@router.post("/{contribution_id}/moderate", response_model=ContributionRead)
+def moderate_pending_contribution(
+    contribution_id: str,
+    payload: ContributionModerationActionRequest,
+    db: Annotated[Session, Depends(get_db)],
+    moderator: Annotated[User, Depends(get_moderator_user)],
+) -> ContributionRead:
+    try:
+        return moderate_contribution(db, contribution_id, payload, moderator)
+    except ValueError as error:
+        detail = str(error)
+        status_code = (
+            status.HTTP_404_NOT_FOUND
+            if detail == "Contribution introuvable."
+            else status.HTTP_400_BAD_REQUEST
+        )
+        raise HTTPException(status_code=status_code, detail=detail) from error

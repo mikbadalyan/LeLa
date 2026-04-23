@@ -41,6 +41,8 @@ class ChatEditorialSuggestion(BaseModel):
 class ChatResponse(BaseModel):
     message: str
     response_id: Optional[str] = None
+    mode: Literal["assistant", "fallback"] = "assistant"
+    availability_message: Optional[str] = None
     suggested_routes: list[ChatRouteSuggestion]
     suggested_editorials: list[ChatEditorialSuggestion]
     follow_up_questions: list[str]

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Smartphone } from "lucide-react";
 
 import { LogoMark } from "@/components/ui/logo-mark";
 import { useAuthStore } from "@/features/auth/store";
@@ -42,7 +43,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
     },
     {
       href: "/website/settings",
-      label: "Parametres",
+      label: t("website.settings"),
       active: pathname.startsWith("/website/settings"),
     },
   ];
@@ -134,9 +135,11 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
             ))}
             <Link
               href="/feed"
-              className="hidden rounded-full border border-borderSoft bg-[#F8F0FF] px-4 py-2 text-sm font-semibold text-plum transition hover:bg-[#f0e4ff] lg:inline-flex"
+              className="hidden h-11 w-11 items-center justify-center rounded-full border border-borderSoft bg-[#F8F0FF] text-plum transition hover:bg-[#f0e4ff] lg:inline-flex"
+              title={t("website.openApp")}
+              aria-label={t("website.openAppAria")}
             >
-              {t("website.openApp")}
+              <Smartphone className="h-4.5 w-4.5" />
             </Link>
             <Link
               href={accountHref}
@@ -173,7 +176,7 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
               {t("tabs.contribute")}
             </Link>
             <Link href="/website/settings" className="font-medium text-ink hover:text-plum">
-              Parametres
+              {t("website.settings")}
             </Link>
             <Link href="/website/profile" className="font-medium text-ink hover:text-plum">
               {t("website.account")}
