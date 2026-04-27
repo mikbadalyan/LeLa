@@ -5,13 +5,20 @@ import type {
   ChatFeedbackResponse,
   ChatRequestPayload,
   ChatResponse,
+  CardPayload,
+  CardSearchResult,
   ContributionPayload,
+  ContributionProposal,
+  ContributionProposalPayload,
   ContributionRecord,
   ConversationSummary,
+  ContributionFiche,
+  ContributionFichePayload,
   EditorialCard,
   EditorialDetail,
   FeedQueryFilters,
   FeedResponse,
+  FicheModerationPayload,
   FriendRecord,
   LoginPayload,
   MapMarker,
@@ -21,7 +28,11 @@ import type {
   ModerationContribution,
   PasswordChangePayload,
   PasswordChangeResponse,
+  ProposalModerationPayload,
+  PublicCard,
+  PublishedFiche,
   RegisterPayload,
+  RevisionHistoryRecord,
   SharePayload,
   ShareRecord,
   UserSettings,
@@ -134,6 +145,213 @@ export function changePassword(payload: PasswordChangePayload, token: string) {
 
 export function createContribution(payload: ContributionPayload, token: string) {
   return apiRequest<ContributionRecord>("/api/contributions", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function createContributionFiche(payload: ContributionFichePayload, token: string) {
+  return apiRequest<ContributionFiche>("/api/contributions/fiches", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function updateContributionFiche(
+  id: string,
+  payload: Partial<ContributionFichePayload> & { moderator_notes?: string | null },
+  token: string
+) {
+  return apiRequest<ContributionFiche>(`/api/contributions/fiches/${id}`, {
+    method: "PUT",
+    body: payload,
+    token
+  });
+}
+
+export function getContributionFiches(
+  token: string,
+  filters: { status?: string; type?: string; city?: string } = {}
+) {
+  const search = new URLSearchParams();
+  if (filters.status) search.set("status", filters.status);
+  if (filters.type) search.set("type", filters.type);
+  if (filters.city) search.set("city", filters.city);
+  const query = search.toString();
+  return apiRequest<ContributionFiche[]>(
+    `/api/contributions/fiches${query ? `?${query}` : ""}`,
+    { token }
+  );
+}
+
+export function getContributionFiche(id: string, token: string) {
+  return apiRequest<ContributionFiche>(`/api/contributions/fiches/${id}`, {
+    token
+  });
+}
+
+export function reviewContributionFicheWithAi(id: string, token: string) {
+  return apiRequest<ContributionFiche>(`/api/contributions/fiches/${id}/ai-review`, {
+    method: "POST",
+    token
+  });
+}
+
+export function submitContributionFiche(id: string, token: string) {
+  return apiRequest<ContributionFiche>(`/api/contributions/fiches/${id}/submit`, {
+    method: "POST",
+    token
+  });
+}
+
+export function moderateContributionFiche(
+  id: string,
+  action: "approve" | "reject" | "needs-changes",
+  payload: FicheModerationPayload,
+  token: string
+) {
+  return apiRequest<ContributionFiche>(`/api/moderation/fiches/${id}/${action}`, {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function searchCards(
+  filters: { q?: string; city?: string; tags?: string; category?: string; limit?: number } = {}
+) {
+  const search = new URLSearchParams();
+  if (filters.q) search.set("q", filters.q);
+  if (filters.city) search.set("city", filters.city);
+  if (filters.tags) search.set("tags", filters.tags);
+  if (filters.category) search.set("category", filters.category);
+  if (filters.limit) search.set("limit", String(filters.limit));
+  const query = search.toString();
+  return apiRequest<CardSearchResult[]>(`/api/cards/search${query ? `?${query}` : ""}`);
+}
+
+export function createCard(payload: CardPayload, token: string) {
+  return apiRequest<PublicCard>("/api/cards", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function getCard(id: string, token?: string | null) {
+  return apiRequest<PublicCard>(`/api/cards/${id}`, {
+    token
+  });
+}
+
+export function getCardByEditorial(editorialId: string, token?: string | null) {
+  return apiRequest<PublicCard>(`/api/cards/by-editorial/${editorialId}`, {
+    token
+  });
+}
+
+export function getCardFiches(id: string, token?: string | null) {
+  return apiRequest<PublishedFiche[]>(`/api/cards/${id}/fiches`, {
+    token
+  });
+}
+
+export function getEditorialFiches(editorialId: string, token?: string | null) {
+  return apiRequest<PublishedFiche[]>(`/api/cards/by-editorial/${editorialId}/fiches`, {
+    token
+  });
+}
+
+export function createContributionProposal(payload: ContributionProposalPayload, token: string) {
+  return apiRequest<ContributionProposal>("/api/contributions/proposals", {
+    method: "POST",
+    body: payload,
+    token
+  });
+}
+
+export function getMyContributionProposals(token: string) {
+  return apiRequest<ContributionProposal[]>("/api/contributions/proposals/my", {
+    token
+  });
+}
+
+export function getMyRevisionHistory(token: string) {
+  return apiRequest<RevisionHistoryRecord[]>("/api/contributions/revisions/my", {
+    token
+  });
+}
+
+export function getContributionProposal(id: string, token: string) {
+  return apiRequest<ContributionProposal>(`/api/contributions/proposals/${id}`, {
+    token
+  });
+}
+
+export function updateContributionProposal(
+  id: string,
+  payload: Partial<ContributionProposalPayload>,
+  token: string
+) {
+  return apiRequest<ContributionProposal>(`/api/contributions/proposals/${id}`, {
+    method: "PUT",
+    body: payload,
+    token
+  });
+}
+
+export function reviewContributionProposalWithAi(id: string, token: string) {
+  return apiRequest<ContributionProposal>(`/api/contributions/proposals/${id}/ai-review`, {
+    method: "POST",
+    token
+  });
+}
+
+export function submitContributionProposal(id: string, token: string) {
+  return apiRequest<ContributionProposal>(`/api/contributions/proposals/${id}/submit`, {
+    method: "POST",
+    token
+  });
+}
+
+export function getModerationProposals(
+  token: string,
+  filters: {
+    status?: string;
+    type?: string;
+    city?: string;
+    min_score?: number;
+    duplicate_risk?: number;
+    category?: string;
+    contributor?: string;
+    date?: string;
+  } = {}
+) {
+  const search = new URLSearchParams();
+  if (filters.status) search.set("status", filters.status);
+  if (filters.type) search.set("type", filters.type);
+  if (filters.city) search.set("city", filters.city);
+  if (filters.min_score !== undefined) search.set("min_score", String(filters.min_score));
+  if (filters.duplicate_risk !== undefined) search.set("duplicate_risk", String(filters.duplicate_risk));
+  if (filters.category) search.set("category", filters.category);
+  if (filters.contributor) search.set("contributor", filters.contributor);
+  if (filters.date) search.set("date", filters.date);
+  const query = search.toString();
+  return apiRequest<ContributionProposal[]>(
+    `/api/moderation/proposals${query ? `?${query}` : ""}`,
+    { token }
+  );
+}
+
+export function moderateContributionProposal(
+  id: string,
+  action: "approve" | "reject" | "needs-changes",
+  payload: ProposalModerationPayload,
+  token: string
+) {
+  return apiRequest<ContributionProposal>(`/api/moderation/proposals/${id}/${action}`, {
     method: "POST",
     body: payload,
     token

@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
-import { getEditorial, toggleLike } from "@/lib/api/endpoints";
-import type { EditorialCard } from "@/lib/api/types";
+import { getEditorial, getEditorialFiches, toggleLike } from "@/lib/api/endpoints";
+import type { EditorialCard, PublishedFiche } from "@/lib/api/types";
 import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
 import { writeRecentViewedEditorialId } from "@/lib/utils/discovery";
 import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
@@ -39,6 +39,19 @@ function cloudIds(item: EditorialCard) {
 function isInCloud(item: EditorialCard, activeCloudIds: string[]) {
   const itemIds = cloudIds(item);
   return itemIds.some((value) => activeCloudIds.includes(value));
+}
+
+function ficheText(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function ficheSummary(fiche: PublishedFiche) {
+  return (
+    ficheText(fiche.sections.resume) ||
+    ficheText(fiche.sections.description) ||
+    ficheText(fiche.sections.contexte) ||
+    ""
+  );
 }
 
 export function DetailScreen({ editorialId }: DetailScreenProps) {
@@ -76,6 +89,12 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   });
 
   const item = detailQuery.data;
+  const publicFichesQuery = useQuery({
+    queryKey: ["editorial-fiches", editorialId],
+    queryFn: () => getEditorialFiches(editorialId, token),
+    enabled: Boolean(item?.id),
+  });
+  const publicFiches = publicFichesQuery.data ?? [];
 
   useEffect(
     () => () => {
@@ -175,6 +194,24 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   const visibleRelated = cloudFilterIds?.length
     ? item.related.filter((relatedItem) => isInCloud(relatedItem, cloudFilterIds))
     : item.related;
+  const contributionParams = new URLSearchParams({
+    source: "editorial",
+    sourceId: item.id,
+    title: item.title,
+    description: item.description,
+    city: item.metadata.city ?? "",
+    image: item.media_url,
+    category: item.type,
+  });
+  const improveHref = `/contribute?action=fiche&${contributionParams.toString()}`;
+  const correctionHref = `/contribute?action=correction&${contributionParams.toString()}`;
+
+  const ficheCorrectionHref = (fiche: PublishedFiche) => {
+    const params = new URLSearchParams(contributionParams);
+    params.set("targetFicheId", fiche.id);
+    params.set("currentText", ficheSummary(fiche));
+    return `/contribute?action=correction&${params.toString()}`;
+  };
 
   const togglePrimaryPlayback = () => {
     if (isVideo && videoRef.current) {
@@ -312,12 +349,66 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
             <p>{item.narrative_text}</p>
           </div>
 
+          <div className="detail-reveal detail-reveal-delay-2 space-y-3 rounded-card bg-elevated px-5 py-5 shadow-card ring-1 ring-borderSoft/10">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Fiches collaboratives</p>
+                <h2 className="mt-1 text-xl font-semibold text-ink">Versions publiées par la communauté</h2>
+              </div>
+              <Link href={improveHref} className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue">
+                Ajouter
+              </Link>
+            </div>
+            {publicFichesQuery.isLoading ? (
+              <p className="text-sm text-graphite">Chargement des fiches...</p>
+            ) : publicFiches.length ? (
+              <div className="space-y-3">
+                {publicFiches.map((fiche) => (
+                  <article key={fiche.id} className="rounded-[24px] bg-surface p-4 ring-1 ring-borderSoft/10">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg font-semibold text-ink">{fiche.title}</h3>
+                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-graphite">{ficheSummary(fiche)}</p>
+                      </div>
+                      <Link href={ficheCorrectionHref(fiche)} className="shrink-0 rounded-full bg-elevated px-3 py-2 text-xs font-semibold text-plum shadow-sm">
+                        Corriger
+                      </Link>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {fiche.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-blueSoft px-2.5 py-1 text-[11px] font-semibold text-blue">{tag}</span>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-[22px] bg-surface p-4 text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
+                Aucune fiche collaborative publiée pour cette carte. Vous pouvez proposer la première.
+              </p>
+            )}
+          </div>
+
           <div className="detail-reveal detail-reveal-delay-2 rounded-card bg-elevated px-4 py-4 text-sm text-graphite shadow-card ring-1 ring-borderSoft/10">
             <p className="font-semibold">Repere editorial</p>
             <div className="mt-2 flex flex-wrap gap-3">
               {item.metadata.date ? <span>{formatFrenchDateTime(item.metadata.date)}</span> : null}
               {item.metadata.price !== undefined ? <span>{formatPrice(item.metadata.price)}</span> : null}
               {item.metadata.city ? <span>{item.metadata.city}</span> : null}
+            </div>
+          </div>
+
+          <div className="detail-reveal detail-reveal-delay-2 grid gap-2 rounded-[26px] bg-blueSoft p-3 ring-1 ring-blue/15">
+            <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-4 py-3 text-center text-sm font-semibold text-blue shadow-sm">
+              Améliorer cette fiche
+            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <Link href={correctionHref} className="interactive-action rounded-full bg-elevated px-3 py-3 text-center text-xs font-semibold text-ink shadow-sm">
+                Proposer une correction
+              </Link>
+              <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-3 py-3 text-center text-xs font-semibold text-ink shadow-sm">
+                Ajouter des informations
+              </Link>
             </div>
           </div>
 

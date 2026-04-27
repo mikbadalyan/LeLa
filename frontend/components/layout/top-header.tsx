@@ -196,6 +196,19 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
   };
 
   const menuLinks = [
+    ...(user?.role === "moderator"
+      ? [
+          {
+            label: "Modération",
+            description: "Examiner les cartes, fiches et corrections proposées.",
+            icon: Settings2,
+            action: () => {
+              router.push("/moderation");
+              setOpenPanel(null);
+            },
+          },
+        ]
+      : []),
     {
       label: token ? t("menu.account") : t("menu.login"),
       description: token

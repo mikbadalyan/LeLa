@@ -20,6 +20,30 @@ export type ContributionModerationAction =
   | "approved"
   | "changes_requested"
   | "rejected";
+export type ContributionFicheType = "lieu" | "personne" | "evenement" | "autre";
+export type ContributionFicheStatus =
+  | "draft"
+  | "submitted"
+  | "ai_reviewed"
+  | "pending_moderation"
+  | "approved"
+  | "rejected"
+  | "needs_changes";
+export type CardCategoryMetadata = "lieu" | "personne" | "evenement" | "objet" | "theme" | "autre";
+export type PublishedEntityStatus = "draft" | "pending" | "published" | "rejected" | "archived";
+export type ContributionProposalType =
+  | "create_card"
+  | "create_fiche"
+  | "update_card"
+  | "update_fiche"
+  | "correction";
+export type ContributionProposalStatus =
+  | "draft"
+  | "ai_reviewed"
+  | "pending_moderation"
+  | "approved"
+  | "rejected"
+  | "needs_changes";
 
 export type RelationType =
   | "located_at"
@@ -277,6 +301,162 @@ export interface ModerationContribution {
 export interface ModerateContributionPayload {
   action: ContributionModerationAction;
   note?: string;
+}
+
+export interface FicheMediaBlock {
+  kind: "image" | "video" | "audio" | "text";
+  name?: string | null;
+  url?: string | null;
+  text?: string | null;
+  caption?: string | null;
+}
+
+export interface FicheAiEvaluation {
+  global_score: number;
+  grammar_score: number;
+  clarity_score: number;
+  completeness_score: number;
+  editorial_value_score: number;
+  relevance_score: number;
+  duplicate_risk_score: number;
+  source_quality_score: number;
+  risk_score: number;
+  content_type_recommendation: "new_card" | "existing_card_fiche" | "correction" | "manual_review";
+  summary: string;
+  strengths: string[];
+  weaknesses: string[];
+  grammar_suggestions: string[];
+  content_suggestions: string[];
+  missing_information: string[];
+  duplicate_warnings: string[];
+  suggested_existing_cards: string[];
+  moderator_recommendation: "approve" | "needs_changes" | "reject" | "manual_review";
+}
+
+export interface ContributionFichePayload {
+  type: ContributionFicheType;
+  title: string;
+  short_description: string;
+  long_description: string;
+  city?: string | null;
+  location?: string | null;
+  address?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  category?: string | null;
+  tags: string[];
+  historical_context?: string | null;
+  media_blocks: FicheMediaBlock[];
+  source_reference?: string | null;
+}
+
+export interface ContributionFiche extends ContributionFichePayload {
+  id: string;
+  status: ContributionFicheStatus;
+  author: Contributor;
+  moderator_notes?: string | null;
+  ai_evaluation_result?: FicheAiEvaluation | null;
+  editorial_object_id?: string | null;
+  reviewed_by?: Contributor | null;
+  reviewed_at?: string | null;
+  submitted_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FicheModerationPayload {
+  moderator_notes?: string | null;
+}
+
+export interface CardPayload {
+  title: string;
+  short_description: string;
+  category_metadata: CardCategoryMetadata;
+  city?: string | null;
+  location?: string | null;
+  main_image?: string | null;
+  tags: string[];
+  relations: Array<Record<string, unknown>>;
+  why_exists?: string | null;
+  source_reference?: string | null;
+}
+
+export interface PublicCard extends CardPayload {
+  id: string;
+  slug: string;
+  status: PublishedEntityStatus;
+  created_by: string;
+  editorial_object_id?: string | null;
+  current_published_version_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CardSearchResult {
+  id: string;
+  title: string;
+  short_description: string;
+  city?: string | null;
+  image?: string | null;
+  status: string;
+  category_metadata?: string | null;
+  tags: string[];
+  source: "card" | "editorial";
+}
+
+export interface PublishedFiche {
+  id: string;
+  card_id: string;
+  title: string;
+  sections: Record<string, unknown>;
+  media_blocks: FicheMediaBlock[];
+  sources: Array<Record<string, unknown>>;
+  relations: Array<Record<string, unknown>>;
+  tags: string[];
+  status: PublishedEntityStatus;
+  created_by: string;
+  current_published_version_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionProposalPayload {
+  contribution_type: ContributionProposalType;
+  target_card_id?: string | null;
+  target_fiche_id?: string | null;
+  proposed_data: Record<string, unknown>;
+  previous_data_snapshot?: Record<string, unknown> | null;
+  explanation?: string | null;
+}
+
+export interface ContributionProposal extends ContributionProposalPayload {
+  id: string;
+  contributor: Contributor;
+  ai_review?: FicheAiEvaluation | null;
+  status: ContributionProposalStatus;
+  moderator?: Contributor | null;
+  moderator_notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  submitted_at?: string | null;
+  reviewed_at?: string | null;
+  target_card?: PublicCard | null;
+  target_fiche?: PublishedFiche | null;
+}
+
+export interface ProposalModerationPayload {
+  moderator_notes?: string | null;
+}
+
+export interface RevisionHistoryRecord {
+  id: string;
+  entity_type: "card" | "fiche";
+  entity_id: string;
+  version_number: number;
+  data_snapshot: Record<string, unknown>;
+  contributor_id?: string | null;
+  approved_by?: string | null;
+  created_at: string;
 }
 
 export interface FriendRecord extends Contributor {

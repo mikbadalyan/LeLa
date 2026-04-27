@@ -93,6 +93,13 @@ def _ensure_indexes() -> None:
         "CREATE INDEX IF NOT EXISTS ix_editorial_objects_created_at ON editorial_objects (created_at)",
         "CREATE INDEX IF NOT EXISTS ix_editorial_objects_type_created_at ON editorial_objects (type, created_at)",
         "CREATE INDEX IF NOT EXISTS ix_contributions_status_created_at ON contributions (status, created_at)",
+        "CREATE INDEX IF NOT EXISTS ix_contribution_fiches_status_updated_at ON contribution_fiches (status, updated_at)",
+        "CREATE INDEX IF NOT EXISTS ix_contribution_fiches_type_city ON contribution_fiches (type, city)",
+        "CREATE INDEX IF NOT EXISTS ix_cards_status_city ON cards (status, city)",
+        "CREATE INDEX IF NOT EXISTS ix_fiches_card_status ON fiches (card_id, status)",
+        "CREATE INDEX IF NOT EXISTS ix_contribution_proposals_status_updated_at ON contribution_proposals (status, updated_at)",
+        "CREATE INDEX IF NOT EXISTS ix_contribution_proposals_type_status ON contribution_proposals (contribution_type, status)",
+        "CREATE INDEX IF NOT EXISTS ix_revision_history_entity_version ON revision_history (entity_type, entity_id, version_number)",
         "CREATE INDEX IF NOT EXISTS ix_direct_messages_thread ON direct_messages (sender_id, recipient_id, created_at)",
         "CREATE INDEX IF NOT EXISTS ix_editorial_relations_source_target ON editorial_relations (source_id, target_id)",
     ]

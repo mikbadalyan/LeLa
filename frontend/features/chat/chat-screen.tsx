@@ -414,25 +414,25 @@ export function ChatScreen() {
         }}
       />
 
-      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft/10 bg-elevated/92 px-4 py-3 shadow-soft backdrop-blur-md">
-        <div className="flex w-full items-center justify-end gap-2">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft/10 bg-elevated/92 px-4 py-2.5 shadow-soft backdrop-blur-md">
+        <div className="flex w-full items-center justify-end gap-2.5">
           <Button
             type="button"
             variant="secondary"
-            className="h-10 w-10 rounded-full p-0 shadow-none"
+            className="h-11 w-11 rounded-full p-0 text-blue shadow-none ring-blue/15"
             onClick={() => setHistoryOpen(true)}
             aria-label={t("chat.history")}
           >
-            <History className="h-5 w-5" />
+            <History className="h-6 w-6" strokeWidth={2.25} />
           </Button>
           <Button
             type="button"
             variant="secondary"
-            className="h-10 w-10 rounded-full p-0 shadow-none"
+            className="h-11 w-11 rounded-full p-0 text-blue shadow-none ring-blue/15"
             onClick={startNewConversation}
             aria-label={t("chat.new")}
           >
-            <MessageSquarePlus className="h-5 w-5" />
+            <MessageSquarePlus className="h-6 w-6" strokeWidth={2.25} />
           </Button>
         </div>
       </div>

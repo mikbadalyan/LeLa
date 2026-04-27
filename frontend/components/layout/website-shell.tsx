@@ -50,6 +50,21 @@ export function WebsiteShell({ children }: { children: ReactNode }) {
 
   const accountHref = token ? "/website/profile" : "/website/login";
   const accountActive = pathname.startsWith("/website/profile") || pathname.startsWith("/website/login");
+  const isPrototypeFeed = pathname === "/website/feed";
+
+  if (isPrototypeFeed) {
+    return (
+      <div
+        className="min-h-dvh bg-background text-ink"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 50% -10%, rgba(255,255,255,0.62), rgba(255,255,255,0) 34%), linear-gradient(180deg, rgb(var(--background-rgb)) 0%, rgb(var(--background-rgb)) 100%)",
+        }}
+      >
+        <main>{children}</main>
+      </div>
+    );
+  }
 
   return (
     <div

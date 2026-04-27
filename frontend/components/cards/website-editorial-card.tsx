@@ -15,15 +15,28 @@ function contributorHref(contributorId: string, currentUserId?: string) {
   return contributorId === currentUserId ? "/website/profile" : `/website/profile/${contributorId}`;
 }
 
+type WebsiteEditorialCardVariant = "hero" | "compact" | "wide";
+
+function cardLocation(item: EditorialCard) {
+  const venue = item.linked_entity?.title ?? item.metadata.city ?? item.subtitle ?? "";
+  const address = [item.metadata.address, item.metadata.city].filter(Boolean).join(", ");
+  return {
+    venue,
+    address,
+  };
+}
+
 export function WebsiteEditorialCard({
   item,
   onLike,
-  featured = false,
+  variant = "compact",
+  className,
   entryDelayMs = 0,
 }: {
   item: EditorialCard;
   onLike?: (id: string) => void;
-  featured?: boolean;
+  variant?: WebsiteEditorialCardVariant;
+  className?: string;
   entryDelayMs?: number;
 }) {
   const currentUserId = useAuthStore((state) => state.user?.id);
@@ -34,6 +47,21 @@ export function WebsiteEditorialCard({
   const profileHref = contributorHref(item.contributor.id, currentUserId);
   const mediaSrc =
     item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url;
+  const location = cardLocation(item);
+  const titleClassName =
+    variant === "hero"
+      ? "max-w-[12ch] text-[clamp(2.35rem,3.6vw,4.2rem)] leading-[0.92]"
+      : variant === "wide"
+        ? "max-w-[13ch] text-[clamp(2rem,3vw,3.25rem)] leading-[0.95]"
+        : "max-w-[12ch] text-[clamp(1.55rem,2vw,2.45rem)] leading-[0.96]";
+  const mediaButtonClassName =
+    variant === "hero"
+      ? "h-20 w-20"
+      : variant === "wide"
+        ? "h-16 w-16"
+        : "h-14 w-14";
+  const mediaIconClassName =
+    variant === "hero" ? "h-10 w-10" : variant === "wide" ? "h-8 w-8" : "h-7 w-7";
 
   useEffect(
     () => () => {
@@ -66,12 +94,14 @@ export function WebsiteEditorialCard({
   return (
     <article
       className={cn(
-        "card-enter interactive-surface group overflow-hidden rounded-card bg-elevated shadow-card ring-1 ring-borderSoft/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_26px_64px_rgba(35,37,43,0.14)]",
-        featured ? "md:col-span-2 xl:col-span-2" : ""
+        "card-enter group relative h-full min-h-[250px] overflow-hidden rounded-[18px] bg-[#1f2430] text-white shadow-[0_24px_64px_rgba(29,31,40,0.18)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_74px_rgba(29,31,40,0.22)] lg:min-h-0 lg:rounded-[3px]",
+        variant === "hero" ? "min-h-[520px]" : variant === "wide" ? "min-h-[420px]" : "min-h-[320px]",
+        className
       )}
       style={{ animationDelay: `${entryDelayMs}ms` }}
     >
-      <div className="relative aspect-[1.02] overflow-hidden">
+      <Link href={`/website/editorial/${item.id}`} className="absolute inset-0 z-0" aria-label={item.title} />
+      <div className="relative h-full overflow-hidden">
         {item.media_kind === "audio" ? (
           <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_56%,#3365C8_100%)]" />
         ) : (
@@ -79,101 +109,110 @@ export function WebsiteEditorialCard({
             src={mediaSrc}
             alt={item.title}
             fill
-            sizes="(max-width: 1024px) 100vw, 420px"
-            className="interactive-media object-cover transition duration-700 group-hover:scale-[1.04]"
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="interactive-media object-cover transition duration-700 group-hover:scale-[1.035]"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-        <div className="absolute left-4 top-4 right-4 flex items-start justify-between gap-3">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,14,22,0.12)_0%,rgba(10,14,22,0.12)_24%,rgba(8,12,19,0.2)_44%,rgba(6,9,14,0.76)_100%)]" />
+        <div className="absolute left-4 top-4 right-4 z-20 flex items-start justify-between gap-3 lg:left-5 lg:top-5 lg:right-5">
           <Link
             href={profileHref}
-            className="inline-flex items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-xs font-medium text-white/92 shadow-sm ring-1 ring-white/12 backdrop-blur-md"
+            className="inline-flex max-w-[70%] items-center gap-2 text-[12px] font-medium text-white/92 drop-shadow-[0_2px_10px_rgba(0,0,0,0.45)]"
           >
             <Image
               src={item.contributor.avatar_url}
               alt={item.contributor.display_name}
-              width={30}
-              height={30}
-              className="rounded-full border border-white/50"
+              width={32}
+              height={32}
+              className="rounded-full border border-white/65 object-cover"
             />
-            <span>{item.contributor.display_name}</span>
+            <span className="truncate">{item.contributor.display_name}</span>
           </Link>
-          <div className="flex items-center gap-2">
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            triggerLikePulse();
+            onLike?.(item.id);
+          }}
+          className={cn(
+            "interactive-action absolute right-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition hover:scale-[1.06] lg:right-5 lg:top-5",
+            likePulse ? "like-pop" : ""
+          )}
+          aria-label={item.is_liked ? "Retirer des aimes" : "Aimer"}
+        >
+          <Heart
+            className={cn(
+              "h-8 w-8",
+              item.is_liked ? "fill-white text-white" : "text-white",
+              likePulse ? "like-pop" : ""
+            )}
+          />
+        </button>
+
+        <ShareSheet editorialId={item.id} editorialTitle={item.title} basePath="/website">
+          {({ open }) => (
             <button
               type="button"
               onClick={() => {
-                triggerLikePulse();
-                onLike?.(item.id);
+                triggerSharePulse();
+                open();
               }}
               className={cn(
-                "interactive-action inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/24 text-white shadow-sm ring-1 ring-white/12 backdrop-blur-md transition hover:bg-black/34",
-                likePulse ? "like-pop bg-black/36" : ""
+                "interactive-action absolute right-4 top-[28%] z-20 inline-flex h-11 w-11 items-center justify-center text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition hover:scale-[1.06] lg:right-5",
+                sharePulse ? "share-pulse" : ""
               )}
-              aria-label={item.is_liked ? "Retirer des aimes" : "Aimer"}
+              aria-label="Partager"
             >
-              <Heart
-                className={cn(
-                  "h-[18px] w-[18px]",
-                  item.is_liked ? "fill-white text-white" : "",
-                  likePulse ? "like-pop" : ""
-                )}
-              />
+              <ShareIcon className="h-7 w-7 text-white" strokeWidth={2.2} />
             </button>
-            <ShareSheet editorialId={item.id} editorialTitle={item.title} basePath="/website">
-              {({ open }) => (
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerSharePulse();
-                    open();
-                  }}
-                  className={cn(
-                    "interactive-action inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/24 backdrop-blur-md shadow-sm ring-1 ring-white/12 transition hover:bg-black/34",
-                    sharePulse ? "share-pulse bg-black/34" : ""
-                  )}
-                  aria-label="Partager"
-                >
-                  <ShareIcon className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
-                </button>
-              )}
-            </ShareSheet>
+          )}
+        </ShareSheet>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-5 lg:p-6">
+          <div className="max-w-[calc(100%-6.5rem)] space-y-4">
+            <h3 className={cn("font-semibold tracking-[-0.055em] text-white", titleClassName)}>
+              {item.title}
+            </h3>
+            {(location.venue || location.address) ? (
+              <div className="flex items-start gap-3 text-white/95">
+                <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white">
+                  <MapPin className="h-4 w-4 text-[#7643A6]" />
+                </span>
+                <div className="min-w-0">
+                  {location.venue ? (
+                    <p className="truncate text-[1.02rem] font-semibold leading-tight text-white">
+                      {location.venue}
+                    </p>
+                  ) : null}
+                  {location.address ? (
+                    <p className="line-clamp-2 text-[0.95rem] leading-tight text-white/86">
+                      {location.address}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        <Link href={`/website/editorial/${item.id}`} className="absolute inset-x-4 bottom-4">
-          <div className="space-y-3">
-            <h3 className="max-w-[16ch] text-[2rem] font-semibold leading-[0.95] tracking-[-0.04em] text-white">
-              {item.title}
-            </h3>
-            {(item.metadata.address || item.metadata.city || item.linked_entity?.title) ? (
-              <span className="inline-flex max-w-[92%] items-center gap-2 rounded-full bg-black/28 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
-                <MapPin className="h-4 w-4 shrink-0 text-blueSoft" />
-                <span className="truncate">
-                  {item.metadata.address || item.metadata.city || item.linked_entity?.title}
-                </span>
-              </span>
-            ) : null}
-          </div>
-        </Link>
-
-        <div className="absolute bottom-4 right-4">
+        <div className="absolute bottom-5 right-5 z-20">
           <Link
             href={`/website/editorial/${item.id}`}
-            className="interactive-action flex h-14 w-14 items-center justify-center rounded-full bg-blue shadow-blue"
+            className={cn(
+              "interactive-action flex items-center justify-center rounded-full bg-[#7643A6] text-white shadow-[0_18px_34px_rgba(118,67,166,0.34)]",
+              mediaButtonClassName
+            )}
             aria-label={item.media_kind === "audio" ? "Ecouter" : item.media_kind === "video" ? "Lire la video" : "Lire"}
           >
             <MediaStateIcon
               kind={item.media_kind === "audio" ? "audio" : item.media_kind === "video" ? "video" : "read"}
-              className="h-7 w-7 text-white"
+              className={cn(mediaIconClassName, "text-white")}
               strokeWidth={2.3}
             />
           </Link>
         </div>
-      </div>
-
-      <div className="space-y-3 px-5 py-5">
-        {item.subtitle ? <p className="text-sm text-graphite/80">{item.subtitle}</p> : null}
-        <p className="line-clamp-3 text-sm leading-7 text-graphite">{item.description}</p>
       </div>
     </article>
   );

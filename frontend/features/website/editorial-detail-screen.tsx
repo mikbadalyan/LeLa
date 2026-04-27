@@ -13,10 +13,24 @@ import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { useToggleLike } from "@/features/feed/hooks";
 import { useI18n } from "@/features/shell/i18n";
-import { getEditorial, toggleLike } from "@/lib/api/endpoints";
+import { getEditorial, getEditorialFiches, toggleLike } from "@/lib/api/endpoints";
+import type { PublishedFiche } from "@/lib/api/types";
 import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
 import { writeRecentViewedEditorialId } from "@/lib/utils/discovery";
 import { formatPrice } from "@/lib/utils/format";
+
+function ficheText(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function ficheSummary(fiche: PublishedFiche) {
+  return (
+    ficheText(fiche.sections.resume) ||
+    ficheText(fiche.sections.description) ||
+    ficheText(fiche.sections.contexte) ||
+    ""
+  );
+}
 
 export function WebsiteEditorialDetailScreen({
   editorialId,
@@ -55,6 +69,12 @@ export function WebsiteEditorialDetailScreen({
 
   const cardLikeMutation = useToggleLike(token);
   const item = detailQuery.data;
+  const publicFichesQuery = useQuery({
+    queryKey: ["website-editorial-fiches", editorialId],
+    queryFn: () => getEditorialFiches(editorialId, token),
+    enabled: Boolean(item?.id),
+  });
+  const publicFiches = publicFichesQuery.data ?? [];
 
   useEffect(
     () => () => {
@@ -158,6 +178,23 @@ export function WebsiteEditorialDetailScreen({
       : `/website/profile/${item.contributor.id}`;
   const mapHref = buildEditorialMapHref(item.id, "/website");
   const showAddressLine = shouldRenderEditorialAddress(item.metadata.address, item.subtitle);
+  const contributionParams = new URLSearchParams({
+    source: "editorial",
+    sourceId: item.id,
+    title: item.title,
+    description: item.description,
+    city: item.metadata.city ?? "",
+    image: item.media_url,
+    category: item.type,
+  });
+  const improveHref = `/website/contribute?action=fiche&${contributionParams.toString()}`;
+  const correctionHref = `/website/contribute?action=correction&${contributionParams.toString()}`;
+  const ficheCorrectionHref = (fiche: PublishedFiche) => {
+    const params = new URLSearchParams(contributionParams);
+    params.set("targetFicheId", fiche.id);
+    params.set("currentText", ficheSummary(fiche));
+    return `/website/contribute?action=correction&${params.toString()}`;
+  };
 
   return (
     <div className="screen-detail mx-auto w-full max-w-[1380px] space-y-10 px-5 py-8 lg:px-8 lg:py-12">
@@ -278,7 +315,67 @@ export function WebsiteEditorialDetailScreen({
               Lire
             </Link>
           </div>
+
+          <div className="rounded-[28px] bg-blueSoft p-4 ring-1 ring-blue/15">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue">Contribution collaborative</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-4 py-2.5 text-sm font-semibold text-blue shadow-sm">
+                Améliorer cette fiche
+              </Link>
+              <Link href={correctionHref} className="interactive-action rounded-full bg-elevated px-4 py-2.5 text-sm font-semibold text-ink shadow-sm">
+                Proposer une correction
+              </Link>
+              <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-4 py-2.5 text-sm font-semibold text-ink shadow-sm">
+                Ajouter des informations
+              </Link>
+            </div>
+          </div>
         </div>
+      </section>
+
+      <section className="detail-reveal detail-reveal-delay-2 rounded-card bg-elevated px-7 py-7 shadow-card ring-1 ring-borderSoft/10">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-blue">Fiches collaboratives</p>
+            <h2 className="mt-2 text-[2rem] font-semibold tracking-[-0.04em] text-ink">
+              Contenu publié par la communauté
+            </h2>
+          </div>
+          <Link href={improveHref} className="interactive-action rounded-full bg-blueSoft px-5 py-3 text-sm font-semibold text-blue">
+            Ajouter des informations
+          </Link>
+        </div>
+        {publicFichesQuery.isLoading ? (
+          <div className="mt-6 flex items-center gap-2 text-sm text-blue">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Chargement des fiches...
+          </div>
+        ) : publicFiches.length ? (
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {publicFiches.map((fiche) => (
+              <article key={fiche.id} className="rounded-[30px] bg-surface p-5 ring-1 ring-borderSoft/10">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-ink">{fiche.title}</h3>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-graphite">{ficheSummary(fiche)}</p>
+                  </div>
+                  <Link href={ficheCorrectionHref(fiche)} className="interactive-action shrink-0 rounded-full bg-elevated px-4 py-2 text-xs font-semibold text-plum shadow-sm">
+                    Corriger
+                  </Link>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {fiche.tags.map((tag) => (
+                    <span key={tag} className="rounded-full bg-blueSoft px-3 py-1 text-xs font-semibold text-blue">{tag}</span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-6 rounded-[28px] bg-surface px-5 py-5 text-sm leading-7 text-graphite ring-1 ring-borderSoft/10">
+            Aucune fiche collaborative publiée pour cette carte. Proposez la première version détaillée.
+          </div>
+        )}
       </section>
 
       <section className="detail-reveal detail-reveal-delay-2 space-y-5">

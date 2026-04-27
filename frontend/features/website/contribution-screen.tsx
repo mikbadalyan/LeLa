@@ -7,10 +7,42 @@ import { ContributionForm } from "@/features/contribution/contribution-form";
 import { useAuthStore } from "@/features/auth/store";
 import { useI18n } from "@/features/shell/i18n";
 
-export function WebsiteContributionScreen() {
+interface WebsiteContributionScreenProps {
+  searchParams?: {
+    action?: string;
+    source?: string;
+    sourceId?: string;
+    title?: string;
+    description?: string;
+    city?: string;
+    image?: string;
+    category?: string;
+    targetFicheId?: string;
+    currentText?: string;
+  };
+}
+
+export function WebsiteContributionScreen({ searchParams }: WebsiteContributionScreenProps) {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const { t } = useI18n();
+  const initialAction =
+    searchParams?.action === "fiche"
+      ? "create_fiche"
+      : searchParams?.action === "correction"
+        ? "correction"
+        : undefined;
+  const initialReference = searchParams?.sourceId && searchParams.title
+    ? {
+        id: searchParams.sourceId,
+        source: searchParams.source === "card" ? "card" as const : "editorial" as const,
+        title: searchParams.title,
+        short_description: searchParams.description ?? "",
+        city: searchParams.city ?? null,
+        image: searchParams.image ?? null,
+        category_metadata: searchParams.category ?? null,
+      }
+    : null;
 
   useEffect(() => {
     if (!token) {
@@ -28,7 +60,12 @@ export function WebsiteContributionScreen() {
       </section>
 
       <section className="rounded-[40px] bg-transparent">
-        <ContributionForm />
+        <ContributionForm
+          initialAction={initialAction}
+          initialReference={initialReference}
+          initialTargetFicheId={searchParams?.targetFicheId ?? null}
+          initialCorrectionText={searchParams?.currentText ?? null}
+        />
       </section>
     </div>
   );

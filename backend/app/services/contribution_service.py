@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session, selectinload
 from app.core.config import get_settings
 from app.models.contribution import (
     Contribution,
+    ContributionFiche,
+    ContributionFicheStatus,
+    ContributionFicheType,
     ContributionModerationAction,
     ContributionModerationEvent,
     ContributionStatus,
@@ -29,9 +32,15 @@ from app.schemas.contribution import (
     ContributionModerationActionRequest,
     ContributionModerationEventRead,
     ContributionCreate,
+    ContributionFicheCreate,
+    ContributionFicheRead,
+    ContributionFicheUpdate,
     ContributionModerationRead,
     ContributionRead,
+    FicheAiEvaluation,
+    FicheModerationRequest,
 )
+from app.services.ai_moderation import evaluate_fiche_with_ai
 from app.services.auth_service import serialize_user
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -483,4 +492,352 @@ def approve_contribution(
             action=ContributionModerationAction.APPROVED
         ),
         moderator,
+    )
+
+
+def _serialize_fiche(
+    fiche: ContributionFiche,
+    author: User,
+    *,
+    reviewed_by: User | None = None,
+) -> ContributionFicheRead:
+    ai_result = (
+        FicheAiEvaluation.model_validate(fiche.ai_evaluation_result)
+        if fiche.ai_evaluation_result
+        else None
+    )
+    return ContributionFicheRead(
+        id=fiche.id,
+        type=fiche.type,
+        title=fiche.title,
+        short_description=fiche.short_description,
+        long_description=fiche.long_description,
+        city=fiche.city,
+        location=fiche.location,
+        address=fiche.address,
+        latitude=fiche.latitude,
+        longitude=fiche.longitude,
+        category=fiche.category,
+        tags=fiche.tags or [],
+        historical_context=fiche.historical_context,
+        media_blocks=fiche.media_blocks or [],
+        source_reference=fiche.source_reference,
+        status=fiche.status,
+        author=serialize_user(author),
+        moderator_notes=fiche.moderator_notes,
+        ai_evaluation_result=ai_result,
+        editorial_object_id=fiche.editorial_object_id,
+        reviewed_by=serialize_user(reviewed_by) if reviewed_by else None,
+        reviewed_at=fiche.reviewed_at,
+        submitted_at=fiche.submitted_at,
+        created_at=fiche.created_at,
+        updated_at=fiche.updated_at,
+    )
+
+
+def _fiche_as_create_payload(fiche: ContributionFiche) -> ContributionFicheCreate:
+    return ContributionFicheCreate(
+        type=fiche.type,
+        title=fiche.title,
+        short_description=fiche.short_description,
+        long_description=fiche.long_description,
+        city=fiche.city,
+        location=fiche.location,
+        address=fiche.address,
+        latitude=fiche.latitude,
+        longitude=fiche.longitude,
+        category=fiche.category,
+        tags=fiche.tags or [],
+        historical_context=fiche.historical_context,
+        media_blocks=fiche.media_blocks or [],
+        source_reference=fiche.source_reference,
+    )
+
+
+def _get_fiche_or_raise(db: Session, fiche_id: str) -> ContributionFiche:
+    fiche = db.scalar(select(ContributionFiche).where(ContributionFiche.id == fiche_id))
+    if not fiche:
+        raise ValueError("Fiche introuvable.")
+    return fiche
+
+
+def _is_moderator_user(user: User) -> bool:
+    return str(getattr(user.role, "value", user.role)) == "moderator"
+
+
+def _can_access_fiche(user: User, fiche: ContributionFiche) -> bool:
+    return _is_moderator_user(user) or fiche.user_id == user.id
+
+
+def _load_users_for_fiches(db: Session, fiches: list[ContributionFiche]) -> dict[str, User]:
+    user_ids = {
+        fiche.user_id for fiche in fiches
+    } | {fiche.reviewed_by_user_id for fiche in fiches if fiche.reviewed_by_user_id}
+    if not user_ids:
+        return {}
+    return {user.id: user for user in db.scalars(select(User).where(User.id.in_(user_ids))).all()}
+
+
+def create_fiche(
+    db: Session,
+    payload: ContributionFicheCreate,
+    current_user: User,
+) -> ContributionFicheRead:
+    fiche = ContributionFiche(
+        user_id=current_user.id,
+        type=payload.type,
+        title=payload.title.strip(),
+        short_description=payload.short_description.strip(),
+        long_description=payload.long_description.strip(),
+        city=(payload.city or "").strip() or None,
+        location=(payload.location or "").strip() or None,
+        address=(payload.address or "").strip() or None,
+        latitude=payload.latitude,
+        longitude=payload.longitude,
+        category=(payload.category or "").strip() or None,
+        tags=[tag.strip() for tag in payload.tags if tag.strip()],
+        historical_context=(payload.historical_context or "").strip() or None,
+        media_blocks=[block.model_dump() for block in payload.media_blocks],
+        source_reference=(payload.source_reference or "").strip() or None,
+        status=ContributionFicheStatus.DRAFT,
+    )
+    db.add(fiche)
+    db.commit()
+    db.refresh(fiche)
+    return _serialize_fiche(fiche, current_user)
+
+
+def list_fiches(
+    db: Session,
+    current_user: User,
+    *,
+    status_filter: ContributionFicheStatus | None = None,
+    type_filter: ContributionFicheType | None = None,
+    city: str | None = None,
+) -> list[ContributionFicheRead]:
+    query = select(ContributionFiche).order_by(ContributionFiche.updated_at.desc())
+    if not _is_moderator_user(current_user):
+        query = query.where(ContributionFiche.user_id == current_user.id)
+    if status_filter:
+        query = query.where(ContributionFiche.status == status_filter)
+    if type_filter:
+        query = query.where(ContributionFiche.type == type_filter)
+    if city:
+        query = query.where(ContributionFiche.city.ilike(f"%{city.strip()}%"))
+
+    fiches = db.scalars(query.limit(100)).all()
+    users = _load_users_for_fiches(db, fiches)
+    return [
+        _serialize_fiche(
+            fiche,
+            users[fiche.user_id],
+            reviewed_by=users.get(fiche.reviewed_by_user_id),
+        )
+        for fiche in fiches
+        if fiche.user_id in users
+    ]
+
+
+def read_fiche(db: Session, fiche_id: str, current_user: User) -> ContributionFicheRead:
+    fiche = _get_fiche_or_raise(db, fiche_id)
+    if not _can_access_fiche(current_user, fiche):
+        raise PermissionError("Acces refuse.")
+    users = _load_users_for_fiches(db, [fiche])
+    return _serialize_fiche(
+        fiche,
+        users[fiche.user_id],
+        reviewed_by=users.get(fiche.reviewed_by_user_id),
+    )
+
+
+def update_fiche(
+    db: Session,
+    fiche_id: str,
+    payload: ContributionFicheUpdate,
+    current_user: User,
+) -> ContributionFicheRead:
+    fiche = _get_fiche_or_raise(db, fiche_id)
+    if not _can_access_fiche(current_user, fiche):
+        raise PermissionError("Acces refuse.")
+    if fiche.status == ContributionFicheStatus.APPROVED and not _is_moderator_user(current_user):
+        raise ValueError("Une fiche approuvee ne peut plus etre modifiee par le contributeur.")
+
+    updates = payload.model_dump(exclude_unset=True)
+    for field_name, value in updates.items():
+        if field_name == "media_blocks" and value is not None:
+            setattr(fiche, field_name, [block for block in value])
+        elif field_name == "tags" and value is not None:
+            setattr(fiche, field_name, [tag.strip() for tag in value if tag.strip()])
+        elif isinstance(value, str):
+            setattr(fiche, field_name, value.strip() or None)
+        else:
+            setattr(fiche, field_name, value)
+
+    if fiche.status in {ContributionFicheStatus.NEEDS_CHANGES, ContributionFicheStatus.REJECTED}:
+        fiche.status = ContributionFicheStatus.DRAFT
+
+    db.commit()
+    db.refresh(fiche)
+    users = _load_users_for_fiches(db, [fiche])
+    return _serialize_fiche(
+        fiche,
+        users[fiche.user_id],
+        reviewed_by=users.get(fiche.reviewed_by_user_id),
+    )
+
+
+def run_fiche_ai_review(
+    db: Session,
+    fiche_id: str,
+    current_user: User,
+) -> ContributionFicheRead:
+    fiche = _get_fiche_or_raise(db, fiche_id)
+    if not _can_access_fiche(current_user, fiche):
+        raise PermissionError("Acces refuse.")
+
+    evaluation = evaluate_fiche_with_ai(_fiche_as_create_payload(fiche))
+    fiche.ai_evaluation_result = evaluation.model_dump()
+    fiche.status = ContributionFicheStatus.AI_REVIEWED
+    db.commit()
+    db.refresh(fiche)
+    users = _load_users_for_fiches(db, [fiche])
+    return _serialize_fiche(
+        fiche,
+        users[fiche.user_id],
+        reviewed_by=users.get(fiche.reviewed_by_user_id),
+    )
+
+
+def submit_fiche_for_moderation(
+    db: Session,
+    fiche_id: str,
+    current_user: User,
+) -> ContributionFicheRead:
+    fiche = _get_fiche_or_raise(db, fiche_id)
+    if fiche.user_id != current_user.id:
+        raise PermissionError("Acces refuse.")
+    if not fiche.ai_evaluation_result:
+        raise ValueError("L'analyse IA doit etre lancee avant soumission.")
+
+    fiche.status = ContributionFicheStatus.PENDING_MODERATION
+    fiche.submitted_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(fiche)
+    return _serialize_fiche(fiche, current_user)
+
+
+def _media_url_from_fiche(fiche: ContributionFiche) -> str:
+    settings = get_settings()
+    for block in fiche.media_blocks or []:
+        if block.get("kind") not in {"image", "video", "audio"}:
+            continue
+        if block.get("url"):
+            return str(block["url"])
+        if block.get("name"):
+            name = str(block["name"])
+            for folder in ("mock", "imported"):
+                candidate = STATIC_DIR / folder / name
+                if candidate.exists():
+                    return f"{settings.backend_public_url}/static/{folder}/{name}"
+
+    fallback_map = {
+        ContributionFicheType.LIEU: "musee-wurth.svg",
+        ContributionFicheType.PERSONNE: "juliette-steiner.svg",
+        ContributionFicheType.EVENEMENT: "demolition-day.svg",
+        ContributionFicheType.AUTRE: "merci-mon-lapin.svg",
+    }
+    return f"{settings.backend_public_url}/static/mock/{fallback_map[fiche.type]}"
+
+
+def _editorial_type_from_fiche(fiche_type: ContributionFicheType) -> EditorialType:
+    if fiche_type == ContributionFicheType.LIEU:
+        return EditorialType.PLACE
+    if fiche_type == ContributionFicheType.PERSONNE:
+        return EditorialType.PERSON
+    if fiche_type == ContributionFicheType.EVENEMENT:
+        return EditorialType.EVENT
+    return EditorialType.MAGAZINE
+
+
+def _publish_editorial_from_fiche(db: Session, fiche: ContributionFiche) -> str:
+    if fiche.editorial_object_id:
+        return fiche.editorial_object_id
+
+    editorial = EditorialObject(
+        type=_editorial_type_from_fiche(fiche.type),
+        title=fiche.title,
+        subtitle=fiche.short_description,
+        description=fiche.short_description,
+        narrative_text="\n\n".join(
+            value
+            for value in [fiche.long_description, fiche.historical_context, fiche.source_reference]
+            if value
+        ),
+        media_url=_media_url_from_fiche(fiche),
+        contributor_id=fiche.user_id,
+    )
+    db.add(editorial)
+    db.flush()
+
+    if fiche.type == ContributionFicheType.LIEU:
+        db.add(
+            Place(
+                editorial_object_id=editorial.id,
+                address=fiche.address or fiche.location or "Adresse a confirmer",
+                city=fiche.city or "Strasbourg",
+                latitude=fiche.latitude or 48.5734,
+                longitude=fiche.longitude or 7.7521,
+            )
+        )
+    elif fiche.type == ContributionFicheType.PERSONNE:
+        db.add(
+            Person(
+                editorial_object_id=editorial.id,
+                name=fiche.title,
+                role=fiche.category or "contributeur",
+                biography=fiche.long_description,
+            )
+        )
+    elif fiche.type == ContributionFicheType.EVENEMENT:
+        db.add(
+            Event(
+                editorial_object_id=editorial.id,
+                event_date=datetime.now(timezone.utc),
+                price=None,
+                location_id=None,
+            )
+        )
+
+    fiche.editorial_object_id = editorial.id
+    return editorial.id
+
+
+def moderate_fiche(
+    db: Session,
+    fiche_id: str,
+    moderator: User,
+    target_status: ContributionFicheStatus,
+    payload: FicheModerationRequest,
+) -> ContributionFicheRead:
+    fiche = _get_fiche_or_raise(db, fiche_id)
+    if target_status in {ContributionFicheStatus.REJECTED, ContributionFicheStatus.NEEDS_CHANGES}:
+        note = (payload.moderator_notes or "").strip()
+        if not note:
+            raise ValueError("Ajoutez une note de moderation.")
+
+    if target_status == ContributionFicheStatus.APPROVED:
+        _publish_editorial_from_fiche(db, fiche)
+
+    fiche.status = target_status
+    fiche.moderator_notes = (payload.moderator_notes or "").strip() or fiche.moderator_notes
+    fiche.reviewed_by_user_id = moderator.id
+    fiche.reviewed_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(fiche)
+
+    users = _load_users_for_fiches(db, [fiche])
+    return _serialize_fiche(
+        fiche,
+        users[fiche.user_id],
+        reviewed_by=users.get(fiche.reviewed_by_user_id),
     )

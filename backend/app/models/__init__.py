@@ -2,11 +2,23 @@ from __future__ import annotations
 
 from app.models.chat_feedback import ChatFeedback
 from app.models.contribution import (
+    Card,
+    CardCategoryMetadata,
     Contribution,
+    ContributionFiche,
+    ContributionFicheStatus,
+    ContributionFicheType,
     ContributionModerationAction,
     ContributionModerationEvent,
+    ContributionProposal,
     ContributionStatus,
     ContributionType,
+    Fiche,
+    ProposalStatus,
+    ProposalType,
+    PublishedEntityStatus,
+    RevisionEntityType,
+    RevisionHistory,
 )
 from app.models.direct_message import DirectMessage
 from app.models.editorial import (
@@ -25,11 +37,23 @@ from app.models.user import User, UserRole
 
 __all__ = [
     "ChatFeedback",
+    "Card",
+    "CardCategoryMetadata",
     "Contribution",
+    "ContributionFiche",
+    "ContributionFicheStatus",
+    "ContributionFicheType",
     "ContributionModerationAction",
     "ContributionModerationEvent",
+    "ContributionProposal",
     "ContributionStatus",
     "ContributionType",
+    "Fiche",
+    "ProposalStatus",
+    "ProposalType",
+    "PublishedEntityStatus",
+    "RevisionEntityType",
+    "RevisionHistory",
     "DirectMessage",
     "EditorialObject",
     "EditorialRelation",
