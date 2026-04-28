@@ -19,6 +19,7 @@ import type {
   FeedQueryFilters,
   FeedResponse,
   FicheModerationPayload,
+  FriendGraph,
   FriendRecord,
   LoginPayload,
   MapMarker,
@@ -427,6 +428,26 @@ export function getFriends(token: string) {
   return apiRequest<FriendRecord[]>("/api/social/friends", {
     token
   });
+}
+
+export function getFriendGraph(
+  token: string,
+  params: { depth?: number; limit?: number } = {}
+) {
+  const search = new URLSearchParams();
+  if (params.depth) {
+    search.set("depth", String(params.depth));
+  }
+  if (params.limit) {
+    search.set("limit", String(params.limit));
+  }
+
+  return apiRequest<FriendGraph>(
+    `/api/social/friends/graph${search.toString() ? `?${search.toString()}` : ""}`,
+    {
+      token,
+    }
+  );
 }
 
 export function searchUsers(query: string, token: string) {

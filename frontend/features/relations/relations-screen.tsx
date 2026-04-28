@@ -8,10 +8,12 @@ import { LoaderCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { FriendNetworkExplorer } from "@/components/social/friend-network-explorer";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
 import { useI18n } from "@/features/shell/i18n";
-import { addFriend, getFriends, removeFriend, searchUsers } from "@/lib/api/endpoints";
+import { addFriend, getFriendGraph, getFriends, removeFriend, searchUsers } from "@/lib/api/endpoints";
+import { cn } from "@/lib/utils/cn";
 
 function UserRow({
   avatar,
@@ -51,6 +53,7 @@ export function RelationsScreen() {
   const token = useAuthStore((state) => state.token);
   const currentUserId = useAuthStore((state) => state.user?.id);
   const [searchValue, setSearchValue] = useState("");
+  const [panelMode, setPanelMode] = useState<"graph" | "lists">("graph");
   const deferredSearch = useDeferredValue(searchValue);
   const { t } = useI18n();
 
@@ -66,6 +69,12 @@ export function RelationsScreen() {
     enabled: Boolean(token),
   });
 
+  const graphQuery = useQuery({
+    queryKey: ["friend-graph", Boolean(token)],
+    queryFn: () => getFriendGraph(token!, { depth: 3, limit: 160 }),
+    enabled: Boolean(token),
+  });
+
   const usersQuery = useQuery({
     queryKey: ["friend-search", deferredSearch, Boolean(token)],
     queryFn: () => searchUsers(deferredSearch, token!),
@@ -77,6 +86,7 @@ export function RelationsScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["friends"] });
       queryClient.invalidateQueries({ queryKey: ["friend-search"] });
+      queryClient.invalidateQueries({ queryKey: ["friend-graph"] });
     },
   });
 
@@ -85,6 +95,7 @@ export function RelationsScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["friends"] });
       queryClient.invalidateQueries({ queryKey: ["friend-search"] });
+      queryClient.invalidateQueries({ queryKey: ["friend-graph"] });
     },
   });
 
@@ -122,77 +133,106 @@ export function RelationsScreen() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
-          <div className="border-b border-borderSoft/10 px-4 py-3">
-            <p className="text-sm font-semibold text-ink">{t("relations.friends")}</p>
+        <div className="rounded-[24px] bg-elevated p-1 shadow-card ring-1 ring-borderSoft/10">
+          <div className="flex items-center gap-1">
+            {(["graph", "lists"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setPanelMode(mode)}
+                className={cn(
+                  "flex-1 rounded-[18px] px-4 py-3 text-sm font-semibold transition",
+                  panelMode === mode ? "bg-blue text-white shadow-blue" : "text-graphite hover:bg-surface"
+                )}
+              >
+                {mode === "graph" ? t("relations.showGraph") : t("relations.showLists")}
+              </button>
+            ))}
           </div>
-          {friendsQuery.isLoading ? (
-            <div className="flex items-center justify-center px-4 py-8 text-blue">
-              <LoaderCircle className="h-5 w-5 animate-spin" />
-            </div>
-          ) : filteredFriends.length ? (
-            <div className="divide-y divide-borderSoft/80">
-              {filteredFriends.map((friend) => (
-                <UserRow
-                  key={friend.id}
-                  avatar={friend.avatar_url}
-                  name={friend.display_name}
-                  username={friend.username}
-                  city={friend.city}
-                  href={friend.id === currentUserId ? "/profile" : `/profile/${friend.id}`}
-                  action={
-                    <button
-                      type="button"
-                      onClick={() => removeFriendMutation.mutate(friend.id)}
-                      className="rounded-full bg-surface px-3 py-2 text-xs font-semibold text-ink ring-1 ring-borderSoft/10"
-                    >
-                      {t("relations.friend")}
-                    </button>
-                  }
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="px-4 py-6 text-sm text-graphite/70">{t("relations.emptyFriends")}</div>
-          )}
         </div>
 
-        <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
-          <div className="border-b border-borderSoft/10 px-4 py-3">
-            <p className="text-sm font-semibold text-ink">{t("relations.suggested")}</p>
-          </div>
-          {usersQuery.isLoading ? (
-            <div className="flex items-center justify-center px-4 py-8 text-blue">
-              <LoaderCircle className="h-5 w-5 animate-spin" />
+        {panelMode === "graph" ? (
+          <FriendNetworkExplorer
+            graph={graphQuery.data}
+            isLoading={graphQuery.isLoading}
+            profileBasePath="/profile"
+            variant="mobile"
+          />
+        ) : (
+          <>
+            <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+              <div className="border-b border-borderSoft/10 px-4 py-3">
+                <p className="text-sm font-semibold text-ink">{t("relations.friends")}</p>
+              </div>
+              {friendsQuery.isLoading ? (
+                <div className="flex items-center justify-center px-4 py-8 text-blue">
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                </div>
+              ) : filteredFriends.length ? (
+                <div className="divide-y divide-borderSoft/80">
+                  {filteredFriends.map((friend) => (
+                    <UserRow
+                      key={friend.id}
+                      avatar={friend.avatar_url}
+                      name={friend.display_name}
+                      username={friend.username}
+                      city={friend.city}
+                      href={friend.id === currentUserId ? "/profile" : `/profile/${friend.id}`}
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => removeFriendMutation.mutate(friend.id)}
+                          className="rounded-full bg-surface px-3 py-2 text-xs font-semibold text-ink ring-1 ring-borderSoft/10"
+                        >
+                          {t("relations.friend")}
+                        </button>
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-6 text-sm text-graphite/70">{t("relations.emptyFriends")}</div>
+              )}
             </div>
-          ) : suggestedAccounts.length ? (
-            <div className="divide-y divide-borderSoft/80">
-              {suggestedAccounts.map((user) => (
-                <UserRow
-                  key={user.id}
-                  avatar={user.avatar_url}
-                  name={user.display_name}
-                  username={user.username}
-                  city={user.city}
-                  href={user.id === currentUserId ? "/profile" : `/profile/${user.id}`}
-                  action={
-                    <button
-                      type="button"
-                      onClick={() => addFriendMutation.mutate(user.id)}
-                      className="rounded-full bg-plum px-3 py-2 text-xs font-semibold text-white shadow-float"
-                    >
-                      {t("relations.add")}
-                    </button>
-                  }
-                />
-              ))}
+
+            <div className="overflow-hidden rounded-[28px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+              <div className="border-b border-borderSoft/10 px-4 py-3">
+                <p className="text-sm font-semibold text-ink">{t("relations.suggested")}</p>
+              </div>
+              {usersQuery.isLoading ? (
+                <div className="flex items-center justify-center px-4 py-8 text-blue">
+                  <LoaderCircle className="h-5 w-5 animate-spin" />
+                </div>
+              ) : suggestedAccounts.length ? (
+                <div className="divide-y divide-borderSoft/80">
+                  {suggestedAccounts.map((user) => (
+                    <UserRow
+                      key={user.id}
+                      avatar={user.avatar_url}
+                      name={user.display_name}
+                      username={user.username}
+                      city={user.city}
+                      href={user.id === currentUserId ? "/profile" : `/profile/${user.id}`}
+                      action={
+                        <button
+                          type="button"
+                          onClick={() => addFriendMutation.mutate(user.id)}
+                          className="rounded-full bg-plum px-3 py-2 text-xs font-semibold text-white shadow-float"
+                        >
+                          {t("relations.add")}
+                        </button>
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="px-4 py-6 text-sm text-graphite/70">
+                  {t("relations.emptySuggested")}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="px-4 py-6 text-sm text-graphite/70">
-              {t("relations.emptySuggested")}
-            </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </MobileShell>
   );

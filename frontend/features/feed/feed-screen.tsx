@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUp, LoaderCircle, Play, Shuffle, Wand2, X } from "lucide-react";
+import { ArrowUp, LoaderCircle, X } from "lucide-react";
 
 import { EditorialFeedCard } from "@/components/cards/editorial-feed-card";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { useAuthStore } from "@/features/auth/store";
 import { ChatScreen } from "@/features/chat/chat-screen";
 import { useFeed, useToggleLike } from "@/features/feed/hooks";
-import { StoryModeOverlay } from "@/features/feed/story-mode-overlay";
 import { useFeedUiStore } from "@/features/feed/store";
 import { useShellStore } from "@/features/shell/store";
 import { useFeedScrollRestoration } from "@/lib/hooks/use-feed-scroll";
 import type { EditorialCard } from "@/lib/api/types";
 import { resolveFeedFilterFromFocus } from "@/lib/utils/editorial";
-import { readRecentViewedEditorialIds, shuffleEditorials } from "@/lib/utils/discovery";
 import { cn } from "@/lib/utils/cn";
 
 type Focus = "feed" | "place" | "person" | "event" | "chat";
@@ -61,11 +59,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   const previousItemCountRef = useRef(0);
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
   const [newItemsCount, setNewItemsCount] = useState(0);
-  const [discoverMode, setDiscoverMode] = useState(false);
-  const [discoverSeed, setDiscoverSeed] = useState(() => Math.floor(Date.now() % 100000));
-  const [storyModeOpen, setStoryModeOpen] = useState(false);
-  const [storyStartIndex, setStoryStartIndex] = useState(0);
-  const [recentViewedIds, setRecentViewedIds] = useState<string[]>([]);
   const likeMutation = useToggleLike(token);
   const effectiveFilter = useMemo(
     () => resolveFeedFilterFromFocus(focus, filter),
@@ -90,10 +83,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   useEffect(() => {
     setCloudFilterIds(null);
   }, [effectiveFilter, city, selectedDate]);
-
-  useEffect(() => {
-    setRecentViewedIds(readRecentViewedEditorialIds());
-  }, []);
 
   // Infinite scroll sentinel
   useEffect(() => {
@@ -126,28 +115,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     return items.filter((item) => isInCloud(item, cloudFilterIds));
   }, [cloudFilterIds, items]);
 
-  const displayItems = useMemo(
-    () => (discoverMode ? shuffleEditorials(visibleItems, discoverSeed) : visibleItems),
-    [discoverMode, discoverSeed, visibleItems]
-  );
-
-  const smartSuggestion = useMemo(() => {
-    if (!items.length || !recentViewedIds.length) {
-      return null;
-    }
-    const recentSet = new Set(recentViewedIds);
-    return (
-      items.find((entry) => entry.linked_entity?.id && recentSet.has(entry.linked_entity.id)) ??
-      items.find((entry) => recentSet.has(entry.id)) ??
-      null
-    );
-  }, [items, recentViewedIds]);
-
-  const smartHighlightIds = useMemo(
-    () => (smartSuggestion ? cloudIds(smartSuggestion) : []),
-    [smartSuggestion]
-  );
-
   useEffect(() => {
     if (previousItemCountRef.current > 0 && items.length > previousItemCountRef.current) {
       setNewItemsCount(items.length - previousItemCountRef.current);
@@ -169,7 +136,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
     const maxScrollable = Math.max(container.scrollHeight - container.clientHeight, 1);
     const nextProgress = Math.min(100, Math.max(0, (container.scrollTop / maxScrollable) * 100));
     setScrollProgress(nextProgress);
-  }, [displayItems.length, scrollY, setScrollProgress]);
+  }, [visibleItems.length, scrollY, setScrollProgress]);
 
   const jumpToTop = () => {
     const container = document.getElementById("lela-scroll-container");
@@ -194,62 +161,6 @@ export function FeedScreen({ focus }: FeedScreenProps) {
 
   return (
     <MobileShell activeMode={activeMode} activeTab="relations" className="screen-feed space-y-4 px-3 py-4">
-      <StoryModeOverlay
-        open={storyModeOpen}
-        items={displayItems}
-        startIndex={storyStartIndex}
-        onClose={() => setStoryModeOpen(false)}
-        onLike={(id) => likeMutation.mutate(id)}
-      />
-
-      <div className="card-enter grid grid-cols-3 gap-2 rounded-[24px] bg-elevated p-2 shadow-soft ring-1 ring-borderSoft/10">
-        <button
-          type="button"
-          onClick={() => setDiscoverMode((current) => !current)}
-          className={cn(
-            "interactive-action inline-flex items-center justify-center gap-2 rounded-[18px] px-3 py-2 text-xs font-semibold",
-            discoverMode ? "bg-blue text-white shadow-blue" : "bg-surface text-ink ring-1 ring-borderSoft/10"
-          )}
-        >
-          <Wand2 className="h-4 w-4" />
-          Discover
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setDiscoverSeed((current) => current + 1);
-            setDiscoverMode(true);
-          }}
-          className="interactive-action inline-flex items-center justify-center gap-2 rounded-[18px] bg-surface px-3 py-2 text-xs font-semibold text-ink ring-1 ring-borderSoft/10"
-        >
-          <Shuffle className="h-4 w-4" />
-          Shuffle
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setStoryStartIndex(0);
-            setStoryModeOpen(true);
-          }}
-          disabled={!displayItems.length}
-          className="interactive-action inline-flex items-center justify-center gap-2 rounded-[18px] bg-plum px-3 py-2 text-xs font-semibold text-white shadow-float"
-        >
-          <Play className="h-4 w-4" />
-          Story
-        </button>
-      </div>
-
-      {smartSuggestion ? (
-        <button
-          type="button"
-          onClick={() => setCloudFilterIds(cloudIds(smartSuggestion))}
-          className="card-enter interactive-action w-full rounded-[24px] bg-blueSoft px-4 py-3 text-left text-sm text-blue shadow-soft ring-1 ring-blue/18"
-        >
-          <span className="text-[11px] font-semibold uppercase tracking-[0.16em]">Parce que vous avez vu</span>
-          <p className="mt-1 line-clamp-1 font-semibold">{smartSuggestion.title}</p>
-        </button>
-      ) : null}
-
       {newItemsCount > 0 ? (
         <button
           type="button"
@@ -282,13 +193,13 @@ export function FeedScreen({ focus }: FeedScreenProps) {
             <FeedSkeletonCard key={`feed-skeleton-${index}`} featured={index === 1} />
           ))}
         </div>
-      ) : displayItems.length > 0 ? (
-        displayItems.map((item, index) => (
+      ) : visibleItems.length > 0 ? (
+        visibleItems.map((item, index) => (
           <EditorialFeedCard
             key={item.id}
             item={item}
             onLike={(id) => likeMutation.mutate(id)}
-            featured={discoverMode ? index % 4 === 0 : (index + 1) % 5 === 0}
+            featured={(index + 1) % 5 === 0}
             entryDelayMs={Math.min(index * 34, 260)}
             onToggleCloud={(selectedItem) =>
               setCloudFilterIds((current) => {
@@ -299,11 +210,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
               })
             }
             cloudActive={Boolean(cloudFilterIds?.length && isInCloud(item, cloudFilterIds))}
-            highlighted={Boolean(
-              discoverMode &&
-                smartHighlightIds.length &&
-                cloudIds(item).some((id) => smartHighlightIds.includes(id))
-            )}
+            highlighted={false}
           />
         ))
       ) : feedQuery.isLoading ? null : (

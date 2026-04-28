@@ -310,6 +310,86 @@ class QaRegressionTests(unittest.TestCase):
             "Résumé corrigé et enrichi de la fiche collaborative.",
         )
 
+    def test_friend_graph_exposes_extended_network_depths(self) -> None:
+        charles_login = self.client.post(
+            "/api/auth/login",
+            json={"email": "charles@lela.local", "password": "lela1234"},
+        )
+        charles_token = charles_login.json()["access_token"]
+
+        registered_users = [
+            {
+                "username": "AnaGraph",
+                "email": "ana@lela.local",
+                "password": "lela1234",
+                "city": "Strasbourg",
+                "role": "contributor",
+            },
+            {
+                "username": "BrunoGraph",
+                "email": "bruno@lela.local",
+                "password": "lela1234",
+                "city": "Strasbourg",
+                "role": "contributor",
+            },
+            {
+                "username": "ClaraGraph",
+                "email": "clara@lela.local",
+                "password": "lela1234",
+                "city": "Colmar",
+                "role": "contributor",
+            },
+        ]
+
+        user_ids: list[str] = []
+        tokens: list[str] = []
+        for payload in registered_users:
+            register_response = self.client.post("/api/auth/register", json=payload)
+            self.assertEqual(register_response.status_code, 200)
+            body = register_response.json()
+            user_ids.append(body["user"]["id"])
+            tokens.append(body["access_token"])
+
+        ana_id, bruno_id, clara_id = user_ids
+        ana_token, bruno_token, _ = tokens
+
+        self.client.post(
+            f"/api/social/friends/{ana_id}",
+            headers={"Authorization": f"Bearer {charles_token}"},
+        )
+        self.client.post(
+            f"/api/social/friends/{bruno_id}",
+            headers={"Authorization": f"Bearer {ana_token}"},
+        )
+        self.client.post(
+            f"/api/social/friends/{clara_id}",
+            headers={"Authorization": f"Bearer {bruno_token}"},
+        )
+
+        graph_response = self.client.get(
+            "/api/social/friends/graph?depth=3&limit=140",
+            headers={"Authorization": f"Bearer {charles_token}"},
+        )
+
+        self.assertEqual(graph_response.status_code, 200)
+        payload = graph_response.json()
+
+        nodes_by_id = {node["id"]: node for node in payload["nodes"]}
+        self.assertEqual(nodes_by_id["user-charles"]["depth"], 0)
+        self.assertTrue(nodes_by_id["user-charles"]["is_self"])
+        self.assertEqual(nodes_by_id[ana_id]["depth"], 1)
+        self.assertTrue(nodes_by_id[ana_id]["is_direct_friend"])
+        self.assertEqual(nodes_by_id[bruno_id]["depth"], 2)
+        self.assertEqual(nodes_by_id[clara_id]["depth"], 3)
+        self.assertEqual(nodes_by_id[clara_id]["path_parent_id"], bruno_id)
+
+        undirected_edges = {
+            frozenset((edge["source_id"], edge["target_id"])) for edge in payload["edges"]
+        }
+        self.assertIn(frozenset(("user-charles", ana_id)), undirected_edges)
+        self.assertIn(frozenset((ana_id, bruno_id)), undirected_edges)
+        self.assertIn(frozenset((bruno_id, clara_id)), undirected_edges)
+
 
 if __name__ == "__main__":
     unittest.main()

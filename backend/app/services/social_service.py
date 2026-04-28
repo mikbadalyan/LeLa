@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Optional
 
 from sqlalchemy import and_, or_, select
@@ -10,7 +11,15 @@ from app.models.friendship import Friendship
 from app.models.share import Share
 from app.models.user import User
 from app.schemas.auth import UserRead
-from app.schemas.social import FriendRead, ShareCreate, ShareRead, UserSearchResultRead
+from app.schemas.social import (
+    FriendGraphEdgeRead,
+    FriendGraphNodeRead,
+    FriendGraphRead,
+    FriendRead,
+    ShareCreate,
+    ShareRead,
+    UserSearchResultRead,
+)
 from app.services.auth_service import (
     can_user_receive_direct_message,
     can_user_receive_friend_request,
@@ -46,6 +55,116 @@ def list_friends(db: Session, current_user: User) -> list[FriendRead]:
         for entry in friendships
         if entry.friend_id in friends
     ]
+
+
+def read_friend_graph(
+    db: Session,
+    current_user: User,
+    *,
+    max_depth: int = 3,
+    max_nodes: int = 140,
+) -> FriendGraphRead:
+    depth_limit = max(1, min(max_depth, 4))
+    node_limit = max(12, min(max_nodes, 240))
+
+    visited_depth = {current_user.id: 0}
+    parent_by_node: dict[str, str | None] = {current_user.id: None}
+    direct_friend_ids = set(
+        db.scalars(
+            select(Friendship.friend_id).where(Friendship.user_id == current_user.id)
+        ).all()
+    )
+    adjacency: dict[str, set[str]] = defaultdict(set)
+    frontier = {current_user.id}
+    truncated = False
+    current_depth = 0
+
+    while frontier and current_depth < depth_limit:
+        friendships = db.scalars(
+            select(Friendship).where(Friendship.user_id.in_(frontier))
+        ).all()
+        next_frontier: set[str] = set()
+
+        for friendship in friendships:
+            adjacency[friendship.user_id].add(friendship.friend_id)
+            adjacency[friendship.friend_id].add(friendship.user_id)
+
+            if friendship.friend_id in visited_depth:
+                continue
+
+            if len(visited_depth) >= node_limit:
+                truncated = True
+                continue
+
+            visited_depth[friendship.friend_id] = current_depth + 1
+            parent_by_node[friendship.friend_id] = friendship.user_id
+            next_frontier.add(friendship.friend_id)
+
+        frontier = next_frontier
+        current_depth += 1
+
+    included_ids = set(visited_depth)
+    if not included_ids:
+        included_ids = {current_user.id}
+
+    friendships = db.scalars(
+        select(Friendship).where(
+            Friendship.user_id.in_(included_ids),
+            Friendship.friend_id.in_(included_ids),
+        )
+    ).all()
+
+    edge_keys: set[tuple[str, str]] = set()
+    for friendship in friendships:
+        adjacency[friendship.user_id].add(friendship.friend_id)
+        adjacency[friendship.friend_id].add(friendship.user_id)
+        edge_keys.add(tuple(sorted((friendship.user_id, friendship.friend_id))))
+
+    users = {
+        user.id: user
+        for user in db.scalars(select(User).where(User.id.in_(included_ids))).all()
+    }
+
+    nodes: list[FriendGraphNodeRead] = []
+    for user_id, depth in sorted(
+        visited_depth.items(),
+        key=lambda item: (item[1], item[0] != current_user.id, item[0]),
+    ):
+        user = users.get(user_id)
+        if not user:
+            continue
+
+        serialized_user = serialize_user(user)
+        mutual_count = (
+            0
+            if user_id == current_user.id
+            else len((adjacency[user_id] & direct_friend_ids) - {current_user.id})
+        )
+        connection_count = len(adjacency[user_id] & included_ids)
+
+        nodes.append(
+            FriendGraphNodeRead(
+                **serialized_user.model_dump(),
+                depth=depth,
+                is_self=user_id == current_user.id,
+                is_direct_friend=user_id in direct_friend_ids,
+                mutual_count=mutual_count,
+                connection_count=connection_count,
+                path_parent_id=parent_by_node.get(user_id),
+            )
+        )
+
+    edges = [
+        FriendGraphEdgeRead(source_id=source_id, target_id=target_id, weight=1)
+        for source_id, target_id in sorted(edge_keys)
+    ]
+
+    return FriendGraphRead(
+        nodes=nodes,
+        edges=edges,
+        total_nodes=len(nodes),
+        truncated=truncated,
+    )
 
 
 def search_users(db: Session, current_user: User, query: Optional[str]) -> list[UserSearchResultRead]:

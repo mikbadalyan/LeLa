@@ -12,6 +12,28 @@ class FriendRead(UserRead):
     friendship_created_at: Optional[datetime] = None
 
 
+class FriendGraphNodeRead(UserRead):
+    depth: int = 0
+    is_self: bool = False
+    is_direct_friend: bool = False
+    mutual_count: int = 0
+    connection_count: int = 0
+    path_parent_id: Optional[str] = None
+
+
+class FriendGraphEdgeRead(BaseModel):
+    source_id: str
+    target_id: str
+    weight: int = 1
+
+
+class FriendGraphRead(BaseModel):
+    nodes: list[FriendGraphNodeRead]
+    edges: list[FriendGraphEdgeRead]
+    total_nodes: int
+    truncated: bool = False
+
+
 class UserSearchResultRead(UserRead):
     is_friend: bool = False
 

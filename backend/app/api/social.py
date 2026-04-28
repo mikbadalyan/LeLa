@@ -9,6 +9,7 @@ from app.core.deps import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.social import (
+    FriendGraphRead,
     FriendRead,
     ShareCreate,
     ShareRead,
@@ -18,6 +19,7 @@ from app.services.social_service import (
     add_friend,
     create_share,
     list_friends,
+    read_friend_graph,
     remove_friend,
     search_users,
 )
@@ -31,6 +33,16 @@ def read_friends(
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> list[FriendRead]:
     return list_friends(db, current_user)
+
+
+@router.get("/friends/graph", response_model=FriendGraphRead)
+def read_friends_graph(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    depth: int = Query(default=3, ge=1, le=4),
+    limit: int = Query(default=140, ge=12, le=240),
+) -> FriendGraphRead:
+    return read_friend_graph(db, current_user, max_depth=depth, max_nodes=limit)
 
 
 @router.get("/users/search", response_model=list[UserSearchResultRead])

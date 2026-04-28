@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { ExternalLink, LoaderCircle, MapPinned, Shuffle } from "lucide-react";
+import { ExternalLink, LoaderCircle, MapPinned } from "lucide-react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { useAuthStore } from "@/features/auth/store";
@@ -34,8 +34,6 @@ export function MapScreen({ editorialId }: MapScreenProps) {
   const city = useShellStore((state) => state.city);
   const selectedDate = useShellStore((state) => state.selectedDate);
 
-  const [mapFocusSeed, setMapFocusSeed] = useState(0);
-
   const markersQuery = useQuery({
     queryKey: ["map-markers", city, selectedDate, Boolean(token)],
     queryFn: () => getMapMarkers({ city, date: selectedDate }, token),
@@ -50,12 +48,8 @@ export function MapScreen({ editorialId }: MapScreenProps) {
     if (explicit) {
       return explicit;
     }
-    if (mapFocusSeed > 0) {
-      const index = mapFocusSeed % markersQuery.data.length;
-      return markersQuery.data[index];
-    }
     return markersQuery.data[0];
-  }, [editorialId, markersQuery.data, mapFocusSeed]);
+  }, [editorialId, markersQuery.data]);
 
   return (
     <MobileShell activeMode="place" activeTab="relations" className="space-y-4 px-4 py-5">
@@ -69,14 +63,6 @@ export function MapScreen({ editorialId }: MapScreenProps) {
             <p className="mt-2 text-sm leading-6 text-graphite">
               Carte ouverte via OpenStreetMap. Le contexte utilise {city} et la date du {formatFrenchDate(selectedDate)}.
             </p>
-            <button
-              type="button"
-              onClick={() => setMapFocusSeed((current) => current + 1)}
-              className="interactive-action mt-3 inline-flex items-center gap-2 rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/16"
-            >
-              <Shuffle className="h-3.5 w-3.5" />
-              Decouverte aleatoire
-            </button>
           </div>
         </div>
       </div>

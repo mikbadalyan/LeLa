@@ -463,6 +463,28 @@ export interface FriendRecord extends Contributor {
   friendship_created_at?: string | null;
 }
 
+export interface FriendGraphNode extends Contributor {
+  depth: number;
+  is_self: boolean;
+  is_direct_friend: boolean;
+  mutual_count: number;
+  connection_count: number;
+  path_parent_id?: string | null;
+}
+
+export interface FriendGraphEdge {
+  source_id: string;
+  target_id: string;
+  weight: number;
+}
+
+export interface FriendGraph {
+  nodes: FriendGraphNode[];
+  edges: FriendGraphEdge[];
+  total_nodes: number;
+  truncated: boolean;
+}
+
 export interface UserSearchResult extends Contributor {
   is_friend: boolean;
 }

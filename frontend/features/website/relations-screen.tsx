@@ -7,9 +7,10 @@ import Link from "next/link";
 import { LoaderCircle, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { FriendNetworkExplorer } from "@/components/social/friend-network-explorer";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
-import { addFriend, getFriends, removeFriend, searchUsers } from "@/lib/api/endpoints";
+import { addFriend, getFriendGraph, getFriends, removeFriend, searchUsers } from "@/lib/api/endpoints";
 
 export function WebsiteRelationsScreen() {
   const router = useRouter();
@@ -31,6 +32,12 @@ export function WebsiteRelationsScreen() {
     enabled: Boolean(token),
   });
 
+  const graphQuery = useQuery({
+    queryKey: ["website-friend-graph", Boolean(token)],
+    queryFn: () => getFriendGraph(token!, { depth: 3, limit: 180 }),
+    enabled: Boolean(token),
+  });
+
   const usersQuery = useQuery({
     queryKey: ["website-user-search", deferredSearch, Boolean(token)],
     queryFn: () => searchUsers(deferredSearch, token!),
@@ -42,7 +49,9 @@ export function WebsiteRelationsScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["website-friends"] });
       queryClient.invalidateQueries({ queryKey: ["website-user-search"] });
+      queryClient.invalidateQueries({ queryKey: ["website-friend-graph"] });
       queryClient.invalidateQueries({ queryKey: ["friends"] });
+      queryClient.invalidateQueries({ queryKey: ["friend-graph"] });
     },
   });
 
@@ -51,9 +60,25 @@ export function WebsiteRelationsScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["website-friends"] });
       queryClient.invalidateQueries({ queryKey: ["website-user-search"] });
+      queryClient.invalidateQueries({ queryKey: ["website-friend-graph"] });
       queryClient.invalidateQueries({ queryKey: ["friends"] });
+      queryClient.invalidateQueries({ queryKey: ["friend-graph"] });
     },
   });
+
+  const normalizedQuery = deferredSearch.trim().toLowerCase();
+
+  const filteredFriends = useMemo(() => {
+    const items = friendsQuery.data ?? [];
+    if (!normalizedQuery) {
+      return items;
+    }
+    return items.filter((friend) =>
+      [friend.display_name, friend.username, friend.city ?? ""].some((value) =>
+        value.toLowerCase().includes(normalizedQuery)
+      )
+    );
+  }, [friendsQuery.data, normalizedQuery]);
 
   const suggestedAccounts = useMemo(
     () => (usersQuery.data ?? []).filter((entry) => !entry.is_friend && entry.id !== currentUserId),
@@ -62,6 +87,13 @@ export function WebsiteRelationsScreen() {
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
+      <FriendNetworkExplorer
+        graph={graphQuery.data}
+        isLoading={graphQuery.isLoading}
+        profileBasePath="/website/profile"
+        variant="website"
+      />
+
       <section className="rounded-card bg-elevated px-6 py-6 shadow-card ring-1 ring-borderSoft/10">
         <div className="relative max-w-xl">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-graphite/55" />
@@ -83,7 +115,7 @@ export function WebsiteRelationsScreen() {
             </div>
           ) : (
             <div className="mt-6 space-y-3">
-              {(friendsQuery.data ?? []).map((friend) => (
+              {filteredFriends.map((friend) => (
                 <div key={friend.id} className="flex items-center gap-3 rounded-[24px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
                   <Link
                     href={friend.id === currentUserId ? "/website/profile" : `/website/profile/${friend.id}`}
@@ -107,7 +139,7 @@ export function WebsiteRelationsScreen() {
                   </button>
                 </div>
               ))}
-              {!friendsQuery.data?.length ? (
+              {!filteredFriends.length ? (
                 <div className="rounded-[24px] bg-surface px-4 py-5 text-sm text-graphite ring-1 ring-borderSoft/10">
                   Aucun ami pour le moment.
                 </div>

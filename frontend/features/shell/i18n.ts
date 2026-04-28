@@ -76,6 +76,28 @@ type TranslationKey =
   | "relations.emptySuggested"
   | "relations.friend"
   | "relations.add"
+  | "relations.network"
+  | "relations.networkHint"
+  | "relations.networkEmpty"
+  | "relations.searchGraph"
+  | "relations.showGraph"
+  | "relations.showLists"
+  | "relations.modeAll"
+  | "relations.modeDirect"
+  | "relations.modeExtended"
+  | "relations.allCities"
+  | "relations.visible"
+  | "relations.directCount"
+  | "relations.extendedCount"
+  | "relations.truncated"
+  | "relations.recenter"
+  | "relations.reset"
+  | "relations.connections"
+  | "relations.mutual"
+  | "relations.chain"
+  | "relations.depth1"
+  | "relations.depth2"
+  | "relations.depth3"
   | "chat.title"
   | "chat.history"
   | "chat.new"
@@ -290,6 +312,28 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "relations.emptySuggested": "Aucun compte suggere",
     "relations.friend": "Ami",
     "relations.add": "Ajouter",
+    "relations.network": "Graphe relationnel",
+    "relations.networkHint": "Explorez vos amis, leurs liens communs et les chaines qui relient votre reseau jusqu'a trois niveaux.",
+    "relations.networkEmpty": "Le reseau relationnel est vide pour le moment.",
+    "relations.searchGraph": "Rechercher dans le reseau",
+    "relations.showGraph": "Graphe",
+    "relations.showLists": "Listes",
+    "relations.modeAll": "Tout",
+    "relations.modeDirect": "Directs",
+    "relations.modeExtended": "Etendu",
+    "relations.allCities": "Toutes les villes",
+    "relations.visible": "Visibles",
+    "relations.directCount": "Amis directs",
+    "relations.extendedCount": "Reseau total",
+    "relations.truncated": "Vue reduite",
+    "relations.recenter": "Recentrer",
+    "relations.reset": "Reinitialiser",
+    "relations.connections": "Connexions",
+    "relations.mutual": "Mutuels",
+    "relations.chain": "Chaine",
+    "relations.depth1": "1 saut",
+    "relations.depth2": "2 sauts",
+    "relations.depth3": "3 sauts",
     "chat.title": "LE_LA Chat",
     "chat.history": "Historique",
     "chat.new": "Nouvelle",
@@ -503,6 +547,28 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "relations.emptySuggested": "No suggested accounts",
     "relations.friend": "Friend",
     "relations.add": "Add",
+    "relations.network": "Friend graph",
+    "relations.networkHint": "Explore your friends, mutual links, and the chains that continue through friends of friends up to three levels.",
+    "relations.networkEmpty": "No relationship graph is available yet.",
+    "relations.searchGraph": "Search the network",
+    "relations.showGraph": "Graph",
+    "relations.showLists": "Lists",
+    "relations.modeAll": "All",
+    "relations.modeDirect": "Direct",
+    "relations.modeExtended": "Extended",
+    "relations.allCities": "All cities",
+    "relations.visible": "Visible",
+    "relations.directCount": "Direct friends",
+    "relations.extendedCount": "Total network",
+    "relations.truncated": "Reduced view",
+    "relations.recenter": "Recenter",
+    "relations.reset": "Reset",
+    "relations.connections": "Connections",
+    "relations.mutual": "Mutual",
+    "relations.chain": "Chain",
+    "relations.depth1": "1 hop",
+    "relations.depth2": "2 hops",
+    "relations.depth3": "3 hops",
     "chat.title": "LE_LA Chat",
     "chat.history": "History",
     "chat.new": "New",
@@ -716,6 +782,28 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "relations.emptySuggested": "Keine Vorschlage",
     "relations.friend": "Freund",
     "relations.add": "Hinzufugen",
+    "relations.network": "Beziehungsgraph",
+    "relations.networkHint": "Erkunde deine Freunde, gemeinsame Verbindungen und die Ketten aus Freunden von Freunden bis zu drei Ebenen tief.",
+    "relations.networkEmpty": "Noch kein Beziehungsgraph verfugbar.",
+    "relations.searchGraph": "Im Netzwerk suchen",
+    "relations.showGraph": "Graph",
+    "relations.showLists": "Listen",
+    "relations.modeAll": "Alle",
+    "relations.modeDirect": "Direkt",
+    "relations.modeExtended": "Erweitert",
+    "relations.allCities": "Alle Stadte",
+    "relations.visible": "Sichtbar",
+    "relations.directCount": "Direkte Freunde",
+    "relations.extendedCount": "Gesamtnetz",
+    "relations.truncated": "Reduzierte Ansicht",
+    "relations.recenter": "Neu zentrieren",
+    "relations.reset": "Zurucksetzen",
+    "relations.connections": "Verbindungen",
+    "relations.mutual": "Gemeinsam",
+    "relations.chain": "Kette",
+    "relations.depth1": "1 Sprung",
+    "relations.depth2": "2 Sprunge",
+    "relations.depth3": "3 Sprunge",
     "chat.title": "LE_LA Chat",
     "chat.history": "Verlauf",
     "chat.new": "Neu",
@@ -929,6 +1017,28 @@ const translations: Record<AppLanguage, Record<TranslationKey, string>> = {
     "relations.emptySuggested": "Առաջարկվող հաշիվներ չկան",
     "relations.friend": "Ընկեր",
     "relations.add": "Ավելացնել",
+    "relations.network": "Կապերի գրաֆ",
+    "relations.networkHint": "Ուսումնասիրեք ձեր ընկերներին, ընդհանուր կապերը և ընկերների ընկերների շղթաները մինչեւ երեք մակարդակ խորությամբ։",
+    "relations.networkEmpty": "Կապերի գրաֆը դեռ դատարկ է։",
+    "relations.searchGraph": "Որոնել ցանցում",
+    "relations.showGraph": "Գրաֆ",
+    "relations.showLists": "Ցուցակներ",
+    "relations.modeAll": "Բոլորը",
+    "relations.modeDirect": "Ուղիղ",
+    "relations.modeExtended": "Ընդլայնված",
+    "relations.allCities": "Բոլոր քաղաքները",
+    "relations.visible": "Տեսանելի",
+    "relations.directCount": "Ուղիղ ընկերներ",
+    "relations.extendedCount": "Ամբողջ ցանցը",
+    "relations.truncated": "Կրճատված տեսք",
+    "relations.recenter": "Կենտրոնացնել",
+    "relations.reset": "Վերականգնել",
+    "relations.connections": "Կապեր",
+    "relations.mutual": "Ընդհանուր",
+    "relations.chain": "Շղթա",
+    "relations.depth1": "1 քայլ",
+    "relations.depth2": "2 քայլ",
+    "relations.depth3": "3 քայլ",
     "chat.title": "LE_LA Chat",
     "chat.history": "Պատմություն",
     "chat.new": "Նոր",

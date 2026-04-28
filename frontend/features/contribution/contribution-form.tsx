@@ -103,25 +103,21 @@ const steps: Array<{ id: WizardStep; label: string }> = [
 const actionChoices: Array<{
   id: ActionChoice;
   title: string;
-  description: string;
   proposalType: ContributionProposalType;
 }> = [
   {
     id: "create_card",
-    title: "Créer une nouvelle carte",
-    description: "Pour un sujet qui n'existe pas encore dans LE_LA.",
+    title: "Nouvelle carte",
     proposalType: "create_card",
   },
   {
     id: "create_fiche",
-    title: "Compléter / créer une fiche liée",
-    description: "Pour ajouter du contenu détaillé à une carte existante.",
+    title: "Fiche liée",
     proposalType: "create_fiche",
   },
   {
     id: "correction",
-    title: "Proposer une correction",
-    description: "Pour corriger une carte ou une fiche publiée, sans modifier directement.",
+    title: "Correction",
     proposalType: "correction",
   },
 ];
@@ -312,19 +308,19 @@ function HorizontalContributionStepper({
 }) {
   const current = stepIndex(step);
   return (
-    <div className="grid grid-cols-6 gap-1.5 rounded-[20px] bg-surface p-1.5 ring-1 ring-borderSoft/10">
+    <div className="flex gap-2 overflow-x-auto rounded-[24px] bg-[#F5F5F5] p-2 ring-1 ring-black/6">
       {steps.map((entry, index) => (
         <button
           key={entry.id}
           type="button"
           onClick={() => index <= current && onStep(entry.id)}
           className={cn(
-            "h-11 rounded-[16px] px-2 text-[11px] font-semibold transition",
+            "min-w-[88px] flex-1 rounded-[18px] px-3 py-2.5 text-[11px] font-semibold transition",
             index === current
-              ? "bg-blue text-white shadow-blue"
+              ? "bg-[#3365C8] text-white shadow-[0_12px_28px_rgba(51,101,200,0.24)]"
               : index < current
-                ? "bg-blueSoft text-blue"
-                : "text-graphite/55"
+                ? "bg-white text-[#3365C8] shadow-sm"
+                : "text-graphite/55 hover:bg-white/70"
           )}
           aria-current={index === current ? "step" : undefined}
         >
@@ -343,8 +339,14 @@ function ContributionActionSelector({
   value: ActionChoice;
   onChange: (value: ActionChoice) => void;
 }) {
+  const iconFor = (choice: ActionChoice) => {
+    if (choice === "create_card") return <Plus className="h-7 w-7" />;
+    if (choice === "create_fiche") return <FileText className="h-7 w-7" />;
+    return <FilePenLine className="h-7 w-7" />;
+  };
+
   return (
-    <div className="grid h-full gap-3 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-3">
       {actionChoices.map((choice) => {
         const active = value === choice.id;
         return (
@@ -353,15 +355,36 @@ function ContributionActionSelector({
             type="button"
             onClick={() => onChange(choice.id)}
             className={cn(
-              "group rounded-[26px] p-4 text-left shadow-soft ring-1 transition",
-              active ? "bg-plum text-white ring-plum" : "bg-elevated text-ink ring-borderSoft/10 hover:bg-white"
+              "group relative flex min-h-[220px] flex-col items-center justify-center overflow-hidden rounded-[34px] p-6 text-center shadow-soft ring-1 transition duration-300",
+              active
+                ? "bg-[#7643A6] text-white ring-[#7643A6] shadow-[0_24px_60px_rgba(118,67,166,0.28)]"
+                : "bg-white text-ink ring-black/8 hover:-translate-y-1 hover:bg-[#FBFBFB] hover:shadow-[0_24px_60px_rgba(30,34,40,0.12)]"
             )}
           >
-            <div className={cn("flex h-11 w-11 items-center justify-center rounded-full", active ? "bg-white/16" : "bg-blueSoft text-blue")}>
-              {choice.id === "create_card" ? <Plus className="h-5 w-5" /> : choice.id === "create_fiche" ? <FileText className="h-5 w-5" /> : <FilePenLine className="h-5 w-5" />}
+            <div
+              className={cn(
+                "absolute inset-x-6 top-6 h-24 rounded-full blur-3xl transition",
+                active ? "bg-white/18" : "bg-[#3365C8]/8 group-hover:bg-[#7643A6]/10"
+              )}
+            />
+            <div
+              className={cn(
+                "relative flex h-20 w-20 items-center justify-center rounded-[26px] transition",
+                active ? "bg-white/16 text-white" : "bg-[#EEF4FF] text-[#3365C8] group-hover:bg-[#F1E9FA] group-hover:text-[#7643A6]"
+              )}
+            >
+              {iconFor(choice.id)}
             </div>
-            <h3 className="mt-5 text-lg font-semibold leading-tight">{choice.title}</h3>
-            <p className={cn("mt-2 text-sm leading-6", active ? "text-white/82" : "text-graphite")}>{choice.description}</p>
+            <h3 className="relative mt-6 text-[1.75rem] font-semibold tracking-[-0.055em]">{choice.title}</h3>
+            <span
+              className={cn(
+                "relative mt-5 inline-flex h-10 w-10 items-center justify-center rounded-full transition",
+                active ? "bg-white text-[#7643A6]" : "bg-[#111827] text-white group-hover:bg-[#7643A6]"
+              )}
+              aria-hidden="true"
+            >
+              <ArrowRight className="h-5 w-5" />
+            </span>
           </button>
         );
       })}
@@ -390,10 +413,9 @@ function ExistingCardSearch({
   });
 
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[280px_1fr]">
-      <div className="rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Détection doublons</p>
-        <h3 className="mt-2 text-xl font-semibold text-ink">Chercher avant de créer</h3>
+    <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+      <div className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8 lg:sticky lg:top-4 lg:self-start">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Recherche</p>
         <div className="mt-4 space-y-2.5">
           <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Titre, nom, mot-clé" />
           <Input value={city} onChange={(event) => setCity(event.target.value)} placeholder="Ville / lieu" />
@@ -415,14 +437,14 @@ function ExistingCardSearch({
           ) : null}
         </div>
       </div>
-      <div className="grid min-h-0 grid-cols-1 gap-2 overflow-hidden sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid max-h-[620px] grid-cols-1 gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
         {(searchMutation.data ?? []).map((card) => (
           <button
             key={`${card.source}-${card.id}`}
             type="button"
             onClick={() => onSelect(card)}
             className={cn(
-              "overflow-hidden rounded-[22px] bg-elevated text-left shadow-soft ring-1 transition hover:-translate-y-0.5",
+              "overflow-hidden rounded-[24px] bg-white text-left shadow-soft ring-1 transition hover:-translate-y-0.5",
               selectedCard?.id === card.id ? "ring-blue" : "ring-borderSoft/10"
             )}
           >
@@ -445,12 +467,12 @@ function ExistingCardSearch({
         ))}
         {searchMutation.isSuccess && !(searchMutation.data ?? []).length ? (
           <div className="col-span-full flex h-full min-h-[260px] items-center justify-center rounded-[24px] bg-elevated p-6 text-center text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
-            Aucune carte trouvée. Vous pouvez créer une nouvelle carte, mais l'IA revérifiera le risque de doublon.
+            Aucune carte trouvée.
           </div>
         ) : null}
         {!searchMutation.isSuccess ? (
           <div className="col-span-full flex h-full min-h-[260px] items-center justify-center rounded-[24px] bg-elevated p-6 text-center text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
-            Lancez une recherche par titre, ville ou tags pour trouver les cartes proches.
+            Rechercher une carte.
           </div>
         ) : null}
       </div>
@@ -470,8 +492,8 @@ function CardEditor({
   setTagInput: (value: string) => void;
 }) {
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-2">
-      <div className="space-y-3 rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="space-y-3 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
         <Input value={card.title} onChange={(event) => onChange("title", event.target.value)} placeholder="Titre de la carte" />
         <Textarea value={card.short_description} onChange={(event) => onChange("short_description", event.target.value)} placeholder="Description courte visible publiquement" className="min-h-24" />
         <select className="h-12 w-full rounded-control border border-borderSoft/12 bg-surface px-3 text-sm" value={card.category_metadata} onChange={(event) => onChange("category_metadata", event.target.value as CardCategoryMetadata)}>
@@ -482,7 +504,7 @@ function CardEditor({
           <Input value={card.location ?? ""} onChange={(event) => onChange("location", event.target.value)} placeholder="Lieu / repère" />
         </div>
       </div>
-      <div className="space-y-3 rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+      <div className="space-y-3 rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
         <Input value={card.main_image ?? ""} onChange={(event) => onChange("main_image", event.target.value)} placeholder="Image principale (URL)" />
         <Input value={tagInput} onChange={(event) => { setTagInput(event.target.value); onChange("tags", splitTags(event.target.value)); }} placeholder="Tags: patrimoine, Europe, tech" />
         <Textarea value={card.why_exists ?? ""} onChange={(event) => onChange("why_exists", event.target.value)} placeholder="Pourquoi cette carte doit exister ?" className="min-h-24" />
@@ -529,8 +551,8 @@ function FicheEditor({
   ];
 
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[180px_1fr]">
-      <div className="rounded-[24px] bg-elevated p-3 shadow-soft ring-1 ring-borderSoft/10">
+    <div className="grid gap-4 lg:grid-cols-[210px_1fr]">
+      <div className="rounded-[28px] bg-white p-3 shadow-soft ring-1 ring-black/8 lg:sticky lg:top-4 lg:self-start">
         <Input value={fiche.title} onChange={(event) => onChange({ ...fiche, title: event.target.value })} placeholder="Titre fiche" />
         <div className="mt-3 grid gap-1.5">
           {tabs.map((tab) => (
@@ -540,13 +562,13 @@ function FicheEditor({
           ))}
         </div>
       </div>
-      <div className="min-h-0 rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
-        {activeTab === "resume" ? <Textarea value={fiche.sections.resume} onChange={(event) => updateSection("resume", event.target.value)} placeholder="Intro / résumé" className="h-56" /> : null}
-        {activeTab === "description" ? <Textarea value={fiche.sections.description} onChange={(event) => updateSection("description", event.target.value)} placeholder="Description détaillée" className="h-56" /> : null}
+      <div className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
+        {activeTab === "resume" ? <Textarea value={fiche.sections.resume} onChange={(event) => updateSection("resume", event.target.value)} placeholder="Intro / résumé" className="min-h-64" /> : null}
+        {activeTab === "description" ? <Textarea value={fiche.sections.description} onChange={(event) => updateSection("description", event.target.value)} placeholder="Description détaillée" className="min-h-64" /> : null}
         {activeTab === "contexte" ? (
           <div className="space-y-3">
-            <Textarea value={fiche.sections.contexte} onChange={(event) => updateSection("contexte", event.target.value)} placeholder="Information historique, culturelle, contextuelle" className="h-32" />
-            <Textarea value={fiche.sections.pratique} onChange={(event) => updateSection("pratique", event.target.value)} placeholder="Informations pratiques si utile" className="h-24" />
+            <Textarea value={fiche.sections.contexte} onChange={(event) => updateSection("contexte", event.target.value)} placeholder="Information historique, culturelle, contextuelle" className="min-h-40" />
+            <Textarea value={fiche.sections.pratique} onChange={(event) => updateSection("pratique", event.target.value)} placeholder="Informations pratiques si utile" className="min-h-32" />
           </div>
         ) : null}
         {activeTab === "medias" ? (
@@ -554,7 +576,7 @@ function FicheEditor({
             <div className="grid grid-cols-4 gap-2">
               {(["image", "video", "audio", "text"] as const).map((kind) => <Button key={kind} variant="secondary" className="min-h-10 px-2 text-xs" onClick={() => addMedia(kind)}>{kind}</Button>)}
             </div>
-            <div className="grid max-h-52 gap-2 overflow-hidden sm:grid-cols-2">
+            <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
               {fiche.media_blocks.map((block, index) => (
                 <div key={`${block.kind}-${index}`} className="rounded-[16px] bg-surface p-2 ring-1 ring-borderSoft/10">
                   <p className="mb-1 text-[10px] font-semibold uppercase text-blue">{block.kind}</p>
@@ -603,8 +625,8 @@ function CorrectionEditor({
 }) {
   const selectedFiche = publishedFiches.find((fiche) => fiche.id === targetFicheId) ?? null;
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-2">
-      <div className="rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Contenu publié</p>
         <h3 className="mt-2 text-xl font-semibold text-ink">{selectedCard?.title ?? "Carte sélectionnée"}</h3>
         <p className="mt-2 text-sm leading-6 text-graphite">{selectedCard?.short_description ?? "Sélectionnez d'abord une carte."}</p>
@@ -649,7 +671,7 @@ function CorrectionEditor({
         <Input value={correction.section} onChange={(event) => onChange({ ...correction, section: event.target.value })} placeholder="Section concernée" className="mt-4" />
         <Textarea value={correction.current_text} onChange={(event) => onChange({ ...correction, current_text: event.target.value })} placeholder="Texte actuel si vous voulez le copier ici" className="mt-3 h-28" />
       </div>
-      <div className="rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+      <div className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">Correction proposée</p>
         <Textarea value={correction.proposed_text} onChange={(event) => onChange({ ...correction, proposed_text: event.target.value })} placeholder="Votre correction, section par section" className="mt-3 h-36" />
         <Textarea value={correction.explanation} onChange={(event) => onChange({ ...correction, explanation: event.target.value })} placeholder="Pourquoi proposez-vous cette modification ?" className="mt-3 h-28" />
@@ -691,8 +713,8 @@ function ContributionPreview({
   const description = previewCard?.short_description || selectedCard?.short_description || fiche.sections.resume || "Aperçu public";
   const image = previewCard?.main_image || selectedCard?.image || "";
   return (
-    <div className="grid h-full min-h-0 gap-3 lg:grid-cols-[300px_1fr]">
-      <article className="overflow-hidden rounded-[26px] bg-elevated shadow-card ring-1 ring-borderSoft/10">
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <article className="overflow-hidden rounded-[30px] bg-white shadow-card ring-1 ring-black/8">
         <div className="relative h-72 bg-[linear-gradient(145deg,#202431,#7643A6)]">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -705,7 +727,7 @@ function ContributionPreview({
           </div>
         </div>
       </article>
-      <div className="rounded-[26px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+      <div className="rounded-[30px] bg-white p-4 shadow-soft ring-1 ring-black/8">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Rendu public</p>
         {action === "correction" ? (
           <div className="mt-4">
@@ -742,7 +764,7 @@ function AIReviewPanel({ evaluation, loading }: { evaluation?: FicheAiEvaluation
   if (!evaluation) {
     return (
       <div className="rounded-[26px] bg-blueSoft p-5 text-sm leading-6 text-blue ring-1 ring-blue/15">
-        L'IA locale Mistral/Ollama va vérifier les doublons, la clarté, les sources, la qualité éditoriale et les risques. Elle ne publie jamais automatiquement.
+        Analyse IA prête.
       </div>
     );
   }
@@ -819,7 +841,7 @@ function ContributorDashboard({
     needs: proposals.filter((proposal) => proposal.status === "needs_changes").length,
   };
   return (
-    <div className="rounded-[24px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
+    <div className="rounded-[26px] bg-[#F7F7F7] p-4 shadow-soft ring-1 ring-black/6">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-plum">Mes contributions</p>
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
         {[
@@ -830,7 +852,7 @@ function ContributorDashboard({
           ["Rejetées", counts.rejected],
           ["Révisions", revisions.length],
         ].map(([label, count]) => (
-          <div key={label as string} className="rounded-[16px] bg-surface p-2 ring-1 ring-borderSoft/10">
+          <div key={label as string} className="rounded-[16px] bg-white p-2 ring-1 ring-black/6">
             <p className="font-semibold text-ink">{count}</p>
             <p className="text-graphite">{label}</p>
           </div>
@@ -842,7 +864,7 @@ function ContributorDashboard({
             key={proposal.id}
             type="button"
             onClick={() => onResume(proposal)}
-            className="block w-full rounded-[16px] bg-surface p-2 text-left text-xs ring-1 ring-borderSoft/10 transition hover:bg-mist"
+            className="block w-full rounded-[16px] bg-white p-2 text-left text-xs ring-1 ring-black/6 transition hover:bg-mist"
           >
             <p className="line-clamp-1 font-semibold text-ink">{proposalTitle(proposal)}</p>
             <p className="text-graphite">{proposal.contribution_type} · {proposal.status}</p>
@@ -1110,22 +1132,21 @@ export function ContributionForm({
   }
 
   return (
-    <div className="h-[calc(100dvh-10.5rem)] min-h-[620px] overflow-hidden rounded-[34px] bg-background text-ink">
-      <div className="grid h-full gap-3 lg:grid-cols-[220px_1fr_280px]">
-        <aside className="hidden min-h-0 rounded-[28px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10 lg:block">
+    <div className="min-h-[620px] rounded-[36px] bg-[#E9E9E9] p-2 text-ink shadow-[0_28px_80px_rgba(30,34,40,0.12)] ring-1 ring-black/6">
+      <div className="grid gap-4 xl:grid-cols-[230px_minmax(0,1fr)_300px]">
+        <aside className="hidden rounded-[30px] bg-white p-4 shadow-soft ring-1 ring-black/8 xl:sticky xl:top-5 xl:block xl:self-start">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue">Contribution</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Carte ou fiche</h2>
-          <p className="mt-2 text-sm leading-6 text-graphite">Flux collaboratif, type Wikipédia, avec modération humaine et pré-check IA local.</p>
-          <div className="mt-5 rounded-[22px] bg-blueSoft p-3 text-sm text-blue ring-1 ring-blue/15">
-            <p className="font-semibold">{selectedAction.title}</p>
-            <p className="mt-1 leading-5">{selectedAction.description}</p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-[-0.04em]">Carte / fiche</h2>
+          <div className="mt-5 rounded-[24px] bg-[#7643A6] p-4 text-white shadow-[0_18px_44px_rgba(118,67,166,0.24)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">Action</p>
+            <p className="mt-2 text-xl font-semibold">{selectedAction.title}</p>
           </div>
           <div className="mt-5">
             <ContributorDashboard token={token} onResume={resumeProposal} />
           </div>
         </aside>
 
-        <main className="flex min-h-0 flex-col rounded-[28px] bg-white/72 p-3 shadow-card ring-1 ring-borderSoft/10 backdrop-blur-md">
+        <main className="flex min-h-[620px] flex-col rounded-[30px] bg-white/88 p-3 shadow-card ring-1 ring-black/8 backdrop-blur-md">
           <HorizontalContributionStepper step={step} onStep={setStep} />
           {error ? (
             <div className="mt-2 flex items-center gap-2 rounded-[18px] bg-danger/10 px-3 py-2 text-sm text-danger ring-1 ring-danger/15">
@@ -1134,7 +1155,7 @@ export function ContributionForm({
             </div>
           ) : null}
 
-          <section className="mt-3 min-h-0 flex-1 overflow-hidden">
+          <section className="mt-4 flex-1">
             {step === "action" ? <ContributionActionSelector value={action} onChange={(value) => { setAction(value); setSelectedCard(null); setHasSearched(false); }} /> : null}
             {step === "search" ? <ExistingCardSearch action={action} selectedCard={selectedCard} onSelect={setSelectedCard} onSearched={() => setHasSearched(true)} /> : null}
             {step === "edit" && action === "create_card" ? <CardEditor card={card} onChange={(key, value) => setCard((current) => ({ ...current, [key]: value }))} tagInput={cardTagInput} setTagInput={setCardTagInput} /> : null}
@@ -1151,7 +1172,7 @@ export function ContributionForm({
             ) : null}
             {step === "preview" ? <ContributionPreview action={action} selectedCard={selectedCard} card={cleanCard} fiche={cleanFiche} correction={correction} /> : null}
             {step === "ai" ? (
-              <div className="grid h-full gap-3 lg:grid-cols-[1fr_280px]">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
                 <ContributionPreview action={action} selectedCard={selectedCard} card={cleanCard} fiche={cleanFiche} correction={correction} />
                 <div className="space-y-3">
                   <AIReviewPanel evaluation={evaluation} loading={aiMutation.isPending} />
@@ -1163,7 +1184,7 @@ export function ContributionForm({
               </div>
             ) : null}
             {step === "submit" ? (
-              <div className="grid h-full gap-3 lg:grid-cols-[1fr_300px]">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
                 <ContributionPreview action={action} selectedCard={selectedCard} card={cleanCard} fiche={cleanFiche} correction={correction} />
                 <div className="space-y-3 rounded-[26px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
                   <AIReviewPanel evaluation={evaluation} />
@@ -1182,7 +1203,7 @@ export function ContributionForm({
             ) : null}
           </section>
 
-          <footer className="mt-3 flex shrink-0 items-center justify-between gap-2">
+          <footer className="sticky bottom-3 z-20 mt-5 flex shrink-0 items-center justify-between gap-2 rounded-[24px] bg-white/90 p-2 shadow-[0_18px_48px_rgba(30,34,40,0.16)] ring-1 ring-black/8 backdrop-blur-md">
             <Button variant="secondary" disabled={currentStepIndex === 0} onClick={() => setStep(steps[Math.max(0, currentStepIndex - 1)].id)}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Précédent
@@ -1202,9 +1223,9 @@ export function ContributionForm({
           </footer>
         </main>
 
-        <aside className="hidden min-h-0 space-y-3 overflow-hidden lg:block">
-          <div className="rounded-[28px] bg-elevated p-4 shadow-soft ring-1 ring-borderSoft/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Aperçu vivant</p>
+        <aside className="hidden space-y-3 xl:sticky xl:top-5 xl:block xl:self-start">
+          <div className="rounded-[28px] bg-white p-4 shadow-soft ring-1 ring-black/8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Aperçu</p>
             <div className="mt-3 overflow-hidden rounded-[22px] bg-[linear-gradient(145deg,#202431,#7643A6)]">
               <div className="relative h-56">
                 {(cleanCard.main_image || selectedCard?.image) ? (

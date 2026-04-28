@@ -739,7 +739,7 @@ export function SettingsScreen({
                 </div>
               </SettingsCard>
 
-              <SettingsCard title="Decouverte" hint="Gerez la facon dont votre compte apparait dans la recherche.">
+              <SettingsCard title="Visibilite" hint="Gerez la facon dont votre compte apparait dans la recherche.">
                 <div className="space-y-3">
                   <SettingsToggle
                     label="Recherche par email"

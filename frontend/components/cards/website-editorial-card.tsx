@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPin } from "lucide-react";
+import { ChevronRight, Heart, MapPin, Play } from "lucide-react";
 
 import { MediaStateIcon, ShareIcon } from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
@@ -15,7 +15,7 @@ function contributorHref(contributorId: string, currentUserId?: string) {
   return contributorId === currentUserId ? "/website/profile" : `/website/profile/${contributorId}`;
 }
 
-type WebsiteEditorialCardVariant = "hero" | "compact" | "wide";
+type WebsiteEditorialCardVariant = "hero" | "compact" | "wide" | "portrait";
 
 function cardLocation(item: EditorialCard) {
   const venue = item.linked_entity?.title ?? item.metadata.city ?? item.subtitle ?? "";
@@ -48,20 +48,33 @@ export function WebsiteEditorialCard({
   const mediaSrc =
     item.media_kind === "video" ? item.poster_url || item.media_url : item.media_url;
   const location = cardLocation(item);
+  const displayTitle =
+    variant === "portrait" && item.type === "person"
+      ? item.description || item.title
+      : item.title;
   const titleClassName =
     variant === "hero"
       ? "max-w-[12ch] text-[clamp(2.35rem,3.6vw,4.2rem)] leading-[0.92]"
       : variant === "wide"
         ? "max-w-[13ch] text-[clamp(2rem,3vw,3.25rem)] leading-[0.95]"
-        : "max-w-[12ch] text-[clamp(1.55rem,2vw,2.45rem)] leading-[0.96]";
+        : variant === "portrait"
+          ? "max-w-[10ch] text-[clamp(1.2rem,1.6vw,1.95rem)] leading-[1.02]"
+          : "max-w-[12ch] text-[clamp(1.55rem,2vw,2.45rem)] leading-[0.96]";
   const mediaButtonClassName =
     variant === "hero"
       ? "h-20 w-20"
       : variant === "wide"
         ? "h-16 w-16"
-        : "h-14 w-14";
+        : variant === "portrait"
+          ? "h-12 w-12"
+          : "h-14 w-14";
   const mediaIconClassName =
-    variant === "hero" ? "h-10 w-10" : variant === "wide" ? "h-8 w-8" : "h-7 w-7";
+    variant === "hero" ? "h-10 w-10" : variant === "wide" ? "h-8 w-8" : "h-6 w-6";
+  const contentInsetClassName =
+    variant === "portrait" ? "p-4 lg:p-5" : "p-5 lg:p-6";
+  const locationInsetClassName =
+    variant === "portrait" ? "max-w-[calc(100%-5rem)]" : "max-w-[calc(100%-6.5rem)]";
+  const showPersonFooter = variant === "portrait" && item.type === "person";
 
   useEffect(
     () => () => {
@@ -95,7 +108,13 @@ export function WebsiteEditorialCard({
     <article
       className={cn(
         "card-enter group relative h-full min-h-[250px] overflow-hidden rounded-[18px] bg-[#1f2430] text-white shadow-[0_24px_64px_rgba(29,31,40,0.18)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_28px_74px_rgba(29,31,40,0.22)] lg:min-h-0 lg:rounded-[3px]",
-        variant === "hero" ? "min-h-[520px]" : variant === "wide" ? "min-h-[420px]" : "min-h-[320px]",
+        variant === "hero"
+          ? "min-h-[520px]"
+          : variant === "wide"
+            ? "min-h-[420px]"
+            : variant === "portrait"
+              ? "min-h-[360px]"
+              : "min-h-[320px]",
         className
       )}
       style={{ animationDelay: `${entryDelayMs}ms` }}
@@ -170,12 +189,26 @@ export function WebsiteEditorialCard({
           )}
         </ShareSheet>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 p-5 lg:p-6">
-          <div className="max-w-[calc(100%-6.5rem)] space-y-4">
+        <div className={cn("pointer-events-none absolute inset-x-0 bottom-0 z-10", contentInsetClassName)}>
+          <div className={cn(locationInsetClassName, "space-y-4")}>
             <h3 className={cn("font-semibold tracking-[-0.055em] text-white", titleClassName)}>
-              {item.title}
+              {displayTitle}
             </h3>
-            {(location.venue || location.address) ? (
+            {showPersonFooter ? (
+              <div className="flex items-start gap-3 text-white/95">
+                <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#7643A6] text-white shadow-[0_10px_18px_rgba(118,67,166,0.24)]">
+                  <MapPin className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[1rem] font-semibold leading-tight text-white">{item.title}</p>
+                  {item.subtitle ? (
+                    <p className="line-clamp-2 text-[0.92rem] leading-tight text-white/86">
+                      {item.subtitle}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            ) : (location.venue || location.address) ? (
               <div className="flex items-start gap-3 text-white/95">
                 <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white">
                   <MapPin className="h-4 w-4 text-[#7643A6]" />
@@ -206,11 +239,15 @@ export function WebsiteEditorialCard({
             )}
             aria-label={item.media_kind === "audio" ? "Ecouter" : item.media_kind === "video" ? "Lire la video" : "Lire"}
           >
-            <MediaStateIcon
-              kind={item.media_kind === "audio" ? "audio" : item.media_kind === "video" ? "video" : "read"}
-              className={cn(mediaIconClassName, "text-white")}
-              strokeWidth={2.3}
-            />
+            {item.media_kind === "audio" ? (
+              <MediaStateIcon kind="audio" className={cn(mediaIconClassName, "text-white")} strokeWidth={2.3} />
+            ) : item.media_kind === "video" ? (
+              <MediaStateIcon kind="video" className={cn(mediaIconClassName, "text-white")} strokeWidth={2.3} />
+            ) : variant === "hero" || variant === "wide" ? (
+              <Play className={cn(mediaIconClassName, "ml-1 fill-current text-white")} strokeWidth={2.2} />
+            ) : (
+              <ChevronRight className={cn(mediaIconClassName, "text-white")} strokeWidth={2.6} />
+            )}
           </Link>
         </div>
       </div>

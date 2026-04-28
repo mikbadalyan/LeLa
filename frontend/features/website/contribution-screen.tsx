@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 import { ContributionForm } from "@/features/contribution/contribution-form";
 import { useAuthStore } from "@/features/auth/store";
-import { useI18n } from "@/features/shell/i18n";
 
 interface WebsiteContributionScreenProps {
   searchParams?: {
@@ -25,7 +24,6 @@ interface WebsiteContributionScreenProps {
 export function WebsiteContributionScreen({ searchParams }: WebsiteContributionScreenProps) {
   const router = useRouter();
   const token = useAuthStore((state) => state.token);
-  const { t } = useI18n();
   const initialAction =
     searchParams?.action === "fiche"
       ? "create_fiche"
@@ -51,22 +49,13 @@ export function WebsiteContributionScreen({ searchParams }: WebsiteContributionS
   }, [router, token]);
 
   return (
-    <div className="mx-auto w-full max-w-[1180px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
-      <section className="rounded-[36px] bg-white px-6 py-6 shadow-card">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-plum">{t("contribute.studio")}</p>
-        <h1 className="mt-2 text-[2.2rem] font-semibold tracking-[-0.05em] text-ink">
-          {t("contribute.publishTitle")}
-        </h1>
-      </section>
-
-      <section className="rounded-[40px] bg-transparent">
-        <ContributionForm
-          initialAction={initialAction}
-          initialReference={initialReference}
-          initialTargetFicheId={searchParams?.targetFicheId ?? null}
-          initialCorrectionText={searchParams?.currentText ?? null}
-        />
-      </section>
+    <div className="mx-auto w-full max-w-[1440px] px-4 py-5 lg:px-8 lg:py-8">
+      <ContributionForm
+        initialAction={initialAction}
+        initialReference={initialReference}
+        initialTargetFicheId={searchParams?.targetFicheId ?? null}
+        initialCorrectionText={searchParams?.currentText ?? null}
+      />
     </div>
   );
 }

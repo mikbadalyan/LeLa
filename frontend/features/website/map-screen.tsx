@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import { LoaderCircle, MapPinned, Shuffle } from "lucide-react";
+import { LoaderCircle, MapPinned } from "lucide-react";
 
 import { useI18n } from "@/features/shell/i18n";
 import { useShellStore } from "@/features/shell/store";
@@ -31,7 +31,6 @@ export function WebsiteMapScreen({
   const selectedDate = useShellStore((state) => state.selectedDate);
   const { t, formatDate } = useI18n();
   const markersQuery = useWebsiteMapMarkers(city, selectedDate);
-  const [mapFocusSeed, setMapFocusSeed] = useState(0);
 
   const activeMarker = useMemo(() => {
     if (!markersQuery.data?.length) {
@@ -42,11 +41,8 @@ export function WebsiteMapScreen({
     if (explicit) {
       return explicit;
     }
-    if (mapFocusSeed > 0) {
-      return markersQuery.data[mapFocusSeed % markersQuery.data.length];
-    }
     return markersQuery.data[0];
-  }, [editorialId, markersQuery.data, mapFocusSeed]);
+  }, [editorialId, markersQuery.data]);
 
   return (
     <div className="mx-auto w-full max-w-[1380px] space-y-8 px-5 py-8 lg:px-8 lg:py-12">
@@ -58,14 +54,6 @@ export function WebsiteMapScreen({
         <p className="mt-2 text-sm leading-7 text-graphite">
           {formatDate(selectedDate)}
         </p>
-        <button
-          type="button"
-          onClick={() => setMapFocusSeed((current) => current + 1)}
-          className="interactive-action mt-3 inline-flex items-center gap-2 rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue ring-1 ring-blue/18"
-        >
-          <Shuffle className="h-3.5 w-3.5" />
-          Decouverte aleatoire
-        </button>
       </section>
 
       {markersQuery.isLoading ? (
