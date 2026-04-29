@@ -4,6 +4,18 @@
 
 :root {
   color-scheme: light;
+  --pwa-bg: #e9e9e9;
+  --pwa-dark: #3f4651;
+  --pwa-purple: #7643a6;
+  --pwa-blue: #3365c8;
+  --pwa-green: #1fa463;
+  --pwa-orange: #ff9838;
+  --pwa-card-gap: 8px;
+  --pwa-card-radius: 2px;
+  --pwa-safe-x: 10px;
+  --pwa-topbar-height: 36px;
+  --pwa-category-nav-height: 92px;
+  --pwa-bottom-nav-height: 58px;
   --background-rgb: 233 233 233;
   --shell-rgb: 233 233 233;
   --ink-rgb: 40 48 60;
@@ -147,6 +159,15 @@ html[data-motion="reduce"] *::after {
   animation-iteration-count: 1 !important;
   scroll-behavior: auto !important;
   transition-duration: 0.01ms !important;
+}
+
+.pwa-no-bold,
+.pwa-no-bold * {
+  font-weight: 400 !important;
+}
+
+.pwa-card-title {
+  font-weight: 700 !important;
 }
 
 @keyframes surface-shimmer {

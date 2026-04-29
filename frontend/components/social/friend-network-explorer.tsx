@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   MapPin,
-  Network,
   RotateCcw,
   Search,
   Sparkles,
@@ -339,36 +338,8 @@ export function FriendNetworkExplorer({
   }, [queryValue, selectedChain, selectedConnections, selectedNode, visibleNodes]);
 
   const graphBody = (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#EEF4FF] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#3365C8]">
-            <Network className="h-3.5 w-3.5" />
-            {t("relations.network")}
-          </div>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#5B6374]">
-            {t("relations.networkHint")}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#172033] shadow-sm ring-1 ring-black/8">
-            {t("relations.visible")} {visibleNodes.length}
-          </span>
-          <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#172033] shadow-sm ring-1 ring-black/8">
-            {t("relations.directCount")} {nodes.filter((node) => node.is_direct_friend).length}
-          </span>
-          <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#172033] shadow-sm ring-1 ring-black/8">
-            {t("relations.extendedCount")} {Math.max(0, nodes.length - 1)}
-          </span>
-          {graph?.truncated ? (
-            <span className="rounded-full bg-[#7643A6] px-3 py-2 text-xs font-semibold text-white">
-              {t("relations.truncated")}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_180px_140px]">
+    <div className="space-y-3">
+      <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_180px_140px]">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#687083]" />
           <Input
@@ -427,6 +398,14 @@ export function FriendNetworkExplorer({
             {depth === 1 ? t("relations.depth1") : depth === 2 ? t("relations.depth2") : t("relations.depth3")}
           </button>
         ))}
+        <span className="rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#172033] shadow-sm ring-1 ring-black/8">
+          {visibleNodes.length}
+        </span>
+        {graph?.truncated ? (
+          <span className="rounded-full bg-[#7643A6] px-3 py-2 text-xs font-semibold text-white">
+            +
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={() => {
@@ -440,7 +419,7 @@ export function FriendNetworkExplorer({
           className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-semibold text-[#687083] ring-1 ring-black/8 transition hover:bg-[#F7F8FA]"
         >
           <RotateCcw className="h-3.5 w-3.5" />
-          {t("relations.reset")}
+          Reset
         </button>
       </div>
 
@@ -640,17 +619,13 @@ export function FriendNetworkExplorer({
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
-            <div className="rounded-[18px] bg-[#F4F6FB] px-3 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B7280]">
-                {t("relations.connections")}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-[#111827]">{selectedNode.connection_count}</p>
+            <div className="inline-flex items-center gap-2 rounded-[18px] bg-[#F4F6FB] px-3 py-3">
+              <Users className="h-4 w-4 text-[#7643A6]" />
+              <p className="text-lg font-semibold text-[#111827]">{selectedNode.connection_count}</p>
             </div>
-            <div className="rounded-[18px] bg-[#F4F6FB] px-3 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B7280]">
-                {t("relations.mutual")}
-              </p>
-              <p className="mt-1 text-lg font-semibold text-[#111827]">{selectedNode.mutual_count}</p>
+            <div className="inline-flex items-center gap-2 rounded-[18px] bg-[#F4F6FB] px-3 py-3">
+              <Sparkles className="h-4 w-4 text-[#3365C8]" />
+              <p className="text-lg font-semibold text-[#111827]">{selectedNode.mutual_count}</p>
             </div>
           </div>
 
@@ -661,34 +636,26 @@ export function FriendNetworkExplorer({
             </div>
           ) : null}
 
-          <div className="mt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B7280]">
-              {t("relations.chain")}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {selectedChain.map((node) => (
-                <button
-                  key={node.id}
-                  type="button"
-                  onClick={() => setSelectedNodeId(node.id)}
-                  className={cn(
-                    "rounded-full px-3 py-1.5 text-xs font-semibold transition",
-                    node.id === selectedNode.id
-                      ? "bg-[#3365C8] text-white"
-                      : "bg-[#EFF3FF] text-[#3365C8] hover:bg-[#dbeafe]"
-                  )}
-                >
-                  {node.display_name}
-                </button>
-              ))}
-            </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {selectedChain.map((node) => (
+              <button
+                key={node.id}
+                type="button"
+                onClick={() => setSelectedNodeId(node.id)}
+                className={cn(
+                  "rounded-full px-3 py-1.5 text-xs font-semibold transition",
+                  node.id === selectedNode.id
+                    ? "bg-[#3365C8] text-white"
+                    : "bg-[#EFF3FF] text-[#3365C8] hover:bg-[#dbeafe]"
+                )}
+              >
+                {node.display_name}
+              </button>
+            ))}
           </div>
 
           <div className="mt-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B7280]">
-              {t("relations.connections")}
-            </p>
-            <div className="mt-2 space-y-2">
+            <div className="space-y-2">
               {selectedConnections.length ? (
                 selectedConnections.map((node) => (
                   <button
@@ -724,7 +691,7 @@ export function FriendNetworkExplorer({
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#7643A6] px-4 py-2 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(118,67,166,0.24)]"
           >
             <Users className="h-4 w-4" />
-            Voir le profil
+            Profil
           </Link>
         </>
       ) : (

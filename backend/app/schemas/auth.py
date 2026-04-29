@@ -38,6 +38,7 @@ class UserRead(BaseModel):
 class UserUpdateRequest(BaseModel):
     username: Optional[str] = None
     email: Optional[str] = None
+    avatar_url: Optional[str] = None
     city: Optional[str] = None
     bio: Optional[str] = None
 

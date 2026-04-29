@@ -1,5 +1,5 @@
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { ContributionForm } from "@/features/contribution/contribution-form";
+import { PwaContributionPage } from "@/features/contribution/pwa-contribution-page";
 
 export default async function ContributePage({
   searchParams,
@@ -33,8 +33,8 @@ export default async function ContributePage({
     : null;
 
   return (
-    <MobileShell activeMode="feed" activeTab="contribute" className="bg-background px-3 py-3">
-      <ContributionForm
+    <MobileShell activeMode="feed" activeTab="contribute" className="bg-background px-0 py-0">
+      <PwaContributionPage
         initialAction={initialAction}
         initialReference={initialReference}
         initialTargetFicheId={params.targetFicheId ?? null}

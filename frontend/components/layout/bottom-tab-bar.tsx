@@ -1,11 +1,11 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { TabIcon } from "@/components/ui/lela-icons";
+import { useAuthStore } from "@/features/auth/store";
 import { useI18n } from "@/features/shell/i18n";
-import { useShellStore } from "@/features/shell/store";
 import { cn } from "@/lib/utils/cn";
 
 type Tab = "likes" | "contribute" | "conversations" | "relations" | "profile";
@@ -28,7 +28,7 @@ const items: Array<{
 
 export function BottomTabBar({ activeTab }: BottomTabBarProps) {
   const { t } = useI18n();
-  const compactMode = useShellStore((state) => state.compactMode);
+  const user = useAuthStore((state) => state.user);
 
   const labels: Record<Tab, string> = {
     likes: t("tabs.likes"),
@@ -40,17 +40,7 @@ export function BottomTabBar({ activeTab }: BottomTabBarProps) {
 
   return (
     <nav
-      className={cn(
-        "sticky bottom-0 z-50 grid shrink-0 grid-cols-5 gap-1.5 border-t border-white/12 bg-plum px-2 text-white shadow-[0_-18px_38px_rgba(35,25,48,0.18)] backdrop-blur-md",
-        compactMode ? "pb-[max(env(safe-area-inset-bottom),0.8rem)] pt-2.5" : "pb-[max(env(safe-area-inset-bottom),1rem)] pt-3"
-      )}
-      style={
-        {
-          "--lela-bottom-tab-offset": compactMode
-            ? "calc(4.8rem + env(safe-area-inset-bottom))"
-            : "calc(5.35rem + env(safe-area-inset-bottom))",
-        } as CSSProperties
-      }
+      className="sticky bottom-0 z-50 grid h-[calc(var(--pwa-bottom-nav-height)+env(safe-area-inset-bottom))] shrink-0 grid-cols-5 bg-[var(--pwa-purple)] px-1 pb-[env(safe-area-inset-bottom)] text-white shadow-[0_-8px_18px_rgba(69,37,96,0.22)]"
     >
       {items.map(({ key, href, label }) => {
         const isActive = key === activeTab;
@@ -60,20 +50,30 @@ export function BottomTabBar({ activeTab }: BottomTabBarProps) {
             key={key}
             href={href}
             className={cn(
-              "flex flex-col items-center justify-center rounded-[18px] px-1 text-center text-[10.5px] font-semibold transition focus-visible:outline-white/40",
-              compactMode ? "min-h-[58px] gap-1 py-2" : "min-h-[66px] gap-1.5 py-2.5",
-              isActive ? "bg-white/16 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]" : "opacity-88 hover:bg-white/8"
+              "flex min-h-[var(--pwa-bottom-nav-height)] min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-center text-[10px] leading-none transition focus-visible:outline-white/40",
+              isActive ? "opacity-100" : "opacity-95 hover:bg-white/8"
             )}
           >
-            <TabIcon
-              tab={key}
-              className={cn(
-                compactMode ? "h-[21px] w-[21px] transition" : "h-[22px] w-[22px] transition",
-                isActive ? "text-white" : "text-white/78",
-                key === "likes" && isActive && "fill-current"
-              )}
-            />
-            <span className="leading-tight">{translatedLabel}</span>
+            {key === "profile" && user?.avatar_url ? (
+              <Image
+                src={user.avatar_url}
+                alt={translatedLabel}
+                width={24}
+                height={24}
+                className="h-6 w-6 rounded-full border border-white/75 object-cover"
+              />
+            ) : (
+              <TabIcon
+                tab={key}
+                className={cn(
+                  "h-6 w-6 text-white transition",
+                  key === "likes" && "fill-current",
+                  key === "profile" && "h-6 w-6"
+                )}
+                strokeWidth={key === "conversations" ? 3 : 2.7}
+              />
+            )}
+            <span className="w-full truncate leading-tight">{translatedLabel}</span>
           </Link>
         );
       })}

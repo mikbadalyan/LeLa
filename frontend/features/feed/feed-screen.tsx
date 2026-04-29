@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUp, LoaderCircle, X } from "lucide-react";
 
-import { EditorialFeedCard } from "@/components/cards/editorial-feed-card";
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { PwaFeedCard } from "@/components/pwa/pwa-feed-card";
 import { useAuthStore } from "@/features/auth/store";
 import { ChatScreen } from "@/features/chat/chat-screen";
 import { useFeed, useToggleLike } from "@/features/feed/hooks";
@@ -160,7 +160,7 @@ export function FeedScreen({ focus }: FeedScreenProps) {
   }
 
   return (
-    <MobileShell activeMode={activeMode} activeTab="relations" className="screen-feed space-y-4 px-3 py-4">
+    <MobileShell activeMode={activeMode} activeTab="relations" className="screen-feed bg-[#303744] py-[10px]">
       {newItemsCount > 0 ? (
         <button
           type="button"
@@ -188,29 +188,18 @@ export function FeedScreen({ focus }: FeedScreenProps) {
 
       {/* Feed items */}
       {showLoadingSkeletons ? (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {Array.from({ length: 3 }).map((_, index) => (
             <FeedSkeletonCard key={`feed-skeleton-${index}`} featured={index === 1} />
           ))}
         </div>
       ) : visibleItems.length > 0 ? (
         visibleItems.map((item, index) => (
-          <EditorialFeedCard
+          <PwaFeedCard
             key={item.id}
             item={item}
             onLike={(id) => likeMutation.mutate(id)}
-            featured={(index + 1) % 5 === 0}
-            entryDelayMs={Math.min(index * 34, 260)}
-            onToggleCloud={(selectedItem) =>
-              setCloudFilterIds((current) => {
-                const nextIds = cloudIds(selectedItem);
-                const currentKey = current?.slice().sort().join("|");
-                const nextKey = nextIds.slice().sort().join("|");
-                return currentKey === nextKey ? null : nextIds;
-              })
-            }
-            cloudActive={Boolean(cloudFilterIds?.length && isInCloud(item, cloudFilterIds))}
-            highlighted={false}
+            featured={index === 0 || (index + 1) % 5 === 0}
           />
         ))
       ) : feedQuery.isLoading ? null : (

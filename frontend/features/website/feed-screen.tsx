@@ -224,9 +224,9 @@ export function WebsiteFeedScreen() {
   ];
 
   return (
-    <div className="min-h-dvh bg-[#E9E9E9] px-3 py-3 text-ink sm:px-4 sm:py-4 lg:px-6 lg:py-7">
-      <div className="mx-auto w-full max-w-[1680px]">
-        <section className="rounded-[4px] bg-white shadow-[0_20px_70px_rgba(36,39,47,0.06)] ring-1 ring-black/5">
+    <div className="min-h-dvh bg-[#E9E9E9] px-3 py-3 text-ink sm:px-4 sm:py-4 lg:px-4 lg:py-5">
+      <div className="mx-auto w-full max-w-[1800px]">
+        <section className="min-h-[calc(100dvh-2rem)] rounded-[4px] bg-white shadow-[0_20px_70px_rgba(36,39,47,0.06)] ring-1 ring-black/5">
           <header className="grid grid-cols-1 gap-4 border-b border-black/5 px-6 py-5 lg:grid-cols-[110px_180px_minmax(0,1fr)] lg:items-center lg:px-8 lg:py-6">
             <div ref={menuRef} className="relative flex items-center">
               <button
@@ -357,7 +357,7 @@ export function WebsiteFeedScreen() {
 
             <div className="bg-white px-[4px] py-[4px]">
               {feedQuery.isLoading ? (
-                <div className="grid grid-cols-1 gap-[4px] sm:grid-cols-2 lg:auto-rows-[78px] lg:grid-cols-12">
+                <div className="grid grid-cols-1 gap-[4px] sm:grid-cols-2 lg:auto-rows-[132px] lg:grid-cols-12">
                   {CARD_LAYOUTS.map((layout, index) => (
                     <PrototypeFeedSkeletonCard
                       key={`prototype-feed-skeleton-${index}`}
@@ -366,7 +366,7 @@ export function WebsiteFeedScreen() {
                   ))}
                 </div>
               ) : showcaseItems.length ? (
-                <div className="grid grid-cols-1 gap-[4px] sm:grid-cols-2 lg:auto-rows-[78px] lg:grid-cols-12">
+                <div className="grid grid-cols-1 gap-[4px] sm:grid-cols-2 lg:auto-rows-[132px] lg:grid-cols-12">
                   {showcaseItems.slice(0, CARD_LAYOUTS.length).map((item, index) => {
                     const layout = CARD_LAYOUTS[index];
                     return (

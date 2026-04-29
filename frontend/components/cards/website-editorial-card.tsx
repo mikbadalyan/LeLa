@@ -74,6 +74,14 @@ export function WebsiteEditorialCard({
     variant === "portrait" ? "p-4 lg:p-5" : "p-5 lg:p-6";
   const locationInsetClassName =
     variant === "portrait" ? "max-w-[calc(100%-5rem)]" : "max-w-[calc(100%-6.5rem)]";
+  const shareButtonPositionClassName =
+    variant === "hero"
+      ? "top-24"
+      : variant === "wide"
+        ? "top-20"
+        : variant === "portrait"
+          ? "top-[5.2rem]"
+          : "top-[5.5rem]";
   const showPersonFooter = variant === "portrait" && item.type === "person";
 
   useEffect(
@@ -179,7 +187,8 @@ export function WebsiteEditorialCard({
                 open();
               }}
               className={cn(
-                "interactive-action absolute right-4 top-[28%] z-20 inline-flex h-11 w-11 items-center justify-center text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition hover:scale-[1.06] lg:right-5",
+                "interactive-action absolute right-4 z-20 inline-flex h-11 w-11 items-center justify-center text-white drop-shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition hover:scale-[1.06] lg:right-5",
+                shareButtonPositionClassName,
                 sharePulse ? "share-pulse" : ""
               )}
               aria-label="Partager"

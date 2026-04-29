@@ -166,6 +166,18 @@ def update_user_profile(db: Session, user: User, payload: UserUpdateRequest) -> 
             raise ValueError("Cet email est deja utilise.")
         user.email = payload.email
 
+    if payload.avatar_url is not None:
+        avatar_url = payload.avatar_url.strip()
+        if not avatar_url:
+            raise ValueError("L'image de profil ne peut pas etre vide.")
+        if not (
+            avatar_url.startswith("/")
+            or avatar_url.startswith("http://")
+            or avatar_url.startswith("https://")
+        ):
+            raise ValueError("Utilisez une URL d'image valide pour la photo de profil.")
+        user.avatar_url = avatar_url
+
     if payload.city is not None:
         user.city = payload.city.strip() or None
 

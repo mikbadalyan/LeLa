@@ -33,17 +33,17 @@ export function MobileShell({
   return (
     <div
       className={cn(
-        "flex min-h-dvh items-stretch justify-center bg-background text-ink md:px-3",
+        "flex min-h-dvh items-stretch justify-center bg-[#E9E9E9] text-ink md:px-3",
         compactMode ? "md:py-3" : "md:py-5"
       )}
     >
-      <div className="relative w-full max-w-[430px]">
+      <div className="relative w-full max-w-[390px]">
         <div
           className={cn(
-            "relative mx-auto flex min-h-dvh w-full flex-col overflow-hidden bg-shell shadow-none ring-0",
+            "pwa-no-bold relative mx-auto flex min-h-dvh w-full flex-col overflow-hidden bg-[#E9E9E9] shadow-none ring-0",
             compactMode
-              ? "md:min-h-[calc(100dvh-1.5rem)] md:max-h-[900px] md:rounded-[30px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
-              : "md:min-h-[calc(100dvh-3rem)] md:max-h-[920px] md:rounded-[34px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
+              ? "md:h-[844px] md:min-h-[844px] md:max-h-[844px] md:rounded-[30px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
+              : "md:h-[844px] md:min-h-[844px] md:max-h-[844px] md:rounded-[34px] md:shadow-card md:ring-1 md:ring-borderSoft/10"
           )}
         >
           <div className="sticky top-0 z-50 shrink-0">
@@ -60,7 +60,7 @@ export function MobileShell({
             id="lela-scroll-container"
             className={cn(
               "min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-smooth",
-              showBottomBar && padForBottomBar ? "pb-[calc(6.75rem+env(safe-area-inset-bottom))]" : "",
+              showBottomBar && padForBottomBar ? "pb-[calc(var(--pwa-bottom-nav-height)+8px+env(safe-area-inset-bottom))]" : "",
               "isolate",
               className
             )}

@@ -1,9 +1,11 @@
 import Image from "next/image";
 
-export function LogoMark() {
+import { cn } from "@/lib/utils/cn";
+
+export function LogoMark({ className, large = false }: { className?: string; large?: boolean }) {
   return (
-    <div className="flex h-[46px] w-[46px] items-center justify-center rounded-full border border-borderSoft/10 bg-elevated shadow-soft">
-      <Image src="/assets/logo.svg" alt="LE_LA" width={18} height={26} />
+    <div className={cn("flex h-[46px] w-[46px] items-center justify-center rounded-full border border-borderSoft/10 bg-elevated shadow-soft", className)}>
+      <Image src="/assets/logo.svg" alt="LE_LA" width={large ? 28 : 18} height={large ? 38 : 26} />
     </div>
   );
 }

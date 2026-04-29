@@ -167,6 +167,7 @@ export interface RegisterPayload {
 export interface UserUpdatePayload {
   username?: string;
   email?: string;
+  avatar_url?: string;
   city?: string;
   bio?: string;
 }

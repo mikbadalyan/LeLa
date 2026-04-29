@@ -4,32 +4,33 @@ import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPinned, Volume2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { PwaFeedCard } from "@/components/pwa/pwa-feed-card";
 import { Button } from "@/components/ui/button";
 import { CardFilterSheet } from "@/components/ui/card-filter-sheet";
 import {
   CloudIcon,
   EditorialTypeIcon,
   FilterIcon,
-  MediaStateIcon,
+  IconAsset,
   ShareIcon,
 } from "@/components/ui/lela-icons";
 import { ShareSheet } from "@/components/ui/share-sheet";
 import { useAuthStore } from "@/features/auth/store";
 import { getEditorial, getEditorialFiches, toggleLike } from "@/lib/api/endpoints";
 import type { EditorialCard, PublishedFiche } from "@/lib/api/types";
-import { buildEditorialMapHref, shouldRenderEditorialAddress } from "@/lib/utils/editorial";
+import { buildEditorialMapHref } from "@/lib/utils/editorial";
 import { writeRecentViewedEditorialId } from "@/lib/utils/discovery";
-import { formatFrenchDateTime, formatPrice } from "@/lib/utils/format";
+import { formatFrenchDateTime } from "@/lib/utils/format";
 
 interface DetailScreenProps {
   editorialId: string;
 }
 
 function typeIcon(type: "magazine" | "place" | "person" | "event") {
-  return <EditorialTypeIcon type={type} className="h-5 w-5" />;
+  return <EditorialTypeIcon type={type} className="h-[32px] w-[32px]" />;
 }
 
 function cloudIds(item: EditorialCard) {
@@ -55,12 +56,10 @@ function ficheSummary(fiche: PublishedFiche) {
 }
 
 export function DetailScreen({ editorialId }: DetailScreenProps) {
+  const searchParams = useSearchParams();
   const token = useAuthStore((state) => state.token);
   const viewerId = useAuthStore((state) => state.user?.id ?? "guest");
   const queryClient = useQueryClient();
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [cloudFilterIds, setCloudFilterIds] = useState<string[] | null>(null);
   const [likePulse, setLikePulse] = useState(false);
   const [sharePulse, setSharePulse] = useState(false);
@@ -190,7 +189,6 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
   const isVideo = item.media_kind === "video";
   const isAudio = item.media_kind === "audio";
   const mapHref = buildEditorialMapHref(item.id);
-  const showAddressLine = shouldRenderEditorialAddress(item.metadata.address, item.subtitle);
   const visibleRelated = cloudFilterIds?.length
     ? item.related.filter((relatedItem) => isInCloud(relatedItem, cloudFilterIds))
     : item.related;
@@ -203,9 +201,6 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
     image: item.media_url,
     category: item.type,
   });
-  const improveHref = `/contribute?action=fiche&${contributionParams.toString()}`;
-  const correctionHref = `/contribute?action=correction&${contributionParams.toString()}`;
-
   const ficheCorrectionHref = (fiche: PublishedFiche) => {
     const params = new URLSearchParams(contributionParams);
     params.set("targetFicheId", fiche.id);
@@ -213,245 +208,189 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
     return `/contribute?action=correction&${params.toString()}`;
   };
 
-  const togglePrimaryPlayback = () => {
-    if (isVideo && videoRef.current) {
-      if (videoRef.current.paused) {
-        void videoRef.current.play();
-        setIsPlaying(true);
-      } else {
-        videoRef.current.pause();
-        setIsPlaying(false);
-      }
-      return;
-    }
+  const primaryFiche = publicFiches[0] ?? null;
+  const ficheBody = primaryFiche ? ficheSummary(primaryFiche) : "";
+  const bodyText = ficheBody || item.description || item.narrative_text;
+  const detailView = searchParams.get("view");
+  const isNarrativeCapsule =
+    detailView === "capsule" ||
+    (detailView !== "fiche" &&
+      (item.type === "magazine" || item.title.toLowerCase().includes("lapin")));
+  const detailTitle =
+    item.type === "place"
+      ? item.linked_entity?.title || item.subtitle || item.title
+      : item.type === "person"
+        ? item.linked_entity?.title || item.subtitle || item.title
+        : item.title;
+  const detailSubtitle =
+    item.type === "person"
+      ? item.metadata.role || item.subtitle
+      : item.type === "place"
+        ? item.metadata.address || item.subtitle
+        : item.type === "event"
+          ? item.subtitle || "Insolite"
+          : item.subtitle;
 
-    if (isAudio && audioRef.current) {
-      if (audioRef.current.paused) {
-        void audioRef.current.play();
-        setIsPlaying(true);
-      } else {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
-    }
-  };
+  if (isNarrativeCapsule) {
+    return (
+      <MobileShell activeMode="feed" activeTab="relations" className="screen-detail bg-[#3B424D] p-0">
+        <article>
+          <div className="relative mx-[10px] mt-[12px] h-[365px] overflow-hidden bg-[#303744]">
+            <Image
+              src={isVideo ? item.poster_url || item.media_url : item.media_url}
+              alt={item.title}
+              fill
+              sizes="390px"
+              className="object-cover"
+            />
+            <div className="absolute inset-x-0 bottom-0 flex justify-center gap-2 pb-3">
+              {[0, 1, 2, 3].map((dot) => (
+                <span key={dot} className={`h-3 w-3 border border-white ${dot === 0 ? "bg-white" : "bg-white/35"}`} />
+              ))}
+            </div>
+            <Link
+              href={`/editorial/${item.id}`}
+              className="absolute right-5 top-[278px] flex h-[48px] w-[48px] items-center justify-center rounded-full bg-white/82 text-[#8A36C2]"
+              aria-label="Lire la capsule"
+            >
+              <IconAsset src="/icon/chevrons-right.svg" className="h-8 w-8" />
+            </Link>
+          </div>
+
+          <section className="px-[26px] py-6 text-white">
+            <h1 className="line-clamp-2 text-[25px] leading-[1.12] tracking-[-0.02em]">{item.title}</h1>
+            <div className="mt-6 grid grid-cols-[30px_minmax(0,1fr)] gap-3">
+              <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-[3px] bg-[var(--pwa-purple)]">
+                <IconAsset src="/icon/event.svg" className="h-5 w-5 shrink-0 text-white" />
+              </span>
+              <div className="min-w-0 text-[15px] leading-[1.25]">
+                <p className="line-clamp-1">Pour les enfants</p>
+                <p className="line-clamp-1">{item.subtitle || item.title}</p>
+                {item.metadata.date ? <p className="line-clamp-1">{formatFrenchDateTime(item.metadata.date)}</p> : null}
+                <p className="line-clamp-1">{item.metadata.address || item.metadata.city || "Musée Würth | Erstein"}</p>
+              </div>
+            </div>
+            <div className="mt-7 space-y-4 text-[14px] leading-[1.4] text-white/95">
+              <p>{bodyText}</p>
+              {item.narrative_text ? <p>{item.narrative_text}</p> : null}
+            </div>
+          </section>
+        </article>
+      </MobileShell>
+    );
+  }
 
   return (
-    <MobileShell activeMode={activeMode} activeTab="relations" className="screen-detail bg-background">
-      <article className="bg-background">
-        <div className="detail-reveal relative aspect-[1.18] overflow-hidden rounded-b-[30px] shadow-soft">
+    <MobileShell activeMode={activeMode} activeTab="relations" className="screen-detail bg-[#303744] p-0">
+      <article>
+        <div className="relative h-[220px] overflow-hidden border-b border-[var(--pwa-blue)] bg-[var(--pwa-dark)]">
           {isVideo ? (
             <video
-              ref={videoRef}
               src={item.media_url}
               poster={item.poster_url ?? undefined}
-              controls
               playsInline
               preload="metadata"
               className="h-full w-full object-cover"
-              onPause={() => setIsPlaying(false)}
-              onPlay={() => setIsPlaying(true)}
             />
           ) : isAudio ? (
-            <>
-              <audio
-                ref={audioRef}
-                src={item.media_url}
-                preload="metadata"
-                controls
-                className="absolute bottom-5 left-5 right-5 z-10"
-                onPause={() => setIsPlaying(false)}
-                onPlay={() => setIsPlaying(true)}
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
-              <div className="absolute inset-x-0 top-[22%] flex justify-center opacity-25">
-                <div className="flex items-end gap-2">
-                  {[34, 50, 28, 42, 56, 36, 44].map((height, index) => (
-                    <span
-                      key={`${item.id}-audio-wave-${index}`}
-                      className="w-2 rounded-full bg-white"
-                      style={{ height }}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
+            <div className="h-full w-full bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
           ) : (
-            <Image
-              src={item.media_url}
-              alt={item.title}
-              fill
-              sizes="(max-width: 768px) 100vw, 430px"
-              className="interactive-media object-cover"
-            />
+            <Image src={item.media_url} alt={item.title} fill sizes="390px" className="object-cover" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-          {(isVideo || isAudio) ? (
-            <button
-              type="button"
-              onClick={togglePrimaryPlayback}
-              className="interactive-action absolute bottom-5 right-5 z-20 flex h-16 w-16 items-center justify-center rounded-full bg-blue shadow-blue"
-              aria-label={isPlaying ? "Mettre en pause" : isAudio ? "Lire l'audio" : "Lire la video"}
-            >
-              <MediaStateIcon
-                kind={isAudio ? "audio" : "video"}
-                isPlaying={isPlaying}
-                className="h-8 w-8 text-white"
-                strokeWidth={2.4}
-              />
-            </button>
-          ) : null}
-          {isAudio ? (
-            <div className="absolute left-5 top-5 rounded-full bg-white/18 px-3 py-2 text-sm font-semibold text-white backdrop-blur-md">
-              <span className="inline-flex items-center gap-2">
-                <Volume2 className="h-4 w-4" />
-                Capsule audio
-              </span>
-            </div>
-          ) : null}
         </div>
 
-        <div className="space-y-5 px-5 py-5">
-          <div className="detail-reveal detail-reveal-delay-1 flex items-start gap-4">
-            <div className="flex flex-1 items-start gap-3">
-              <div className="mt-1 rounded-2xl bg-blueSoft p-3 text-blue shadow-sm ring-1 ring-blue/10">
-                {typeIcon(item.type)}
-              </div>
-              <div>
-                <h1 className="text-[1.85rem] font-semibold leading-tight tracking-[-0.03em] text-ink">{item.title}</h1>
-                {item.subtitle ? (
-                  <p className="mt-1 text-lg text-graphite">{item.subtitle}</p>
-                ) : null}
-                {showAddressLine ? (
-                  <p className="mt-1 text-sm italic text-graphite/75">{item.metadata.address}</p>
-                ) : null}
-              </div>
+        <section className="bg-[#F4F4F4] px-5 pb-5 pt-6 text-[#454A55]">
+          <div className="grid grid-cols-[34px_minmax(0,1fr)_36px] gap-3">
+            <div className="pt-0.5 text-[#454A55]">{typeIcon(item.type)}</div>
+            <div className="min-w-0 pr-1">
+              {item.type === "event" && detailSubtitle ? (
+                <p className="line-clamp-1 text-[15px] leading-tight">{detailSubtitle}</p>
+              ) : null}
+              <h1 className="line-clamp-2 text-[19px] leading-[1.15] tracking-[-0.01em]">{detailTitle}</h1>
+              {item.type !== "event" && detailSubtitle ? (
+                <p className="mt-1 line-clamp-2 text-[13px] italic leading-[1.25]">{detailSubtitle}</p>
+              ) : null}
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                triggerLikePulse();
-                likeMutation.mutate(editorialId);
-              }}
-              className={`interactive-action rounded-full bg-elevated p-2.5 text-graphite shadow-soft ring-1 ring-borderSoft/10 ${
-                likePulse ? "like-pop" : ""
-              }`}
-              aria-label="Aimer cette fiche"
-            >
-              <Heart
-                className={`h-7 w-7 ${item.is_liked ? "fill-plum text-plum" : "text-graphite"} ${likePulse ? "like-pop" : ""}`}
-              />
-            </button>
-          </div>
-
-          <div className="detail-reveal detail-reveal-delay-2 space-y-4 rounded-card bg-elevated px-5 py-5 text-base leading-8 text-[#4A505B] shadow-card ring-1 ring-borderSoft/10">
-            <p>{item.description}</p>
-            <p>{item.narrative_text}</p>
-          </div>
-
-          <div className="detail-reveal detail-reveal-delay-2 space-y-3 rounded-card bg-elevated px-5 py-5 shadow-card ring-1 ring-borderSoft/10">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue">Fiches collaboratives</p>
-                <h2 className="mt-1 text-xl font-semibold text-ink">Versions publiées par la communauté</h2>
-              </div>
-              <Link href={improveHref} className="rounded-full bg-blueSoft px-3 py-2 text-xs font-semibold text-blue">
-                Ajouter
+            <div className="flex w-9 flex-col items-center gap-5 text-[#454A55]">
+              <Link href={mapHref} className="flex h-8 w-8 items-center justify-center" aria-label={`Ouvrir ${item.title} sur la carte`}>
+                <IconAsset src="/icon/lieu.svg" className="h-7 w-7" />
               </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  triggerLikePulse();
+                  likeMutation.mutate(editorialId);
+                }}
+                className={`flex h-8 w-8 items-center justify-center ${likePulse ? "like-pop" : ""}`}
+                aria-label="Aimer cette fiche"
+              >
+                <IconAsset src="/icon/likes.svg" className="h-7 w-7" />
+              </button>
+              <ShareSheet editorialId={item.id} editorialTitle={item.title}>
+                {({ open }) => (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerSharePulse();
+                      open();
+                    }}
+                    className={`flex h-8 w-8 items-center justify-center ${sharePulse ? "share-pulse" : ""}`}
+                    aria-label="Partager cette fiche"
+                  >
+                    <ShareIcon className="h-7 w-7" />
+                  </button>
+                )}
+              </ShareSheet>
             </div>
-            {publicFichesQuery.isLoading ? (
-              <p className="text-sm text-graphite">Chargement des fiches...</p>
-            ) : publicFiches.length ? (
-              <div className="space-y-3">
-                {publicFiches.map((fiche) => (
-                  <article key={fiche.id} className="rounded-[24px] bg-surface p-4 ring-1 ring-borderSoft/10">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-ink">{fiche.title}</h3>
-                        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-graphite">{ficheSummary(fiche)}</p>
-                      </div>
-                      <Link href={ficheCorrectionHref(fiche)} className="shrink-0 rounded-full bg-elevated px-3 py-2 text-xs font-semibold text-plum shadow-sm">
-                        Corriger
-                      </Link>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {fiche.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-blueSoft px-2.5 py-1 text-[11px] font-semibold text-blue">{tag}</span>
-                      ))}
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="rounded-[22px] bg-surface p-4 text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
-                Aucune fiche collaborative publiée pour cette carte. Vous pouvez proposer la première.
+          </div>
+
+          {item.type === "event" ? (
+            <div className="mt-4 ml-[46px] space-y-1 text-[13px] leading-[1.25]">
+              {item.metadata.date ? (
+                <p className="flex items-center gap-2">
+                  <IconAsset src="/icon/date.svg" className="h-4 w-4" />
+                  <span className="line-clamp-1">{formatFrenchDateTime(item.metadata.date)}</span>
+                </p>
+              ) : null}
+              <p className="flex items-center gap-2">
+                <IconAsset src="/icon/lieu.svg" className="h-4 w-4" />
+                <span className="line-clamp-1">{item.metadata.address || item.metadata.city || "Strasbourg"}</span>
               </p>
-            )}
-          </div>
-
-          <div className="detail-reveal detail-reveal-delay-2 rounded-card bg-elevated px-4 py-4 text-sm text-graphite shadow-card ring-1 ring-borderSoft/10">
-            <p className="font-semibold">Repere editorial</p>
-            <div className="mt-2 flex flex-wrap gap-3">
-              {item.metadata.date ? <span>{formatFrenchDateTime(item.metadata.date)}</span> : null}
-              {item.metadata.price !== undefined ? <span>{formatPrice(item.metadata.price)}</span> : null}
-              {item.metadata.city ? <span>{item.metadata.city}</span> : null}
             </div>
+          ) : null}
+
+          <div className="mt-5 space-y-4 text-[14px] leading-[1.42]">
+            <p>{bodyText}</p>
+            {item.narrative_text ? <p>{item.narrative_text}</p> : null}
           </div>
 
-          <div className="detail-reveal detail-reveal-delay-2 grid gap-2 rounded-[26px] bg-blueSoft p-3 ring-1 ring-blue/15">
-            <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-4 py-3 text-center text-sm font-semibold text-blue shadow-sm">
-              Améliorer cette fiche
-            </Link>
-            <div className="grid grid-cols-2 gap-2">
-              <Link href={correctionHref} className="interactive-action rounded-full bg-elevated px-3 py-3 text-center text-xs font-semibold text-ink shadow-sm">
-                Proposer une correction
-              </Link>
-              <Link href={improveHref} className="interactive-action rounded-full bg-elevated px-3 py-3 text-center text-xs font-semibold text-ink shadow-sm">
-                Ajouter des informations
-              </Link>
-            </div>
-          </div>
-
-          <div className="detail-reveal detail-reveal-delay-3 sticky top-[8.4rem] z-20 rounded-[24px] bg-background/86 p-2 backdrop-blur-md">
-            <div className="grid grid-cols-3 gap-3">
-            <Button
-              variant="secondary"
-              className="rounded-3xl shadow-none"
-              onClick={() => {
-                triggerLikePulse();
-                likeMutation.mutate(editorialId);
-              }}
-            >
-              <Heart className={`mr-2 h-4 w-4 ${item.is_liked ? "fill-plum text-plum" : ""} ${likePulse ? "like-pop" : ""}`} />
-              {item.like_count}
-            </Button>
-            <ShareSheet editorialId={item.id} editorialTitle={item.title}>
-              {({ open }) => (
-                <Button
-                  variant="secondary"
-                  className={`rounded-3xl shadow-none ${sharePulse ? "share-pulse" : ""}`}
-                  onClick={() => {
-                    triggerSharePulse();
-                    open();
-                  }}
+          {publicFiches.length > 1 ? (
+            <div className="mt-4 space-y-2">
+              {publicFiches.slice(1, 3).map((fiche) => (
+                <Link
+                  key={fiche.id}
+                  href={ficheCorrectionHref(fiche)}
+                  className="block rounded-[10px] bg-white px-3 py-2 text-[12px] text-[#454A55]"
                 >
-                  <ShareIcon className="mr-2 h-4 w-4" strokeWidth={2.2} />
-                  Share
-                </Button>
-              )}
-            </ShareSheet>
-            <Link
-              href={mapHref}
-              className="interactive-action relative z-10 inline-flex items-center justify-center rounded-full bg-elevated px-5 py-3 text-sm font-semibold text-ink shadow-sm ring-1 ring-borderSoft/10 transition hover:bg-mist"
-              aria-label={`Ouvrir ${item.title} sur la carte`}
-            >
-              <MapPinned className="mr-2 h-4 w-4" />
-              Map
-            </Link>
-          </div>
-          </div>
+                  {fiche.title}
+                </Link>
+              ))}
+            </div>
+          ) : null}
 
-          <div className="detail-reveal detail-reveal-delay-3 flex items-center justify-between rounded-[26px] border border-borderSoft/10 bg-elevated px-4 py-4 text-sm text-graphite shadow-card">
+          <Link href={item.contributor.id ? `/profile/${item.contributor.id}` : "/profile"} className="mt-6 flex items-center gap-2 text-[12px]">
+            <span>Référent(e)&nbsp;:</span>
+            <Image
+              src={item.contributor.avatar_url}
+              alt={item.contributor.display_name}
+              width={27}
+              height={27}
+              className="h-[27px] w-[27px] rounded-full object-cover"
+            />
+            <span className="min-w-0 truncate">{item.contributor.display_name}</span>
+          </Link>
+
+          <div className="mt-7 grid grid-cols-2 gap-3 text-[13px]">
             <button
               type="button"
               onClick={() =>
@@ -462,103 +401,31 @@ export function DetailScreen({ editorialId }: DetailScreenProps) {
                   return currentKey === nextKey ? null : nextIds;
                 })
               }
-              className="flex items-center gap-2 font-medium"
+              className="flex min-w-0 items-center gap-2"
             >
-              <CloudIcon className="h-4 w-4" strokeWidth={2.15} />
-              {cloudFilterIds?.length ? "Tout afficher" : "Nuage de cartes liees"}
+              <CloudIcon className="h-5 w-5 shrink-0" />
+              <span className="truncate">{cloudFilterIds?.length ? "Tout afficher" : "Nuage de cartes liées"}</span>
             </button>
             <CardFilterSheet>
               {({ open }) => (
-                <button type="button" onClick={open} className="flex items-center gap-2 font-medium">
-                  <FilterIcon className="h-4 w-4" strokeWidth={2.15} />
-                  Filtrer les cartes
+                <button type="button" onClick={open} className="flex min-w-0 items-center justify-end gap-2">
+                  <FilterIcon className="h-5 w-5 shrink-0" />
+                  <span className="truncate">Filtrer les cartes</span>
                 </button>
               )}
             </CardFilterSheet>
           </div>
+        </section>
 
-          <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {visibleRelated.length ? visibleRelated.map((relatedItem) => (
-              <Link
-                key={relatedItem.id}
-                href={`/editorial/${relatedItem.id}`}
-                className="card-enter group block min-w-[88%] snap-start overflow-hidden rounded-card bg-editorial text-white shadow-card ring-1 ring-borderSoft/10"
-              >
-                <div className="relative aspect-[1.05]">
-                  {relatedItem.media_kind === "audio" ? (
-                    <div className="absolute inset-0 bg-[linear-gradient(160deg,#1D2230_0%,#7643A6_58%,#3365C8_100%)]" />
-                  ) : (
-                    <Image
-                      src={relatedItem.media_kind === "video" ? relatedItem.poster_url || "/assets/icon-play.svg" : relatedItem.media_url}
-                      alt={relatedItem.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 430px"
-                      className="object-cover transition duration-500 group-hover:scale-[1.02]"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
-                  <div className="absolute right-4 top-4 flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        triggerLikePulse();
-                        likeMutation.mutate(relatedItem.id);
-                      }}
-                      className={`interactive-action rounded-full bg-white/18 p-2 backdrop-blur ${likePulse ? "like-pop" : ""}`}
-                      aria-label="Aimer cette carte"
-                    >
-                      <Heart
-                        className={`h-5 w-5 ${relatedItem.is_liked ? "fill-white text-white" : "text-white"}`}
-                      />
-                    </button>
-                    <ShareSheet editorialId={relatedItem.id} editorialTitle={relatedItem.title}>
-                      {({ open }) => (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            triggerSharePulse();
-                            open();
-                          }}
-                          className={`interactive-action rounded-full bg-white/18 p-2 backdrop-blur ${sharePulse ? "share-pulse" : ""}`}
-                          aria-label="Partager cette carte"
-                        >
-                          <ShareIcon className="h-5 w-5 text-white" strokeWidth={2.2} />
-                        </button>
-                      )}
-                    </ShareSheet>
-                  </div>
-                  <div className="absolute inset-x-4 bottom-4">
-                    <h2 className="max-w-[14ch] text-[1.9rem] font-semibold leading-[0.95] tracking-[-0.03em]">
-                      {relatedItem.title}
-                    </h2>
-                    {relatedItem.subtitle ? (
-                      <p className="mt-3 text-base text-white/90">{relatedItem.subtitle}</p>
-                    ) : null}
-                    {(relatedItem.metadata.address || relatedItem.metadata.city) ? (
-                      <p className="mt-3 inline-flex max-w-[90%] items-center gap-2 rounded-full bg-black/25 px-3 py-2 text-sm text-white/90 backdrop-blur-md">
-                        <MapPinned className="h-4 w-4 shrink-0" />
-                        <span className="truncate">
-                          {relatedItem.metadata.address || relatedItem.metadata.city}
-                        </span>
-                      </p>
-                    ) : null}
-                    {relatedItem.media_kind === "audio" ? (
-                      <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-white/18 px-3 py-2 text-sm text-white/92 backdrop-blur-md">
-                        <Volume2 className="h-4 w-4 shrink-0" />
-                        Capsule audio
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </Link>
-            )) : (
-              <div className="rounded-[24px] bg-surface px-4 py-5 text-sm leading-6 text-graphite ring-1 ring-borderSoft/10">
-                Aucune autre carte reliee ne correspond au filtre actif pour le moment.
-              </div>
-            )}
-          </div>
+        <div className="space-y-2 py-[10px]">
+          {visibleRelated.slice(0, 3).map((relatedItem, index) => (
+            <PwaFeedCard
+              key={relatedItem.id}
+              item={relatedItem}
+              onLike={(id) => likeMutation.mutate(id)}
+              featured={index === 0}
+            />
+          ))}
         </div>
       </article>
     </MobileShell>

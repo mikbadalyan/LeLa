@@ -69,6 +69,10 @@ function getContributionPreviewKind(item: ModerationContribution) {
   );
 }
 
+function isProfileImageSrc(value: string) {
+  return value.startsWith("/") || value.startsWith("http://") || value.startsWith("https://");
+}
+
 function GalleryTile({
   href,
   image,
@@ -128,6 +132,7 @@ export default function ProfilePage() {
   const [form, setForm] = useState({
     username: "",
     email: "",
+    avatar_url: "",
     city: "",
     bio: "",
   });
@@ -152,6 +157,7 @@ export default function ProfilePage() {
       setForm({
         username: profileQuery.data.username,
         email: profileQuery.data.email ?? "",
+        avatar_url: profileQuery.data.avatar_url,
         city: profileQuery.data.city ?? "",
         bio: profileQuery.data.bio ?? "",
       });
@@ -262,10 +268,20 @@ export default function ProfilePage() {
   return (
     <MobileShell activeMode="feed" activeTab="profile" className="space-y-4 px-4 py-5">
       <div className="space-y-5 rounded-card bg-elevated px-5 py-6 shadow-card ring-1 ring-borderSoft/10">
-        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7643A6_0%,#3365C8_100%)] text-xl font-bold text-white shadow-float">
-              {profileUser?.display_name.slice(0, 2).toUpperCase() ?? "LL"}
+            <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[linear-gradient(135deg,#7643A6_0%,#3365C8_100%)] text-xl text-white shadow-float">
+              {profileUser?.avatar_url && isProfileImageSrc(profileUser.avatar_url) ? (
+                <Image
+                  src={profileUser.avatar_url}
+                  alt={profileUser.display_name}
+                  fill
+                  sizes="64px"
+                  className="object-cover"
+                />
+              ) : (
+                profileUser?.display_name.slice(0, 2).toUpperCase() ?? "LL"
+              )}
             </div>
             <div className="min-w-0">
               <h1 className="truncate text-2xl font-semibold text-ink">
@@ -328,6 +344,29 @@ export default function ProfilePage() {
         {showEditor ? (
           <div className="space-y-4 rounded-[28px] bg-surface px-4 py-4 ring-1 ring-borderSoft/10">
             <div className="grid gap-3">
+              <div>
+                <p className="mb-2 text-sm font-semibold text-ink">Photo de profil</p>
+                <div className="flex items-center gap-3">
+                  <div className="relative h-14 w-14 overflow-hidden rounded-full bg-mist ring-1 ring-borderSoft/10">
+                    {form.avatar_url && isProfileImageSrc(form.avatar_url) ? (
+                      <Image
+                        src={form.avatar_url}
+                        alt="Apercu de la photo de profil"
+                        fill
+                        sizes="56px"
+                        className="object-cover"
+                      />
+                    ) : null}
+                  </div>
+                  <Input
+                    value={form.avatar_url}
+                    onChange={(event) =>
+                      setForm((current) => ({ ...current, avatar_url: event.target.value }))
+                    }
+                    placeholder="/static/mock/avatar-charles.svg ou https://..."
+                  />
+                </div>
+              </div>
               <div>
                 <p className="mb-2 text-sm font-semibold text-ink">Pseudo</p>
                 <Input

@@ -1,35 +1,30 @@
 import type { LucideProps } from "lucide-react";
-import {
-  BookOpenText,
-  CalendarDays,
-  Cloud,
-  Headphones,
-  Heart,
-  Filter,
-  MapPin,
-  MessageCircleMore,
-  Network,
-  Newspaper,
-  Pause,
-  PlusCircle,
-  Send,
-  UserCircle2,
-  Users,
-} from "lucide-react";
 
 import type { EditorialCard } from "@/lib/api/types";
+import { cn } from "@/lib/utils/cn";
 
 type IconProps = Omit<LucideProps, "ref">;
 
-function RobotChatAsset({ className }: { className?: string }) {
+function SvgMaskIcon({
+  src,
+  className,
+  style,
+}: IconProps & { src: string }) {
   return (
-    <img
-      src="/assets/icon-chat-good.svg"
-      alt=""
+    <span
       aria-hidden="true"
-      className={className}
+      className={cn("inline-block shrink-0 bg-current", className)}
+      style={{
+        WebkitMask: `url(${src}) center / contain no-repeat`,
+        mask: `url(${src}) center / contain no-repeat`,
+        ...style,
+      }}
     />
   );
+}
+
+export function IconAsset(props: IconProps & { src: string }) {
+  return <SvgMaskIcon {...props} />;
 }
 
 export function ModeIcon({
@@ -38,13 +33,13 @@ export function ModeIcon({
 }: IconProps & { mode: "place" | "person" | "event" | "chat" }) {
   switch (mode) {
     case "place":
-      return <MapPin {...props} />;
+      return <SvgMaskIcon src="/icon/lieu.svg" {...props} />;
     case "person":
-      return <Users {...props} />;
+      return <SvgMaskIcon src="/icon/acteurs.svg" {...props} />;
     case "event":
-      return <CalendarDays {...props} />;
+      return <SvgMaskIcon src="/icon/event.svg" {...props} />;
     case "chat":
-      return <RobotChatAsset className={props.className} />;
+      return <SvgMaskIcon src="/icon/chat.svg" {...props} />;
   }
 }
 
@@ -56,15 +51,15 @@ export function TabIcon({
 }) {
   switch (tab) {
     case "likes":
-      return <Heart {...props} />;
+      return <SvgMaskIcon src="/icon/likes.svg" {...props} />;
     case "contribute":
-      return <PlusCircle {...props} />;
+      return <SvgMaskIcon src="/icon/contributions.svg" {...props} />;
     case "conversations":
-      return <MessageCircleMore {...props} />;
+      return <SvgMaskIcon src="/icon/conversations.svg" {...props} />;
     case "relations":
-      return <Network {...props} />;
+      return <SvgMaskIcon src="/icon/relations.svg" {...props} />;
     case "profile":
-      return <UserCircle2 {...props} />;
+      return <SvgMaskIcon src="/icon/compte.svg" {...props} />;
   }
 }
 
@@ -74,13 +69,13 @@ export function EditorialTypeIcon({
 }: IconProps & { type: EditorialCard["type"] | "magazine" | "place" | "person" | "event" }) {
   switch (type) {
     case "magazine":
-      return <Newspaper {...props} />;
+      return <SvgMaskIcon src="/icon/magazine.svg" {...props} />;
     case "place":
-      return <MapPin {...props} />;
+      return <SvgMaskIcon src="/icon/lieu.svg" {...props} />;
     case "person":
-      return <Users {...props} />;
+      return <SvgMaskIcon src="/icon/acteurs.svg" {...props} />;
     case "event":
-      return <CalendarDays {...props} />;
+      return <SvgMaskIcon src="/icon/event.svg" {...props} />;
   }
 }
 
@@ -93,32 +88,28 @@ export function MediaStateIcon({
   isPlaying?: boolean;
 }) {
   if (isPlaying) {
-    return <Pause {...props} />;
+    return <SvgMaskIcon src="/icon/pause.svg" {...props} />;
   }
 
   switch (kind) {
     case "video":
-      return (
-        <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-          <path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.15-5.18a1 1 0 0 0 0-1.68L9.54 5.98A1 1 0 0 0 8 6.82Z" />
-        </svg>
-      );
+      return <SvgMaskIcon src="/icon/play.svg" {...props} />;
     case "audio":
-      return <Headphones {...props} />;
+      return <SvgMaskIcon src="/icon/headphones.svg" {...props} />;
     case "image":
     case "read":
-      return <BookOpenText {...props} />;
+      return <SvgMaskIcon src="/icon/read.svg" {...props} />;
   }
 }
 
 export function ShareIcon(props: IconProps) {
-  return <Send {...props} />;
+  return <SvgMaskIcon src="/icon/share.svg" {...props} />;
 }
 
 export function CloudIcon(props: IconProps) {
-  return <Cloud {...props} />;
+  return <SvgMaskIcon src="/icon/cloud.svg" {...props} />;
 }
 
 export function FilterIcon(props: IconProps) {
-  return <Filter {...props} />;
+  return <SvgMaskIcon src="/icon/filter.svg" {...props} />;
 }

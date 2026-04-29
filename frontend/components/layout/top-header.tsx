@@ -2,22 +2,18 @@
 
 import {
   Bell,
-  CalendarDays,
   CircleHelp,
   Globe2,
-  LoaderCircle,
   LogOut,
-  Menu,
   MonitorSmartphone,
-  Map,
   Settings2,
-  X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { IconAsset } from "@/components/ui/lela-icons";
 import { languageOptions, useI18n } from "@/features/shell/i18n";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/features/auth/store";
@@ -48,7 +44,6 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
   const setCity = useShellStore((state) => state.setCity);
   const setSelectedDate = useShellStore((state) => state.setSelectedDate);
   const resetFilters = useShellStore((state) => state.resetFilters);
-  const compactMode = useShellStore((state) => state.compactMode);
   const showLiveProgress = pathname === "/feed";
 
   const [openPanel, setOpenPanel] = useState<Panel>(null);
@@ -210,6 +205,17 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         ]
       : []),
     {
+      label: t("header.notifications"),
+      description: isNotificationsLoading
+        ? "Chargement des notifications..."
+        : `${unreadNotificationCount} notification${unreadNotificationCount > 1 ? "s" : ""} non lue${unreadNotificationCount > 1 ? "s" : ""}.`,
+      icon: Bell,
+      action: () => {
+        markNotificationsSeen();
+        setOpenPanel("notifications");
+      },
+    },
+    {
       label: token ? t("menu.account") : t("menu.login"),
       description: token
         ? t("menu.accountDescription")
@@ -268,97 +274,48 @@ export function TopHeader({ rightContent }: TopHeaderProps) {
         />
       ) : null}
 
-      <header
-        className={cn(
-          "relative z-40 border-b border-borderSoft/10 bg-elevated/92 px-4 shadow-soft backdrop-blur-xl",
-          compactMode ? "py-1.5" : "py-2"
-        )}
-      >
-        <div className="flex items-center justify-between gap-2 text-sm text-graphite">
-          {/* City selector */}
+      <header className="relative z-40 h-[var(--pwa-topbar-height)] border-b border-black/5 bg-white px-5">
+        <div className="grid h-full grid-cols-[minmax(0,1fr)_minmax(0,1fr)_36px] items-center gap-3 text-[14px] leading-none text-[#474C57]">
           <button
             type="button"
             onClick={() => toggle("city")}
-            className={`flex h-9 min-w-0 items-center gap-2 rounded-full border px-3 font-semibold transition ${
-              openPanel === "city"
-                ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
-                : "border-borderSoft/10 bg-mist/80 hover:bg-white"
-            }`}
+            className="flex min-w-0 items-center gap-2 text-left underline underline-offset-2 transition hover:text-[var(--pwa-blue)]"
           >
-            <Map className="h-4 w-4 shrink-0" />
-            <span className="truncate text-[12px]">{city}</span>
+            <IconAsset src="/icon/target.svg" className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate">{city}</span>
           </button>
 
-          {/* Date selector */}
           <button
             type="button"
             onClick={() => toggle("date")}
-            className={`flex h-9 shrink-0 items-center gap-2 rounded-full border px-3 font-semibold transition ${
-              openPanel === "date"
-                ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
-                : "border-borderSoft/10 bg-mist/80 hover:bg-white"
-            }`}
+            className="flex min-w-0 items-center gap-2 text-left underline underline-offset-2 transition hover:text-[var(--pwa-blue)]"
           >
-            <CalendarDays className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap text-[12px]">{formatDate(selectedDate)}</span>
+            <IconAsset src="/icon/date.svg" className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate whitespace-nowrap">{formatDate(selectedDate)}</span>
           </button>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end">
             {rightContent}
             <button
               type="button"
-              onClick={() => {
-                const nextOpen = openPanel !== "notifications";
-                toggle("notifications");
-                if (nextOpen) {
-                  markNotificationsSeen();
-                }
-              }}
-              className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
-                openPanel === "notifications"
-                  ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
-                  : "border-borderSoft/10 bg-mist/80 hover:bg-white"
-              }`}
-              aria-label={t("header.notifications")}
-            >
-              {isNotificationsLoading ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-              ) : (
-                <Bell className="h-4 w-4" />
-              )}
-              {unreadNotificationCount > 0 ? (
-                <span className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white">
-                  {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
-                </span>
-              ) : null}
-            </button>
-            <button
-              type="button"
               onClick={() => toggle("menu")}
-              className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${
-                openPanel === "menu"
-                  ? "border-blue/25 bg-blueSoft text-blue shadow-blue"
-                  : "border-borderSoft/10 bg-mist/80 hover:bg-white"
-              }`}
+              className="inline-flex h-9 w-9 items-center justify-center text-[#474C57] transition hover:text-[var(--pwa-blue)]"
               aria-label={t("header.menu")}
             >
               {openPanel === "menu" ? (
-                <X className="h-5 w-5" />
+                <IconAsset src="/icon/close.svg" className="h-6 w-6" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <IconAsset src="/icon/menu.svg" className="h-6 w-6" />
               )}
             </button>
           </div>
         </div>
 
         {showLiveProgress ? (
-          <div className="mt-2 h-[2px] overflow-hidden">
-            <span
-              className="block h-full rounded-full bg-blue transition-[width] duration-200 ease-out"
-              style={{ width: `${Math.max(0, Math.min(100, liveScrollProgress))}%` }}
-            />
-          </div>
+          <span
+            className="absolute bottom-0 left-0 block h-px rounded-full bg-[#3365C8] transition-[width] duration-200 ease-out"
+            style={{ width: `${Math.max(0, Math.min(100, liveScrollProgress))}%` }}
+          />
         ) : null}
 
         {/* ── Dropdown panels ── */}
